@@ -24,6 +24,7 @@
 
 (require 'url)
 (require 'url-http)
+(require 'json)
 
 (defvar diaspora-username nil)
 (defvar diaspora-password nil)
@@ -48,7 +49,7 @@
                          nil nil
                          'diaspora-password)))
 
-(defun diaspora-authenticity-token (url)
+(defun diaspora-authenticity-token (url)  
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
@@ -61,6 +62,9 @@
     (url-retrieve url 'diaspora-find-auth-token)))
 
 (defun diaspora-find-auth-token (status)
+    "Just look for the authenticity token in the buffer. 
+This is used as a \"callback\" function for `url-retrieve'."
+  ;; *** For Debugging purposes only:
   (switch-to-buffer (current-buffer))
   (save-excursion
     (goto-char (point-min))
@@ -92,6 +96,110 @@
   (diaspora-ask)
   (diaspora-authenticity-token diaspora-url-sign-in)
   (diaspora-post (buffer-string)))
+
+
+					; *** DIASPORA MAIN STREAM 
+
+(defvar diaspora-entry-stream-url "http://joindiaspora.com/stream.json"
+  "JSON version of the entry stream(the main stream).")
+
+
+(defun diaspora-show-stream (status &optional new-buffer-name)
+  "Show what was recieved in a new buffer.
+If new-buffer-name is given then, the new buffer will have that name, 
+if not, the buffer called \"Diáspora Stream\" will be re-used or created if needed."
+
+  ;; new-buffer-name has been given? if not, use "Diáspora Stream" as name.
+  (unless new-buffer-name
+    (setq new-buffer-name "**Diáspora Stream**")
+    )
+  (let ((buffer (get-buffer-create new-buffer-name))
+	(text (buffer-string))
+	(buf-kill (current-buffer))
+	)    
+
+    ;; copy text and switch
+    (switch-to-buffer buffer)
+    (insert text)    
+    
+    ;; kill the http buffer
+    (kill-buffer buf-kill)
+    )
+  )
+
+(defun diaspora-get-url-entry-stream (url)
+  "Get the Diáspora URL and leave it in a new buffer."
+  (let (
+	(url-request-extra-headers
+	 '(("Content-Type" . "application/x-www-form-urlencoded")
+	   ("Accept-Language" . "en")
+	   ("Accept-Charset" . "UTF-8")	   	   
+	   ))
+	 )
+    (url-retrieve-synchronously url) 
+    )
+  )
+
+
+(defun diaspora-get-entry-stream ()
+  "Show the entry stream. 
+First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
+I expect to be already logged in. Use `diaspora' for log-in."
+  (interactive)
+  (let (
+	(buff (diaspora-get-url-entry-stream diaspora-entry-stream-url))
+	)
+    (with-current-buffer buff
+      ;; Delete the HTTP header...
+      (goto-char (point-min))
+      (search-forward "\n\n")      
+      (delete-region (point-min) (match-beginning 0))
+      ;; Parse JSON...
+      (diaspora-parse-json)
+      )
+    ;; Delete HTTP Buffer
+    (kill-buffer buff)
+    )
+  )
+
+(defun diaspora-show-message (parsed-message &optional buffer)
+  "Show a parsed message in a given buffer."
+  (with-current-buffer buffer
+    (let (
+	  (name (cdr (assoc 'name (assoc 'author parsed-message))))
+	  (diaspora_id (cdr (assoc 'diaspora_id (assoc 'author parsed-message))))
+	  (text (cdr (assoc 'text parsed-message)))
+	  (date (cdr (assoc 'created_at parsed-message)))
+	  (amount-comments (cdr (assoc 'comments_count parsed-message)))
+	  (amount-likes (cdr (assoc 'likes_count parsed-message)))
+	  ;; We can look for more data, including the last 3 comments!
+	  )
+	  
+      (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text))
+      )
+    )
+  )
+
+(defun diaspora-parse-json (&optional status)
+  "Parse de JSON entry stream."
+  (goto-char (point-min))
+  (let (
+	(lstparsed (cdr (assoc 'posts (json-read))))
+	(buff (get-buffer-create "*Diáspora*"))
+	)
+    (switch-to-buffer buff)
+    (let (
+	  (le (length lstparsed))
+	  )
+    ;; Show all elements
+    
+    
+      (dotimes (i le)
+	(diaspora-show-message (aref lstparsed i) buff)
+	)
+      )
+    )
+  )
 		  
 (provide 'diaspora)
 
