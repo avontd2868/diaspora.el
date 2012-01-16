@@ -1,12 +1,1 @@
 diaspora(dot)el -- Simple Emacs-based client for diaspora*
-
-
-Usage
-
- - copy the code to a buffer and safe it
- - eval it
- - create a file, visit that file with C-x C-f, which content you like to post to diaspora; write something
- - in the minibuffer type: diaspora
- - authenticate
-
-and smile

@@ -83,7 +83,7 @@ If nil, you will be prompted."
 
 (defun diaspora-find-auth-token (status)
   "Find the authenticity token."  
-  (switch-to-buffer (current-buffer))
+;  (switch-to-buffer (current-buffer))
   (save-excursion
     (goto-char (point-min))
     (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
@@ -109,7 +109,7 @@ If nil, you will be prompted."
 		  (lambda (arg) 
 		    (kill-buffer (current-buffer))))))
 
-(defun diaspora ()
+(defun diaspora-post-buffer ()
   (interactive)
   (diaspora-ask)
   (diaspora-authenticity-token diaspora-url-sign-in)
