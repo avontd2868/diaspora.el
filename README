@@ -1,1 +1,3 @@
 diaspora(dot)el -- Simple Emacs-based client for diaspora*
+
+Posting is now given by: diaspora-post-buffer
