@@ -24,13 +24,26 @@
 
 ;; A diaspora* client for emacs
 
+(provide 'diaspora)
 
 (require 'url)
 (require 'url-http)
 (require 'json)
 
-(defgroup diaspora nil "diaspora* stream viewer"
+(defconst diaspora-el-version ".0"
+  "This version of diaspora*-el.")
+
+(defgroup diaspora nil 
+  "A mode for diaspora* stream view and posting."
   :group 'applications)
+
+;;; User variable:
+
+(defcustom diaspora-mode-hook nil
+  "Functions run upon entering `diaspora-mode'."
+  :type 'hook
+  :options '(flyspell-mode turn-on-auto-fill)
+  :group 'diaspora)
 
 (defcustom diaspora-username nil
   "Username to use for connecting to diaspora.
@@ -44,11 +57,11 @@ If nil, you will be prompted."
   :type '(choice (const :tag "Ask" nil) (string))
   :group 'diaspora)
 
-(defcustom diaspora-url-sign-in "https://joindiaspora.com/users/sign_in"
+(defcustom diaspora-sign-in-url "https://joindiaspora.com/users/sign_in"
   "URL used to signing in."
   :group 'diaspora)
 
-(defcustom diaspora-url-status-messages "https://joindiaspora.com/status_messages"
+(defcustom diaspora-status-messages-url "https://joindiaspora.com/status_messages"
   "URL used to update diaspora status messages."
   :group 'diaspora)
 
@@ -105,14 +118,14 @@ If nil, you will be prompted."
 			  (cons "commit" "Sign in")
 			  (cons "aspect_ids[]" "public"))
 		    "&")))
-    (url-retrieve diaspora-url-status-messages
+    (url-retrieve diaspora-status-messages-url
 		  (lambda (arg) 
 		    (kill-buffer (current-buffer))))))
 
 (defun diaspora-post-buffer ()
   (interactive)
   (diaspora-ask)
-  (diaspora-authenticity-token diaspora-url-sign-in)
+  (diaspora-authenticity-token diaspora-sign-in-url)
   (diaspora-post (buffer-string)))
 
 
@@ -182,5 +195,28 @@ I expect to be already logged in. Use `diaspora' for log-in."
       (dotimes (i le)
 	(diaspora-show-message (aref lstparsed i) buff)))))		  
 
-(provide 'diaspora)
 
+(defsubst diaspora-date ()
+  "Insert a nicely formated date string."
+  (interactive)
+  (insert (format-time-string "%Y%m%d")))
+
+;;; Internal Functions:
+
+(defvar diaspora-mode-map ()
+  "Keymap used in diaspora-mode.")
+(when (not diaspora-mode-map)
+  (setq diaspora-mode-map (make-sparse-keymap))
+  (define-key diaspora-mode-map "\C-c\C-c" 'diaspora-post-buffer))
+
+(defun diaspora-mode ()
+  "Major mode for output from \\[diaspora*]."
+  (interactive)
+  (kill-all-local-variables)
+  (indented-text-mode)
+  (use-local-map diaspora-mode-map)
+  (setq major-mode 'diaspora-mode
+        mode-name "diaspora")
+  (run-hooks 'diaspora-mode-hook))
+
+;;; diaspora.el ends here
