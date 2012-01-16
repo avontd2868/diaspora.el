@@ -42,7 +42,7 @@
 (defcustom diaspora-mode-hook nil
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill)
+  :options '(flyspell-mode turn-on-auto-fill longlines-mode)
   :group 'diaspora)
 
 (defcustom diaspora-username nil
@@ -57,17 +57,28 @@ If nil, you will be prompted."
   :type '(choice (const :tag "Ask" nil) (string))
   :group 'diaspora)
 
-(defcustom diaspora-sign-in-url "https://joindiaspora.com/users/sign_in"
+(defcustom diaspora-sign-in-url 
+  "https://joindiaspora.com/users/sign_in"
   "URL used to signing in."
   :group 'diaspora)
 
-(defcustom diaspora-status-messages-url "https://joindiaspora.com/status_messages"
+(defcustom diaspora-status-messages-url 
+  "https://joindiaspora.com/status_messages"
   "URL used to update diaspora status messages."
   :group 'diaspora)
 
-(defcustom diaspora-entry-stream-url "https://joindiaspora.com/stream.json"
+(defcustom diaspora-entry-stream-url 
+  "https://joindiaspora.com/stream.json"
   "JSON version of the entry stream(the main stream)."
   :group 'diaspora)
+
+
+;;; Internal Variables:
+
+(defvar diaspora-buffer "*diaspora*"
+  "The name of the diaspora stream buffer.")
+
+;;; User Functions:
 
 (defun diaspora-ask ()
   "Ask for username and password."
@@ -184,16 +195,28 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	  )
       (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text)))))
 
+(defun diaspora-get-entry-stream-tag (tag)
+  "Get stream of tag. Just an idea... needs working."
+  (interactive)
+  (let ((buff (diaspora-get-url-entry-stream
+	       (concat "https://joindiaspora.com/tags/" tag ".json"))))
+    (with-current-buffer buff
+      (goto-char (point-min))
+      (search-forward "\n\n")      
+      (delete-region (point-min) (match-beginning 0))
+      (diaspora-parse-json))
+    (kill-buffer buff)))
+
 (defun diaspora-parse-json (&optional status)
   "Parse de JSON entry stream."
   (goto-char (point-min))
   (let ((lstparsed (cdr (assoc 'posts (json-read))))
-	(buff (get-buffer-create "*diaspora*")))
+	(buff (get-buffer-create diaspora-buffer)))
     (switch-to-buffer buff)
     (let ((le (length lstparsed)))
     ;; Show all elements
       (dotimes (i le)
-	(diaspora-show-message (aref lstparsed i) buff)))))		  
+	(diaspora-show-message (aref lstparsed i) buff)))))
 
 
 (defsubst diaspora-date ()
