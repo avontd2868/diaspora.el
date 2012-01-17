@@ -191,7 +191,7 @@ If new-buffer-name is given then, the new buffer will have that name,
 if not, the buffer called \"Diáspora Stream\" will be re-used or created if needed."
   ;; new-buffer-name has been given? if not, use "Diáspora Stream" as name.
   (unless new-buffer-name
-    (setq new-buffer-name "**Diaspora Stream**"))
+    (setq new-buffer-name "Diaspora Stream"))
   (let ((buffer (get-buffer-create new-buffer-name))
 	(text (buffer-string))
 	(buf-kill (current-buffer)))    
@@ -239,7 +239,22 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	  (amount-likes (cdr (assoc 'likes_count parsed-message)))
 	  ;; We can look for more data, including the last 3 comments!
 	  )
-      (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text)))))
+      (insert  "---\n")
+      (insert (propertize
+	       (format "%s(%s):\n" name diaspora_id)
+	       'mouse-face 'highlight
+	       'face "link"
+	       'help-echo "Click here to see this message in new buffer."))
+      (insert (propertize 
+	       (format "%s\n" date)
+	       'face "diaspora-stream-mode-date-face"))
+      (insert (propertize
+	       (format "Has %s comments. %s likes.\n" amount-comments amount-likes)
+	       'face "diaspora-stream-mode-headline-face"))
+      (insert (propertize
+	       (format "%s\n\n" text)
+	       'face "diaspora-stream-mode-text-face")) )))
+
 
 (defun diaspora-get-entry-stream-tag (tag)
   "Get stream of tag. Just an idea... needs working."
@@ -260,14 +275,14 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	(buff (get-buffer-create diaspora-buffer))) 
     ;; clean the new buffer
     (switch-to-buffer buff)
+    ;; Put the `diaspora-stream-mode'.
+    (diaspora-stream-mode)
     (let ((le (length lstparsed))
 	  (inhibit-read-only t))
       (delete-region (point-min) (point-max))
     ;; Show all elements
       (dotimes (i le)
-	(diaspora-show-message (aref lstparsed i) buff))))
-  ;; Put the `diaspora-stream-mode'.
-  (diaspora-stream-mode))
+	(diaspora-show-message (aref lstparsed i) buff)))))
 
 
 (defsubst diaspora-date ()
@@ -277,6 +292,22 @@ I expect to be already logged in. Use `diaspora' for log-in."
 
 
 					; *** Diáspora Stream Mode ***
+
+(defface diaspora-stream-mode-date-face
+  '(
+    (t
+     :foreground "chocolate"
+     :underlined t
+     ))
+  "Face for bars between messages.")
+
+(defface diaspora-stream-mode-text-face
+  '(
+    (t
+     :height 0.5
+     :foreground "dark orange"
+     ))
+  "Face for bars between messages.")
 
 (defface diaspora-stream-mode-bar-face
   '(
@@ -299,13 +330,13 @@ I expect to be already logged in. Use `diaspora' for log-in."
     ;; font-lock-keywords
     (
      ("---\n" . 'diaspora-stream-mode-bar-face) 
-     ("#[^.,![:space:]]*" . 'diaspora-stream-mode-hash-face)
+     ("#[^#.,![:space:]]+" . 'diaspora-stream-mode-hash-face)
      )
 
     ;; Otros...
     )
   ;;
-  "Font lock for `ej-mode'")
+  "Font lock for `diaspora-stream-mode'")
 
 (define-derived-mode diaspora-stream-mode nil "*diaspora stream*"
   "Major mode for Streams."
