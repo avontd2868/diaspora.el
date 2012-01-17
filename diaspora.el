@@ -1,5 +1,9 @@
 ;;; diaspora.el --- Simple Emacs-based client for diaspora*
-;; Copyright 2011 Tiago Charters Azevedo
+
+;; Author:  Tiago Charters Azevedo, Christian Giménez
+;; Keywords: diaspora*
+
+;; Copyright 2011 Tiago Charters Azevedo, Christian Giménez
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -20,25 +24,64 @@
 
 ;; A diaspora* client for emacs
 
-;(add-hook 'diaspora-status-edit-mode-hook 'longlines-mode)
+(provide 'diaspora)
 
 (require 'url)
 (require 'url-http)
 (require 'json)
 
-(defvar diaspora-username nil)
-(defvar diaspora-password nil)
+(defconst diaspora-el-version ".0"
+  "This version of diaspora*-el.")
 
+(defgroup diaspora nil 
+  "A mode for diaspora* stream view and posting."
+  :group 'applications)
 
-(defconst diaspora-url-sign-in
+;;; User variable:
+
+(defcustom diaspora-mode-hook nil
+  "Functions run upon entering `diaspora-mode'."
+  :type 'hook
+  :options '(flyspell-mode turn-on-auto-fill longlines-mode)
+  :group 'diaspora)
+
+(defcustom diaspora-username nil
+  "Username to use for connecting to diaspora.
+If nil, you will be prompted."
+  :type '(choice (const :tag "Ask" nil) (string))
+  :group 'diaspora)
+
+(defcustom diaspora-password nil
+  "Password to use for connecting to diaspora.
+If nil, you will be prompted."
+  :type '(choice (const :tag "Ask" nil) (string))
+  :group 'diaspora)
+
+(defcustom diaspora-sign-in-url 
   "https://joindiaspora.com/users/sign_in"
-  "URL used to signing in.")
+  "URL used to signing in."
+  :group 'diaspora)
 
-(defconst diaspora-url-status-messages
+(defcustom diaspora-status-messages-url 
   "https://joindiaspora.com/status_messages"
-  "URL used to update diaspora status messages.")
+  "URL used to update diaspora status messages."
+  :group 'diaspora)
+
+(defcustom diaspora-entry-stream-url 
+  "https://joindiaspora.com/stream.json"
+  "JSON version of the entry stream(the main stream)."
+  :group 'diaspora)
+
+
+;;; Internal Variables:
+
+(defvar diaspora-buffer "*diaspora*"
+  "The name of the diaspora stream buffer.")
+
+;;; User Functions:
 
 (defun diaspora-ask ()
+  "Ask for username and password."
   (list
    (read-from-minibuffer "username: "
                          (car diaspora-username)
@@ -49,7 +92,8 @@
                          nil nil
                          'diaspora-password)))
 
-(defun diaspora-authenticity-token (url)  
+(defun diaspora-authenticity-token (url)
+  "Get the authenticity token."
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
@@ -62,10 +106,8 @@
     (url-retrieve url 'diaspora-find-auth-token)))
 
 (defun diaspora-find-auth-token (status)
-    "Just look for the authenticity token in the buffer. 
-This is used as a \"callback\" function for `url-retrieve'."
-  ;; *** For Debugging purposes only:
-  (switch-to-buffer (current-buffer))
+  "Find the authenticity token."  
+;  (switch-to-buffer (current-buffer))
   (save-excursion
     (goto-char (point-min))
     (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
@@ -87,58 +129,41 @@ This is used as a \"callback\" function for `url-retrieve'."
 			  (cons "commit" "Sign in")
 			  (cons "aspect_ids[]" "public"))
 		    "&")))
-    (url-retrieve diaspora-url-status-messages
+    (url-retrieve diaspora-status-messages-url
 		  (lambda (arg) 
 		    (kill-buffer (current-buffer))))))
 
-(defun diaspora ()
+(defun diaspora-post-buffer ()
   (interactive)
   (diaspora-ask)
-  (diaspora-authenticity-token diaspora-url-sign-in)
+  (diaspora-authenticity-token diaspora-sign-in-url)
   (diaspora-post (buffer-string)))
 
-
-					; *** DIASPORA MAIN STREAM 
-
-(defvar diaspora-entry-stream-url "http://joindiaspora.com/stream.json"
-  "JSON version of the entry stream(the main stream).")
 
 
 (defun diaspora-show-stream (status &optional new-buffer-name)
   "Show what was recieved in a new buffer.
 If new-buffer-name is given then, the new buffer will have that name, 
 if not, the buffer called \"Diáspora Stream\" will be re-used or created if needed."
-
   ;; new-buffer-name has been given? if not, use "Diáspora Stream" as name.
   (unless new-buffer-name
-    (setq new-buffer-name "**Diáspora Stream**")
-    )
+    (setq new-buffer-name "**Diaspora Stream**"))
   (let ((buffer (get-buffer-create new-buffer-name))
 	(text (buffer-string))
-	(buf-kill (current-buffer))
-	)    
-
+	(buf-kill (current-buffer)))    
     ;; copy text and switch
     (switch-to-buffer buffer)
     (insert text)    
-    
     ;; kill the http buffer
-    (kill-buffer buf-kill)
-    )
-  )
+    (kill-buffer buf-kill)))
 
 (defun diaspora-get-url-entry-stream (url)
   "Get the Diáspora URL and leave it in a new buffer."
-  (let (
-	(url-request-extra-headers
+  (let ((url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
 	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "UTF-8")	   	   
-	   ))
-	 )
-    (url-retrieve-synchronously url) 
-    )
-  )
+	   ("Accept-Charset" . "UTF-8"))))
+    (url-retrieve-synchronously url)))
 
 
 (defun diaspora-get-entry-stream ()
@@ -146,27 +171,21 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
 First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
 I expect to be already logged in. Use `diaspora' for log-in."
   (interactive)
-  (let (
-	(buff (diaspora-get-url-entry-stream diaspora-entry-stream-url))
-	)
+  (let ((buff (diaspora-get-url-entry-stream diaspora-entry-stream-url)))
     (with-current-buffer buff
       ;; Delete the HTTP header...
       (goto-char (point-min))
       (search-forward "\n\n")      
       (delete-region (point-min) (match-beginning 0))
       ;; Parse JSON...
-      (diaspora-parse-json)
-      )
+      (diaspora-parse-json))
     ;; Delete HTTP Buffer
-    (kill-buffer buff)
-    )
-  )
+    (kill-buffer buff)))
 
 (defun diaspora-show-message (parsed-message &optional buffer)
   "Show a parsed message in a given buffer."
   (with-current-buffer buffer
-    (let (
-	  (name (cdr (assoc 'name (assoc 'author parsed-message))))
+    (let ( (name (cdr (assoc 'name (assoc 'author parsed-message))))
 	  (diaspora_id (cdr (assoc 'diaspora_id (assoc 'author parsed-message))))
 	  (text (cdr (assoc 'text parsed-message)))
 	  (date (cdr (assoc 'created_at parsed-message)))
@@ -174,32 +193,53 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	  (amount-likes (cdr (assoc 'likes_count parsed-message)))
 	  ;; We can look for more data, including the last 3 comments!
 	  )
-	  
-      (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text))
-      )
-    )
-  )
+      (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text)))))
+
+(defun diaspora-get-entry-stream-tag (tag)
+  "Get stream of tag. Just an idea... needs working."
+  (interactive)
+  (let ((buff (diaspora-get-url-entry-stream
+	       (concat "https://joindiaspora.com/tags/" tag ".json"))))
+    (with-current-buffer buff
+      (goto-char (point-min))
+      (search-forward "\n\n")      
+      (delete-region (point-min) (match-beginning 0))
+      (diaspora-parse-json))
+    (kill-buffer buff)))
 
 (defun diaspora-parse-json (&optional status)
   "Parse de JSON entry stream."
   (goto-char (point-min))
-  (let (
-	(lstparsed (cdr (assoc 'posts (json-read))))
-	(buff (get-buffer-create "*Diáspora*"))
-	)
+  (let ((lstparsed (cdr (assoc 'posts (json-read))))
+	(buff (get-buffer-create diaspora-buffer)))
     (switch-to-buffer buff)
-    (let (
-	  (le (length lstparsed))
-	  )
+    (let ((le (length lstparsed)))
     ;; Show all elements
-    
-    
       (dotimes (i le)
-	(diaspora-show-message (aref lstparsed i) buff)
-	)
-      )
-    )
-  )
-		  
-(provide 'diaspora)
+	(diaspora-show-message (aref lstparsed i) buff)))))
 
+
+(defsubst diaspora-date ()
+  "Insert a nicely formated date string."
+  (interactive)
+  (insert (format-time-string "%Y%m%d")))
+
+;;; Internal Functions:
+
+(defvar diaspora-mode-map ()
+  "Keymap used in diaspora-mode.")
+(when (not diaspora-mode-map)
+  (setq diaspora-mode-map (make-sparse-keymap))
+  (define-key diaspora-mode-map "\C-c\C-c" 'diaspora-post-buffer))
+
+(defun diaspora-mode ()
+  "Major mode for output from \\[diaspora*]."
+  (interactive)
+  (kill-all-local-variables)
+  (indented-text-mode)
+  (use-local-map diaspora-mode-map)
+  (setq major-mode 'diaspora-mode
+        mode-name "diaspora")
+  (run-hooks 'diaspora-mode-hook))
+
+;;; diaspora.el ends here
