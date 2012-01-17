@@ -92,7 +92,7 @@ If nil, you will be prompted."
   "The name of the diaspora stream buffer.")
 
 (defvar diaspora-auth-token nil
-  "The authenticity-token for validation."
+  "The authenticity-token for validation.")
 
 ;;; User Functions:
 
@@ -253,15 +253,21 @@ I expect to be already logged in. Use `diaspora' for log-in."
     (kill-buffer buff)))
 
 (defun diaspora-parse-json (&optional status)
-  "Parse de JSON entry stream."
+  "Parse de JSON entry stream and show it in the buffer which name is `diaspora-buffer'."
   (goto-char (point-min))
+  ;; Create a new buffer called according `diaspora-buffer' say and parse the json code into lists.
   (let ((lstparsed (cdr (assoc 'posts (json-read))))
-	(buff (get-buffer-create diaspora-buffer)))
+	(buff (get-buffer-create diaspora-buffer))) 
+    ;; clean the new buffer
     (switch-to-buffer buff)
-    (let ((le (length lstparsed)))
+    (let ((le (length lstparsed))
+	  (inhibit-read-only t))
+      (delete-region (point-min) (point-max))
     ;; Show all elements
       (dotimes (i le)
-	(diaspora-show-message (aref lstparsed i) buff)))))
+	(diaspora-show-message (aref lstparsed i) buff))))
+  ;; Put the `diaspora-stream-mode'.
+  (diaspora-stream-mode))
 
 
 (defsubst diaspora-date ()
@@ -270,6 +276,51 @@ I expect to be already logged in. Use `diaspora' for log-in."
   (insert "\n\n#" (format-time-string "%Y%m%d") "\n"))
 
 
+					; *** Diáspora Stream Mode ***
+
+(defface diaspora-stream-mode-bar-face
+  '(
+    (t
+     :width wide
+     :height 1.0
+     :background "midnight blue"
+     ))
+  "Face for bars between messages.")
+
+(defface diaspora-stream-mode-hash-face
+  '(
+    (t
+     :background "light sea green"
+     ))
+  "Face for hashtags in messages.")
+
+(defvar diaspora-stream-mode-font-lock
+  '(
+    ;; font-lock-keywords
+    (
+     ("---\n" . 'diaspora-stream-mode-bar-face) 
+     ("#[^.,![:space:]]*" . 'diaspora-stream-mode-hash-face)
+     )
+
+    ;; Otros...
+    )
+  ;;
+  "Font lock for `ej-mode'")
+
+(define-derived-mode diaspora-stream-mode nil "*diaspora stream*"
+  "Major mode for Streams."
+  (make-local-variable 'text-mode-variant)
+  (setq text-mode-variant t)
+  ;; These two lines are a feature added recently.
+  (set (make-local-variable 'require-final-newline)
+       mode-require-final-newline)
+  (set (make-local-variable 'indent-line-function) 'indent-relative)
+  ;; font lock 
+  (set (make-local-variable 'font-lock-defaults)
+       diaspora-stream-mode-font-lock)
+  
+  (set (make-local-variable 'buffer-read-only)
+       t))
 
 ;;; Internal Functions:
 
