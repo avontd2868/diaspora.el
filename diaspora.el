@@ -73,12 +73,45 @@ If nil, you will be prompted."
   :group 'diaspora)
 
 
+(defcustom diaspora-entry-file-dir
+  "~/public_html/diaspora.posts/"
+  "Directory where to save posts made to diaspora*."
+  :group 'diaspora)
+
+(defcustom diaspora-header-post
+  ""
+  "Header for each post:")
+
+(defcustom diaspora-footer-post
+  "#diaspora-el"
+  "Footer for each post.")
+
 ;;; Internal Variables:
 
 (defvar diaspora-buffer "*diaspora*"
   "The name of the diaspora stream buffer.")
 
 ;;; User Functions:
+
+(defun diaspora-create-file-post ()
+  (interactive)
+  (read-from-minibuffer "Find file: "
+			nil nil nil 'diaspora-post-file-name)
+  (let ((post-buffer (get-buffer-create (car diaspora-post-file-name))))
+    (switch-to-buffer post-buffer)
+    (diaspora-mode)))
+
+(defun diaspora-post-to ()
+  (interactive)
+  (let* ((name-file (format-time-string "%y%m%d%H%M%s"))
+	(post-buffer (get-buffer-create name-file)))
+    (switch-to-buffer post-buffer)
+    (insert diaspora-header-post)
+    (diaspora-date)
+    (insert diaspora-footer-post)
+    (goto-char (point-min))
+    (diaspora-mode)
+    (write-file (concat diaspora-entry-file-dir name-file))))
 
 (defun diaspora-ask ()
   "Ask for username and password if `diaspora-username' and  `diaspora-password' has not been setted."
@@ -137,11 +170,12 @@ If nil, you will be prompted."
 		  (lambda (arg) 
 		    (kill-buffer (current-buffer))))))
 
-(defun diaspora-post-buffer ()  
+(defun diaspora-post-buffer ()
   (interactive)
   (diaspora-ask)
   (diaspora-authenticity-token diaspora-sign-in-url)
-  (diaspora-post (buffer-string)))
+  (diaspora-post (buffer-string))
+  (kill-buffer))
 
 
 					; *******************************
@@ -206,7 +240,6 @@ I expect to be already logged in. Use `diaspora' for log-in."
 
 (defun diaspora-get-entry-stream-tag (tag)
   "Get stream of tag. Just an idea... needs working."
-  (interactive)
   (let ((buff (diaspora-get-url-entry-stream
 	       (concat "https://joindiaspora.com/tags/" tag ".json"))))
     (with-current-buffer buff
@@ -229,9 +262,11 @@ I expect to be already logged in. Use `diaspora' for log-in."
 
 
 (defsubst diaspora-date ()
-  "Insert a nicely formated date string."
+  "Date string."
   (interactive)
-  (insert (format-time-string "%Y%m%d")))
+  (insert "\n\n#" (format-time-string "%Y%m%d") "\n"))
+
+
 
 ;;; Internal Functions:
 
