@@ -114,16 +114,19 @@ If nil, you will be prompted."
     (write-file (concat diaspora-entry-file-dir name-file))))
 
 (defun diaspora-ask ()
-  "Ask for username and password."
-  (read-from-minibuffer "diaspora username: "
-			diaspora-username
-			nil nil
-			'diaspora-username)
-  (read-from-minibuffer "diaspora password: "
-                         diaspora-password
-                         nil nil
-                         'diaspora-password))
+  "Ask for username and password if `diaspora-username' and  `diaspora-password' has not been setted."
+  (unless (and
+	   diaspora-username
+	   diaspora-password)
+      ;; Diaspora username and password was not setted.
+    (list
+     (read-from-minibuffer "username: "
+			   (car diaspora-username)
+			   nil nil
+			   'diaspora-username)
+     (setq diaspora-password (read-passwd "password: ")))))
 
+   
 (defun diaspora-authenticity-token (url)
   "Get the authenticity token."
   (let ((url-request-method "POST")
@@ -133,11 +136,12 @@ If nil, you will be prompted."
 	 (mapconcat (lambda (arg)
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
 		    (list (cons "user[username]" (car diaspora-username))
-			  (cons "user[password]" (car diaspora-password)))
-		    "&")))
-    (url-retrieve url 'diaspora-find-auth-token)))
+			  (cons "user[password]" diaspora-password))
+		    "&")))    
+    (with-current-buffer (url-retrieve-synchronously url)
+      (diaspora-find-auth-token))))
 
-(defun diaspora-find-auth-token (status)
+(defun diaspora-find-auth-token (&optional status)
   "Find the authenticity token."  
 ;  (switch-to-buffer (current-buffer))
   (save-excursion
@@ -145,6 +149,7 @@ If nil, you will be prompted."
     (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
     (setq auth-token (match-string-no-properties 1)))
   auth-token)
+
 
 (defun diaspora-post (post &optional id)
   (let ((url-request-method "POST")
@@ -172,6 +177,9 @@ If nil, you will be prompted."
   (diaspora-post (buffer-string))
   (kill-buffer))
 
+
+					; *******************************
+					; *** Getting the Main Stream ***
 
 
 (defun diaspora-show-stream (status &optional new-buffer-name)
@@ -203,7 +211,9 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
   "Show the entry stream. 
 First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
 I expect to be already logged in. Use `diaspora' for log-in."
-  (interactive)
+  (interactive)  
+  (diaspora-ask) ;; don't forget username and password!
+  (diaspora-authenticity-token diaspora-sign-in-url) ;; Get the authenticity token
   (let ((buff (diaspora-get-url-entry-stream diaspora-entry-stream-url)))
     (with-current-buffer buff
       ;; Delete the HTTP header...
@@ -249,6 +259,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
     ;; Show all elements
       (dotimes (i le)
 	(diaspora-show-message (aref lstparsed i) buff)))))
+
 
 (defsubst diaspora-date ()
   "Date string."
