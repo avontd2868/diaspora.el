@@ -91,6 +91,9 @@ If nil, you will be prompted."
 (defvar diaspora-buffer "*diaspora*"
   "The name of the diaspora stream buffer.")
 
+(defvar diaspora-auth-token nil
+  "The authenticity-token for validation."
+
 ;;; User Functions:
 
 (defun diaspora-create-file-post ()
@@ -147,8 +150,8 @@ If nil, you will be prompted."
   (save-excursion
     (goto-char (point-min))
     (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
-    (setq auth-token (match-string-no-properties 1)))
-  auth-token)
+    (setq diaspora-auth-token (match-string-no-properties 1)))
+  diaspora-auth-token)
 
 
 (defun diaspora-post (post &optional id)
@@ -162,7 +165,7 @@ If nil, you will be prompted."
 			  (cons "user[password]" (car diaspora-password))
 			  (cons "status_message[text]" post)
 			  (cons "user[remember_me]" "1")
-			  (cons "authenticity_token" auth-token)
+			  (cons "authenticity_token" diaspora-auth-token)
 			  (cons "commit" "Sign in")
 			  (cons "aspect_ids[]" "public"))
 		    "&")))
