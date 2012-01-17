@@ -1,3 +1,4 @@
 diaspora(dot)el -- Simple Emacs-based client for diaspora*
 
-Posting is now given by: diaspora-post-buffer
+This is in a very early stage of development...it will probably break some where. 
+If you want to use it please check the master branch. 
