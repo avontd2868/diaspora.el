@@ -42,7 +42,7 @@
 (defcustom diaspora-mode-hook nil
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill longlines-mode)
+  :options '(flyspell-mode turn-on-auto-fill)
   :group 'diaspora)
 
 (defcustom diaspora-username nil
@@ -78,53 +78,83 @@ If nil, you will be prompted."
   "Directory where to save posts made to diaspora*."
   :group 'diaspora)
 
+(defcustom diaspora-data-file
+  "~/.diaspora"
+  "Name of the file do save posts made to diaspora*."
+  :type 'file
+  :group 'diaspora)
+
 (defcustom diaspora-header-post
-  ""
-  "Header for each post:")
+  "## "
+  "Header for each post:"
+  :type 'string
+  :group 'diaspora)
 
 (defcustom diaspora-footer-post
   "#diaspora-el"
-  "Footer for each post.")
+  "Footer for each post."
+  :type 'string
+  :group 'diaspora)
 
 ;;; Internal Variables:
 
-(defvar diaspora-buffer "*diaspora*"
+(defvar diaspora-stream-buffer "*diaspora stream*"
   "The name of the diaspora stream buffer.")
+
+(defvar diaspora-post-buffer "*diaspora post*"
+  "The name of the diaspora post buffer.")
+
 
 ;;; User Functions:
 
-(defun diaspora-create-file-post ()
-  (interactive)
-  (read-from-minibuffer "Find file: "
-			nil nil nil 'diaspora-post-file-name)
-  (let ((post-buffer (get-buffer-create (car diaspora-post-file-name))))
-    (switch-to-buffer post-buffer)
-    (diaspora-mode)))
+;; (defun diaspora-create-file-post ()
+;;   (interactive)
+;;   (read-from-minibuffer "Find file: "
+;; 			nil nil nil 'diaspora-post-file-name)
+;;   (let ((post-buffer (get-buffer-create (car diaspora-post-file-name))))
+;;     (switch-to-buffer post-buffer)
+;;     (diaspora-mode)))
 
 (defun diaspora-post-to ()
   (interactive)
-  (let* ((name-file (format-time-string "%y%m%d%H%M%s"))
-	(post-buffer (get-buffer-create name-file)))
-    (switch-to-buffer post-buffer)
-    (insert diaspora-header-post)
-    (diaspora-date)
-    (insert diaspora-footer-post)
-    (goto-char (point-min))
-    (diaspora-mode)
-    (write-file (concat diaspora-entry-file-dir name-file))))
+  (get-buffer-create diaspora-post-buffer)
+  (switch-to-buffer diaspora-post-buffer)
+  (diaspora-date)
+  (insert diaspora-footer-post)
+  (goto-char (point-min))
+  (insert diaspora-header-post)
+  (diaspora-mode))
 
 (defun diaspora-ask ()
-  "Ask for username and password if `diaspora-username' and  `diaspora-password' has not been setted."
-  (unless (and
-	   diaspora-username
-	   diaspora-password)
-      ;; Diaspora username and password was not setted.
-    (list
-     (read-from-minibuffer "username: "
-			   (car diaspora-username)
-			   nil nil
-			   'diaspora-username)
-     (setq diaspora-password (read-passwd "password: ")))))
+  "Ask for username and password 
+if `diaspora-username' and  `diaspora-password' 
+has not been setted."
+  (unless (and diaspora-username diaspora-password)
+    ;; Diaspora username and password was not setted.
+    (read-from-minibuffer "username: "
+			  (car diaspora-username)
+			  nil nil
+			  'diaspora-username)
+    (read-from-minibuffer "password: "
+			  (car diaspora-password)
+			  nil nil
+			  'diaspora-password)))
+
+;; Need to work better with read-password
+;; I do prefer as it is above, more uniform 
+
+;; (defun diaspora-ask ()
+;;   "Ask for username and password 
+;; if `diaspora-username' and  `diaspora-password' has not been setted."
+;;   (unless (and
+;; 	   diaspora-username
+;; 	   diaspora-password)
+;;       ;; Diaspora username and password was not setted.
+;;     (read-from-minibuffer "username: "
+;; 			  (car diaspora-username)
+;; 			  nil nil
+;; 			  'diaspora-username)
+;;      (setq diaspora-password (read-passwd "password: "))))
 
    
 (defun diaspora-authenticity-token (url)
@@ -136,10 +166,10 @@ If nil, you will be prompted."
 	 (mapconcat (lambda (arg)
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
 		    (list (cons "user[username]" (car diaspora-username))
-			  (cons "user[password]" diaspora-password))
-		    "&")))    
-    (with-current-buffer (url-retrieve-synchronously url)
-      (diaspora-find-auth-token))))
+			  (cons "user[password]" (car diaspora-password))
+			  (cons "user[remember_me]" "1"))
+		    "&")))
+    (url-retrieve url 'diaspora-find-auth-token)))
 
 (defun diaspora-find-auth-token (&optional status)
   "Find the authenticity token."  
@@ -147,8 +177,8 @@ If nil, you will be prompted."
   (save-excursion
     (goto-char (point-min))
     (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
-    (setq auth-token (match-string-no-properties 1)))
-  auth-token)
+    (setq diaspora-auth-token (match-string-no-properties 1)))
+  diaspora-auth-token)
 
 
 (defun diaspora-post (post &optional id)
@@ -162,7 +192,7 @@ If nil, you will be prompted."
 			  (cons "user[password]" (car diaspora-password))
 			  (cons "status_message[text]" post)
 			  (cons "user[remember_me]" "1")
-			  (cons "authenticity_token" auth-token)
+			  (cons "authenticity_token" diaspora-auth-token)
 			  (cons "commit" "Sign in")
 			  (cons "aspect_ids[]" "public"))
 		    "&")))
@@ -170,25 +200,21 @@ If nil, you will be prompted."
 		  (lambda (arg) 
 		    (kill-buffer (current-buffer))))))
 
-(defun diaspora-post-buffer ()
+(defun diaspora-post-this-buffer ()
   (interactive)
   (diaspora-ask)
   (diaspora-authenticity-token diaspora-sign-in-url)
   (diaspora-post (buffer-string))
+  (diaspora-post-append-to-file)
   (kill-buffer))
-
-
-					; *******************************
-					; *** Getting the Main Stream ***
-
 
 (defun diaspora-show-stream (status &optional new-buffer-name)
   "Show what was recieved in a new buffer.
 If new-buffer-name is given then, the new buffer will have that name, 
 if not, the buffer called \"Diáspora Stream\" will be re-used or created if needed."
-  ;; new-buffer-name has been given? if not, use "Diáspora Stream" as name.
+  ;; new-buffer-name has been given? if not, use `diaspora-stream-buffer´ as name.
   (unless new-buffer-name
-    (setq new-buffer-name "**Diaspora Stream**"))
+    (setq new-buffer-name diaspora-stream-buffer))
   (let ((buffer (get-buffer-create new-buffer-name))
 	(text (buffer-string))
 	(buf-kill (current-buffer)))    
@@ -212,7 +238,7 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
 First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
 I expect to be already logged in. Use `diaspora' for log-in."
   (interactive)  
-  (diaspora-ask) ;; don't forget username and password!
+  (diaspora-ask) 
   (diaspora-authenticity-token diaspora-sign-in-url) ;; Get the authenticity token
   (let ((buff (diaspora-get-url-entry-stream diaspora-entry-stream-url)))
     (with-current-buffer buff
@@ -233,9 +259,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	  (text (cdr (assoc 'text parsed-message)))
 	  (date (cdr (assoc 'created_at parsed-message)))
 	  (amount-comments (cdr (assoc 'comments_count parsed-message)))
-	  (amount-likes (cdr (assoc 'likes_count parsed-message)))
-	  ;; We can look for more data, including the last 3 comments!
-	  )
+	  (amount-likes (cdr (assoc 'likes_count parsed-message))))
       (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text)))))
 
 (defun diaspora-get-entry-stream-tag (tag)
@@ -253,7 +277,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
   "Parse de JSON entry stream."
   (goto-char (point-min))
   (let ((lstparsed (cdr (assoc 'posts (json-read))))
-	(buff (get-buffer-create diaspora-buffer)))
+	(buff (get-buffer-create diaspora-stream-buffer)))
     (switch-to-buffer buff)
     (let ((le (length lstparsed)))
     ;; Show all elements
@@ -266,15 +290,84 @@ I expect to be already logged in. Use `diaspora' for log-in."
   (interactive)
   (insert "\n\n#" (format-time-string "%Y%m%d") "\n"))
 
+(defun diaspora-post-append-to-file ()
+  (with-temp-buffer
+    (insert-buffer diaspora-post-buffer)
+    (insert "\n" "---" "\n")
+    (if (find-buffer-visiting diaspora-data-file)
+	(let ((post-text (buffer-string)))
+	  (set-buffer (get-file-buffer diaspora-data-file))
+	  (save-excursion
+	    (goto-char (point-max))
+	    (insert post-text)
+	    (save-buffer))
+	  (append-to-file (point-min) (point-max) diaspora-data-file)))))
 
+(defvar diaspora-mode-map 
+  (let ((diaspora-mode-map (make-sparse-keymap)))
+    (define-key diaspora-mode-map "\C-c4" 'diaspora-markdown-insert-headline-4)
+    (define-key diaspora-mode-map "\C-c3" 'diaspora-markdown-insert-headline-3)
+    (define-key diaspora-mode-map "\C-c2" 'diaspora-markdown-insert-headline-2)
+    (define-key diaspora-mode-map "\C-c1" 'diaspora-markdown-insert-headline-1)
+    (define-key diaspora-mode-map "\C-c\C-cl" 'diaspora-markdown-insert-unordered-list)
+    (define-key diaspora-mode-map "\C-c\C-ce" 'diaspora-markdown-insert-emph-text)
+    (define-key diaspora-mode-map "\C-c\C-cb" 'diaspora-markdown-insert-bold-text)
+    (define-key diaspora-mode-map "\C-c\C-c-" 'diaspora-markdown-insert-horizontal-rule)
+    (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
+    (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
+    (define-key diaspora-mode-map "\C-c\C-v" 'diaspora-post-this-buffer)
+    diaspora-mode-map)
+    "Keymap used in diaspora-mode.")
 
-;;; Internal Functions:
+(define-skeleton diaspora-markdown-insert-headline-1
+  "Headline 1."
+  "Text: "
+  "# " str \n \n)
 
-(defvar diaspora-mode-map ()
-  "Keymap used in diaspora-mode.")
-(when (not diaspora-mode-map)
-  (setq diaspora-mode-map (make-sparse-keymap))
-  (define-key diaspora-mode-map "\C-c\C-c" 'diaspora-post-buffer))
+(define-skeleton diaspora-markdown-insert-headline-2
+  "Headline 2."
+  "Text: "
+  "## " str \n \n)
+
+(define-skeleton diaspora-markdown-insert-headline-3
+  "Headline 3."
+  "Text: "
+  "### " str \n \n)
+
+(define-skeleton diaspora-markdown-insert-headline-4
+  "Headline 4."
+  "Text: "
+  "#### " str \n \n)
+
+(define-skeleton diaspora-markdown-insert-unordered-list
+  "Unordered list."
+  "Text: "
+  "* " str \n \n)
+
+(define-skeleton diaspora-markdown-insert-emph-text
+  "Emphasis."
+  "Text: "
+  "*" str "*")
+
+(define-skeleton diaspora-markdown-insert-bold-text
+  "Bold."
+  "Text: "
+  "**" str "**")
+
+(define-skeleton diaspora-markdown-insert-horizontal-rule
+  "Horizontal rule tag."
+  nil
+  "---" \n \n)
+
+(define-skeleton diaspora-markdown-insert-link
+  "Link"
+  "Text: "
+  "[" str "](http://" _ ")")
+
+(define-skeleton diaspora-markdown-insert-image
+  "Image with URL."
+  "Text: "
+  "![" str "](http://" _ ")")
 
 (defun diaspora-mode ()
   "Major mode for output from \\[diaspora*]."
@@ -285,5 +378,6 @@ I expect to be already logged in. Use `diaspora' for log-in."
   (setq major-mode 'diaspora-mode
         mode-name "diaspora")
   (run-hooks 'diaspora-mode-hook))
+
 
 ;;; diaspora.el ends here
