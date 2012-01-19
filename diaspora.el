@@ -3,7 +3,7 @@
 ;; Author: Tiago Charters de Azevedo <tca@diale.org>
 ;; Maintainer: Tiago Charters de Azevedo <tca@diale.org>
 ;; Created: Jan 16, 2012
-;; Version: (eval diaspora-el-version)
+;; Version: .0
 ;; Keywords: diaspora*
 ;; URL: http://diale.org/diaspora.html
 
