@@ -1,9 +1,13 @@
 ;;; diaspora.el --- Simple Emacs-based client for diaspora*
 
-;; Author:  Tiago Charters Azevedo, Christian Giménez
+;; Author: Tiago Charters de Azevedo <tca@diale.org>
+;; Maintainer: Tiago Charters de Azevedo <tca@diale.org>
+;; Created: Jan 16, 2012
+;; Version: (eval diaspora-el-version)
 ;; Keywords: diaspora*
+;; URL: http://diale.org/diaspora.html
 
-;; Copyright 2011 Tiago Charters Azevedo, Christian Giménez
+;; Copyright (c) 2011 Tiago Charters de Azevedo, Christian Giménez
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -24,7 +28,7 @@
 
 ;; A diaspora* client for emacs
 
-(provide 'diaspora)
+
 
 (require 'url)
 (require 'url-http)
@@ -96,6 +100,11 @@ If nil, you will be prompted."
   :type 'string
   :group 'diaspora)
 
+(defcustom diaspora-save-after-posting t
+  "*Non-nil means automatically save after posting."
+  :type 'boolean
+  :group 'diaspora)
+
 ;;; Internal Variables:
 
 (defvar diaspora-stream-buffer "*diaspora stream*"
@@ -130,7 +139,6 @@ If nil, you will be prompted."
 if `diaspora-username' and  `diaspora-password' 
 has not been setted."
   (unless (and diaspora-username diaspora-password)
-    ;; Diaspora username and password was not setted.
     (read-from-minibuffer "username: "
 			  (car diaspora-username)
 			  nil nil
@@ -140,23 +148,6 @@ has not been setted."
 			  nil nil
 			  'diaspora-password)))
 
-;; Need to work better with read-password
-;; I do prefer as it is above, more uniform 
-
-;; (defun diaspora-ask ()
-;;   "Ask for username and password 
-;; if `diaspora-username' and  `diaspora-password' has not been setted."
-;;   (unless (and
-;; 	   diaspora-username
-;; 	   diaspora-password)
-;;       ;; Diaspora username and password was not setted.
-;;     (read-from-minibuffer "username: "
-;; 			  (car diaspora-username)
-;; 			  nil nil
-;; 			  'diaspora-username)
-;;      (setq diaspora-password (read-passwd "password: "))))
-
-   
 (defun diaspora-authenticity-token (url)
   "Get the authenticity token."
   (let ((url-request-method "POST")
@@ -290,7 +281,10 @@ I expect to be already logged in. Use `diaspora' for log-in."
   (interactive)
   (insert "\n\n#" (format-time-string "%Y%m%d") "\n"))
 
+
+
 (defun diaspora-post-append-to-file ()
+  ;; Based on take-notes.el/remember.el
   (with-temp-buffer
     (insert-buffer diaspora-post-buffer)
     (insert "\n" "---" "\n")
@@ -298,12 +292,14 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	(let ((post-text (buffer-string)))
 	  (set-buffer (get-file-buffer diaspora-data-file))
 	  (save-excursion
-	    (goto-char (point-max))
+	    (goto-char (point-min))
 	    (insert post-text)
-	    (save-buffer))
+	    (insert "\n")
+	    (when diaspora-save-after-posting (save-buffer)))
 	  (append-to-file (point-min) (point-max) diaspora-data-file)))))
 
 (defvar diaspora-mode-map 
+"Keymap based on html-mode"
   (let ((diaspora-mode-map (make-sparse-keymap)))
     (define-key diaspora-mode-map "\C-c4" 'diaspora-markdown-insert-headline-4)
     (define-key diaspora-mode-map "\C-c3" 'diaspora-markdown-insert-headline-3)
@@ -315,7 +311,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
     (define-key diaspora-mode-map "\C-c\C-c-" 'diaspora-markdown-insert-horizontal-rule)
     (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
     (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
-    (define-key diaspora-mode-map "\C-c\C-v" 'diaspora-post-this-buffer)
+    (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
     diaspora-mode-map)
     "Keymap used in diaspora-mode.")
 
@@ -379,5 +375,25 @@ I expect to be already logged in. Use `diaspora' for log-in."
         mode-name "diaspora")
   (run-hooks 'diaspora-mode-hook))
 
+
+;; regexp for  highlight; similar to emacs-muse
+;; http://www.gnu.org/software/emacs-muse/
+
+(defcustom diaspora-explicit-link-regexp
+  "\\[\\([^][\n]+\\)\\]\\(\\([^][\n]+\\)\\)"
+  "Regexp used to match [Text](URL) links.
+Paren group 1 must match the URL, and paren group 2 the description."
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-explicit-image-regexp
+  "!\\[\\([^][\n]+\\)\\]\\(\\([^][\n]+\\)\\)"
+  "Regexp used to match [Text](ImageURL)]] links.
+Paren group 1 must match the URL, and paren group 2 the description."
+  :type 'regexp
+  :group 'diaspora)
+
+
+(provide 'diaspora)
 
 ;;; diaspora.el ends here
