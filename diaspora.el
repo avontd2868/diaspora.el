@@ -28,11 +28,10 @@
 
 ;; A diaspora* client for emacs
 
-
-
 (require 'url)
 (require 'url-http)
 (require 'json)
+(require 'font-lock)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
@@ -43,10 +42,17 @@
 
 ;;; User variable:
 
+(defcustom diaspora-pod 
+  "joinsdiaspora.com"
+  "Diaspora* pod."
+  :type 'string
+  :group 'diaspora)
+
+
 (defcustom diaspora-mode-hook nil
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill)
+  :options '(flyspell-mode turn-on-auto-fill markdown-mode)
   :group 'diaspora)
 
 (defcustom diaspora-username nil
@@ -107,6 +113,9 @@ If nil, you will be prompted."
 
 ;;; Internal Variables:
 
+;(defvar diaspora-auth-token nil
+;  "")
+
 (defvar diaspora-stream-buffer "*diaspora stream*"
   "The name of the diaspora stream buffer.")
 
@@ -123,6 +132,8 @@ If nil, you will be prompted."
 ;;   (let ((post-buffer (get-buffer-create (car diaspora-post-file-name))))
 ;;     (switch-to-buffer post-buffer)
 ;;     (diaspora-mode)))
+
+;; Posting
 
 (defun diaspora-post-to ()
   (interactive)
@@ -194,10 +205,15 @@ has not been setted."
 (defun diaspora-post-this-buffer ()
   (interactive)
   (diaspora-ask)
+  (message (concat "Getting authenticity token..."))
+  (message (concat "done: " diaspora-auth-token))
   (diaspora-authenticity-token diaspora-sign-in-url)
+  (message (concat "done: " diaspora-auth-token))
   (diaspora-post (buffer-string))
   (diaspora-post-append-to-file)
   (kill-buffer))
+
+;, Streaming 
 
 (defun diaspora-show-stream (status &optional new-buffer-name)
   "Show what was recieved in a new buffer.
@@ -251,7 +267,8 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	  (date (cdr (assoc 'created_at parsed-message)))
 	  (amount-comments (cdr (assoc 'comments_count parsed-message)))
 	  (amount-likes (cdr (assoc 'likes_count parsed-message))))
-      (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text)))))
+      (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text))))
+  (diaspora-mode))
 
 (defun diaspora-get-entry-stream-tag (tag)
   "Get stream of tag. Just an idea... needs working."
@@ -279,7 +296,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
 (defsubst diaspora-date ()
   "Date string."
   (interactive)
-  (insert "\n\n#" (format-time-string "%Y%m%d") "\n"))
+  (insert "\n\n#" (format-time-string "%Y%m%d") " "))
 
 
 
@@ -298,8 +315,9 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	    (when diaspora-save-after-posting (save-buffer)))
 	  (append-to-file (point-min) (point-max) diaspora-data-file)))))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defvar diaspora-mode-map 
-"Keymap based on html-mode"
   (let ((diaspora-mode-map (make-sparse-keymap)))
     (define-key diaspora-mode-map "\C-c4" 'diaspora-markdown-insert-headline-4)
     (define-key diaspora-mode-map "\C-c3" 'diaspora-markdown-insert-headline-3)
@@ -311,9 +329,13 @@ I expect to be already logged in. Use `diaspora' for log-in."
     (define-key diaspora-mode-map "\C-c\C-c-" 'diaspora-markdown-insert-horizontal-rule)
     (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
     (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
+    (define-key diaspora-mode-map "\C-c\C-cm" ' diaspora-markdown-mention-user)
     (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
+    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-highlight) ; not implemente yet
     diaspora-mode-map)
-    "Keymap used in diaspora-mode.")
+  "Keymap based on html-mode")
+
+
 
 (define-skeleton diaspora-markdown-insert-headline-1
   "Headline 1."
@@ -365,34 +387,222 @@ I expect to be already logged in. Use `diaspora' for log-in."
   "Text: "
   "![" str "](http://" _ ")")
 
-(defun diaspora-mode ()
-  "Major mode for output from \\[diaspora*]."
+(define-skeleton diaspora-markdown-mention-user
+  "Mention user."
+  "User: "
+  "@{" str ";" _ (concat "@" diaspora-pod "}"))
+
+
+;; Font lock
+
+(defgroup diaspora-faces nil
+  "Faces used in diaspora Mode"
+  :group 'diaspora
+  :group 'faces)
+
+(defcustom diaspora-regex-image
+  "\\(!?\\[[^]]*?\\]\\)\\(([^\\)]*)\\)"
+  "Regular expression for a [text](file) or an image link ![text](file)."
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regex-user-entry 
+"^[a-zA-Z0-9_\s-]*([a-zA-Z0-9_\s-]*@[a-zA-Z0-9\s-]*\.[a-zA-Z0-9\s-]*)"
+  "Regular expression for user entry."
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regex-tag
+  "#\\([a-zA-Z0-9_]\\)+"
+  "Regular expression for a tag."
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regex-header-1
+  "^\\(# \\)\\(.*?\\)\\($\\| #+$\\)"
+  "Regular expression for level 1"
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regex-header-2
+  "^\\(## \\)\\(.*?\\)\\($\\| #+$\\)"
+  "Regular expression for level 2"
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regex-header-3
+  "^\\(### \\)\\(.*?\\)\\($\\| #+$\\)"
+  "Regular expression for level 3"
+  :type 'regexp
+  :group 'diaspora)
+
+
+(defcustom diaspora-regex-header-4
+  "^\\(#### \\)\\(.*?\\)\\($\\| #+$\\)"
+  "Regular expression for level 4"
+  :type 'regexp
+  :group 'diaspora)
+
+(defconst diaspora-regex-code
+  "\\(^\\|[^\\]\\)\\(\\(`\\{1,2\\}\\)\\([^ \\]\\|[^ ]\\(.\\|\n[^\n]\\)*?[^ \\]\\)\\3\\)"
+  "Regular expression for matching inline code fragments.")
+
+
+(defconst diaspora-regex-bold
+  "\\(^\\|[^\\]\\)\\(\\([*_]\\{2\\}\\)\\(.\\|\n[^\n]\\)*?[^\\ ]\\3\\)"
+  "Regular expression for matching bold text.")
+
+(defconst diaspora-regex-emph
+  "\\(^\\|[^\\]\\)\\(\\([*_]\\)\\([^ \\]\\3\\|[^ ]\\(.\\|\n[^\n]\\)*?[^\\ ]\\3\\)\\)"
+  "Regular expression for matching emph text.")
+
+(defconst diaspora-regex-email
+  "<\\(\\sw\\|\\s_\\|\\s.\\)+@\\(\\sw\\|\\s_\\|\\s.\\)+>"
+  "Regular expression for matching inline email addresses.")
+
+(defconst diaspora-regex-blockquote
+  "^>.*$"
+  "Regular expression for matching blockquote lines.")
+
+(defconst diaspora-regex-hr
+  "^\\(\\*[ ]?\\*[ ]?\\*[ ]?[\\* ]*\\|-[ ]?-[ ]?-[--- ]*\\)$"
+  "Regular expression for matching markdown horizontal rules.")
+
+(defvar diaspora-header-face-1 'diaspora-header-face-1
+  "Face name to use for level-1 headers.")
+
+(defvar diaspora-header-face-2 'diaspora-header-face-2
+  "Face name to use for level-2 headers.")
+
+(defvar diaspora-header-face-3 'diaspora-header-face-3
+  "Face name to use for level-3 headers.")
+
+(defvar diaspora-header-face-4 'diaspora-header-face-4
+  "Face name to use for level-4 headers.")
+
+(defvar diaspora-url-face 'diaspora-url-face
+  "Face name to use for URLs.")
+
+(defvar diaspora-link-face 'diaspora-link-face
+  "Face name to use for links.")
+
+(defvar diaspora-emph-face 'diaspora-emph-face
+  "Face name to use for links.")
+
+(defvar diaspora-bold-face 'diaspora-bold-face
+  "Face name to use for links.")
+
+(defvar diaspora-emph-face 'diaspora-emph-face 
+  "Face name to use for links.")
+
+(defvar diaspora-inline-code-face 'diaspora-inline-code-face
+  "Face name to use for inline code.")
+
+(defvar diaspora-blockquote-face 'diaspora-blockquote-face
+  "Face name to use for blockquote text.")
+
+(defface diaspora-inline-code-face
+  '((t :inherit font-lock-constant-face))
+  "Face for inline code."
+  :group 'diaspora-faces)
+
+(defface diaspora-blockquote-face
+  '((t :inherit font-lock-doc-face))
+  "Face for blockquote sections."
+  :group 'diaspora-faces)
+
+(defface diaspora-header-face
+  '((t :inherit font-lock-function-name-face :weight bold))
+  "Base face for headers."
+  :group 'diaspora-faces)
+
+(defface diaspora-header-face-1
+  '((t :inherit diaspora-header-face))
+  "Face for level-1 headers."
+  :group 'diaspora-faces)
+
+(defface diaspora-header-face-2
+  '((t :inherit diaspora-header-face))
+  "Face for level-2 headers."
+  :group 'diaspora-faces)
+
+(defface diaspora-header-face-3
+  '((t :inherit diaspora-header-face))
+  "Face for level-3 headers."
+  :group 'diaspora-faces)
+
+(defface diaspora-header-face-4
+  '((t :inherit diaspora-header-face))
+  "Face for level-4 headers."
+  :group 'diaspora-faces)
+
+(defface diaspora-link-face
+  '((t :inherit font-lock-keyword-face))
+  "Face for links."
+  :group 'diaspora-faces)
+
+(defface diaspora-url-face
+  '((t :inherit font-lock-string-face))
+  "Face for URLs."
+  :group 'diaspora-faces)
+
+(defface diaspora-emph-face
+  '((t :inherit font-lock-variable-name-face :italic t))
+  "Face for italic text."
+  :group 'diaspora-faces)
+
+(defface diaspora-bold-face
+  '((t :inherit font-lock-variable-name-face :bold t))
+  "Face for bold text."
+  :group 'diaspora-faces)
+
+(defface diaspora-link-face
+  '((t :inherit font-lock-keyword-face))
+  "Face for links."
+  :group 'diaspora-faces)
+
+
+
+(defvar diaspora-mode-font-lock-keywords
+  (list
+   (cons diaspora-regex-blockquote 'diaspora-blockquote-face)
+   (cons diaspora-regex-user-entry 'diaspora-header-face-1)
+   (cons diaspora-regex-header-1 'diaspora-header-face-1)
+   (cons diaspora-regex-header-2 'diaspora-header-face-2)
+   (cons diaspora-regex-header-3 'diaspora-header-face-3)
+   (cons diaspora-regex-header-4 'diaspora-header-face-4)
+   (cons diaspora-regex-hr 'diaspora-header-face-1)
+   (cons diaspora-regex-image
+         '((1 diaspora-link-face t)
+           (2 diaspora-url-face t)))
+   (cons diaspora-regex-bold '(2 diaspora-bold-face))
+   (cons diaspora-regex-emph '(2 diaspora-emph-face))
+   (cons diaspora-regex-code '(2 diaspora-inline-code-face))
+   (cons diaspora-regex-email 'diaspora-link-face)
+   (cons diaspora-regex-tag 'diaspora-url-face))
+  "Syntax highlighting for diaspora files.")
+
+
+;; Mode
+
+(defun diaspora-show-version ()
+  "Show the version number in the minibuffer."
   (interactive)
-  (kill-all-local-variables)
-  (indented-text-mode)
+  (message "diaspora.el, version %s" diaspora-el-version))
+
+;;;###autoload
+(define-derived-mode diaspora-mode text-mode "diaspora"
+  "Major mode for output from \\[diaspora*]."
+  (set (make-local-variable 'font-lock-defaults)
+       '(diaspora-mode-font-lock-keywords))
+  (set (make-local-variable 'font-lock-multiline) t)
+;  (kill-all-local-variables)
+;  (indented-text-mode)
   (use-local-map diaspora-mode-map)
-  (setq major-mode 'diaspora-mode
-        mode-name "diaspora")
-  (run-hooks 'diaspora-mode-hook))
-
-
-;; regexp for  highlight; similar to emacs-muse
-;; http://www.gnu.org/software/emacs-muse/
-
-(defcustom diaspora-explicit-link-regexp
-  "\\[\\([^][\n]+\\)\\]\\(\\([^][\n]+\\)\\)"
-  "Regexp used to match [Text](URL) links.
-Paren group 1 must match the URL, and paren group 2 the description."
-  :type 'regexp
-  :group 'diaspora)
-
-(defcustom diaspora-explicit-image-regexp
-  "!\\[\\([^][\n]+\\)\\]\\(\\([^][\n]+\\)\\)"
-  "Regexp used to match [Text](ImageURL)]] links.
-Paren group 1 must match the URL, and paren group 2 the description."
-  :type 'regexp
-  :group 'diaspora)
-
+  ;; (setq major-mode 'diaspora-mode
+  ;;       mode-name "diaspora")
+  ;; (run-hooks 'diaspora-mode-hook)
+)
 
 (provide 'diaspora)
 
