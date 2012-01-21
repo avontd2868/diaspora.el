@@ -596,13 +596,8 @@ I expect to be already logged in. Use `diaspora' for log-in."
   (set (make-local-variable 'font-lock-defaults)
        '(diaspora-mode-font-lock-keywords))
   (set (make-local-variable 'font-lock-multiline) t)
-;  (kill-all-local-variables)
-;  (indented-text-mode)
   (use-local-map diaspora-mode-map)
-  ;; (setq major-mode 'diaspora-mode
-  ;;       mode-name "diaspora")
-  ;; (run-hooks 'diaspora-mode-hook)
-)
+  (run-hooks 'diaspora-mode-hook))
 
 (provide 'diaspora)
 
