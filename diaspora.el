@@ -228,6 +228,14 @@ I expect to be already logged in. Use `diaspora' for log-in."
     ;; Delete HTTP Buffer
     (kill-buffer buff)))
 
+(defvar diaspora-show-message-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\r" 'diaspora-show-message)
+    (define-key map [mouse-2] 'diaspora-show-message)
+    map)
+  "Keymap used when the user clics on a name link.")
+
+
 (defun diaspora-show-message (parsed-message &optional buffer)
   "Show a parsed message in a given buffer."
   (with-current-buffer buffer
@@ -244,6 +252,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	       (format "%s(%s):\n" name diaspora_id)
 	       'mouse-face 'highlight
 	       'face "link"
+	       'keymap 'diaspora-show-message-map
 	       'help-echo "Click here to see this message in new buffer."))
       (insert (propertize 
 	       (format "%s\n" date)
