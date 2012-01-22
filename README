@@ -1,12 +1,15 @@
-diaspora(dot)el -- Simple Emacs-based client for diaspora*
+diaspora(dot)el --- Simple Emacs-based client for diaspora*
 
+This is in a very early stage of development...it will probably break some where. 
 
-Usage
+See diaspora stream:
 
- - copy the code to a buffer and safe it
- - eval it
- - create a file, visit that file with C-x C-f, which content you like to post to diaspora; write something
- - in the minibuffer type: diaspora
- - authenticate
+(diaspora-get-entry-stream)
 
-and smile
+Post to diaspora:
+
+(diaspora-post-to)
+
+Check keybindings
+
+C-c C-h
