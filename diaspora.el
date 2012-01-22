@@ -116,6 +116,9 @@ If nil, you will be prompted."
 ;(defvar diaspora-auth-token nil
 ;  "")
 
+(defvar diaspora-temp-directory "~/.emacs.d/diaspora.el/"
+  "Temporal directory where to save files for diaspora.el.")
+
 (defvar diaspora-stream-buffer "*diaspora stream*"
   "The name of the diaspora stream buffer.")
 
@@ -255,9 +258,29 @@ I expect to be already logged in. Use `diaspora' for log-in."
       (search-forward "\n\n")      
       (delete-region (point-min) (match-beginning 0))
       ;; Parse JSON...
-      (diaspora-parse-json))
+      (diaspora-parse-json)
+
+      ;;Change markdown to html
+      (diaspora-change-to-html)
+      )
     ;; Delete HTTP Buffer
     (kill-buffer buff)))
+
+
+(defun diaspora-get-tmp-path (filename)
+  "Return the path of temporal files. 
+Check if the temporal directory exists, if not create it."
+  (unless (file-exists-p diaspora-temp-directory)    
+    (make-directory diaspora-temp-directory)
+    )
+  (format "%s/%s" diaspora-temp-directory filename)
+  )
+
+(defun diaspora-change-to-html ()
+  "Change current buffer from markdown into html and htmlize"
+  (write-file (diaspora-get-tmp-path "entry-stream.markdown"))
+  (markdown-preview)
+  )
 
 (defun diaspora-show-message (parsed-message &optional buffer)
   "Show a parsed message in a given buffer."
