@@ -152,10 +152,9 @@ If nil, you will be prompted."
 	   diaspora-password)
       ;; Diaspora username and password was not setted.
     (list
-     (read-from-minibuffer "username: "
-			   (car diaspora-username)
-			   nil nil
-			   'diaspora-username)
+     (setq diaspora-username (read-string "username: "
+					  diaspora-username
+					  nil nil))
      (setq diaspora-password (read-passwd "password: ")))))
 
 (defun diaspora-authenticity-token (url)
@@ -166,8 +165,8 @@ If nil, you will be prompted."
 	(url-request-data
 	 (mapconcat (lambda (arg)
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" (car diaspora-username))
-			  (cons "user[password]" (car diaspora-password))
+		    (list (cons "user[username]" diaspora-username)
+			  (cons "user[password]" diaspora-password)
 			  (cons "user[remember_me]" "1"))
 		    "&")))
     (url-retrieve url 'diaspora-find-auth-token)))
@@ -189,8 +188,8 @@ If nil, you will be prompted."
 	(url-request-data
 	 (mapconcat (lambda (arg)
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" (car diaspora-username))
-			  (cons "user[password]" (car diaspora-password))
+		    (list (cons "user[username]" diaspora-username)
+			  (cons "user[password]" diaspora-password)
 			  (cons "status_message[text]" post)
 			  (cons "user[remember_me]" "1")
 			  (cons "authenticity_token" diaspora-auth-token)
@@ -278,15 +277,9 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	       'face "link"
 	       'keymap 'diaspora-show-message-map
 	       'help-echo "Click here to see this message in new buffer."))
-      (insert (propertize 
-	       (format "%s\n" date)
-	       'face "diaspora-stream-mode-date-face"))
-      (insert (propertize
-	       (format "Has %s comments. %s likes.\n" amount-comments amount-likes)
-	       'face "diaspora-stream-mode-headline-face"))
-      (insert (propertize
-	       (format "%s\n\n" text)
-	       'face "diaspora-stream-mode-text-face")) )))
+      (insert (format "%s\n" date))
+      (insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
+      (insert (format "%s\n\n" text)))))
 
 
 (defun diaspora-get-entry-stream-tag (tag)
@@ -308,8 +301,6 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	(buff (get-buffer-create diaspora-stream-buffer))) 
     ;; clean the new buffer
     (switch-to-buffer buff)
-    ;; Put the `diaspora-stream-mode'.
-    (diaspora-stream-mode)
     (let ((le (length lstparsed))
 	  (inhibit-read-only t))
       (delete-region (point-min) (point-max))
