@@ -277,7 +277,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
       ;;(diaspora-change-to-html)
       ;;Better using diaspora-mode already done by Tiago!      
       (diaspora-mode) 
-      (setq (make-local-variable buffer-read-only) t)
+      (set (make-local-variable 'buffer-read-only) t)
 
       (goto-char (point-min))
       )
@@ -312,8 +312,9 @@ Check if the temporal directory exists, if not create it."
   "Show a parsed message in a given buffer.
 If buffer is nil, then use the `current-buffer'."
   ;; Ensure that buffer is not nil, in case is nil, buffer will be `current-buffer'.
-  (let ((buffer (unless buffer
-		  (current-buffer))))
+  (let ((buffer (if (null buffer)
+		    (current-buffer)
+		  buffer)))
     (with-current-buffer buffer
       (let ( 
 	    (id (cdr (assoc 'id parsed-message)))
