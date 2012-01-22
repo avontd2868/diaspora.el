@@ -28,10 +28,17 @@
 
 ;; A diaspora* client for emacs
 
+;; Save all the files in a DIR and add that DIR to `load-path'; 
+;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
+;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
+
 (require 'url)
 (require 'url-http)
 (require 'json)
 (require 'font-lock)
+
+(require 'diaspora-post)
+(require 'diaspora-stream)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
@@ -133,17 +140,7 @@ If nil, you will be prompted."
 ;;     (switch-to-buffer post-buffer)
 ;;     (diaspora-mode)))
 
-;; Posting
 
-(defun diaspora-post-to ()
-  (interactive)
-  (get-buffer-create diaspora-post-buffer)
-  (switch-to-buffer diaspora-post-buffer)
-  (diaspora-date)
-  (insert diaspora-footer-post)
-  (goto-char (point-min))
-  (insert diaspora-header-post)
-  (diaspora-mode))
 
 (defun diaspora-ask ()
   "Ask for username and password 
@@ -158,162 +155,6 @@ has not been setted."
 			  (car diaspora-password)
 			  nil nil
 			  'diaspora-password)))
-
-(defun diaspora-authenticity-token (url)
-  "Get the authenticity token."
-  (let ((url-request-method "POST")
-	(url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")))
-	(url-request-data
-	 (mapconcat (lambda (arg)
-		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" (car diaspora-username))
-			  (cons "user[password]" (car diaspora-password))
-			  (cons "user[remember_me]" "1"))
-		    "&")))
-    (url-retrieve url 'diaspora-find-auth-token)))
-
-(defun diaspora-find-auth-token (&optional status)
-  "Find the authenticity token."  
-;  (switch-to-buffer (current-buffer))
-  (save-excursion
-    (goto-char (point-min))
-    (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
-    (setq diaspora-auth-token (match-string-no-properties 1)))
-  diaspora-auth-token)
-
-
-(defun diaspora-post (post &optional id)
-  (let ((url-request-method "POST")
-	(url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")))
-	(url-request-data
-	 (mapconcat (lambda (arg)
-		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" (car diaspora-username))
-			  (cons "user[password]" (car diaspora-password))
-			  (cons "status_message[text]" post)
-			  (cons "user[remember_me]" "1")
-			  (cons "authenticity_token" diaspora-auth-token)
-			  (cons "commit" "Sign in")
-			  (cons "aspect_ids[]" "public"))
-		    "&")))
-    (url-retrieve diaspora-status-messages-url
-		  (lambda (arg) 
-		    (kill-buffer (current-buffer))))))
-
-(defun diaspora-post-this-buffer ()
-  (interactive)
-  (diaspora-ask)
-  (message (concat "Getting authenticity token..."))
-  (message (concat "done: " diaspora-auth-token))
-  (diaspora-authenticity-token diaspora-sign-in-url)
-  (message (concat "done: " diaspora-auth-token))
-  (diaspora-post (buffer-string))
-  (diaspora-post-append-to-file)
-  (kill-buffer))
-
-;, Streaming 
-
-(defun diaspora-show-stream (status &optional new-buffer-name)
-  "Show what was recieved in a new buffer.
-If new-buffer-name is given then, the new buffer will have that name, 
-if not, the buffer called \"Diáspora Stream\" will be re-used or created if needed."
-  ;; new-buffer-name has been given? if not, use `diaspora-stream-buffer´ as name.
-  (unless new-buffer-name
-    (setq new-buffer-name diaspora-stream-buffer))
-  (let ((buffer (get-buffer-create new-buffer-name))
-	(text (buffer-string))
-	(buf-kill (current-buffer)))    
-    ;; copy text and switch
-    (switch-to-buffer buffer)
-    (insert text)    
-    ;; kill the http buffer
-    (kill-buffer buf-kill)))
-
-(defun diaspora-get-url-entry-stream (url)
-  "Get the Diáspora URL and leave it in a new buffer."
-  (let ((url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")
-	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "UTF-8"))))
-    (url-retrieve-synchronously url)))
-
-
-(defun diaspora-get-entry-stream ()
-  "Show the entry stream. 
-First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
-I expect to be already logged in. Use `diaspora' for log-in."
-  (interactive)  
-  (diaspora-ask) 
-  (diaspora-authenticity-token diaspora-sign-in-url) ;; Get the authenticity token
-  (let ((buff (diaspora-get-url-entry-stream diaspora-entry-stream-url)))
-    (with-current-buffer buff
-      ;; Delete the HTTP header...
-      (goto-char (point-min))
-      (search-forward "\n\n")      
-      (delete-region (point-min) (match-beginning 0))
-      ;; Parse JSON...
-      (diaspora-parse-json))
-    ;; Delete HTTP Buffer
-    (kill-buffer buff)))
-
-(defun diaspora-show-message (parsed-message &optional buffer)
-  "Show a parsed message in a given buffer."
-  (with-current-buffer buffer
-    (let ( (name (cdr (assoc 'name (assoc 'author parsed-message))))
-	  (diaspora_id (cdr (assoc 'diaspora_id (assoc 'author parsed-message))))
-	  (text (cdr (assoc 'text parsed-message)))
-	  (date (cdr (assoc 'created_at parsed-message)))
-	  (amount-comments (cdr (assoc 'comments_count parsed-message)))
-	  (amount-likes (cdr (assoc 'likes_count parsed-message))))
-      (insert (format "---\n%s(%s):\n%s\n\n" name diaspora_id text))))
-  (diaspora-mode))
-
-(defun diaspora-get-entry-stream-tag (tag)
-  "Get stream of tag. Just an idea... needs working."
-  (let ((buff (diaspora-get-url-entry-stream
-	       (concat "https://joindiaspora.com/tags/" tag ".json"))))
-    (with-current-buffer buff
-      (goto-char (point-min))
-      (search-forward "\n\n")      
-      (delete-region (point-min) (match-beginning 0))
-      (diaspora-parse-json))
-    (kill-buffer buff)))
-
-(defun diaspora-parse-json (&optional status)
-  "Parse de JSON entry stream."
-  (goto-char (point-min))
-  (let ((lstparsed (cdr (assoc 'posts (json-read))))
-	(buff (get-buffer-create diaspora-stream-buffer)))
-    (switch-to-buffer buff)
-    (let ((le (length lstparsed)))
-    ;; Show all elements
-      (dotimes (i le)
-	(diaspora-show-message (aref lstparsed i) buff)))))
-
-
-(defsubst diaspora-date ()
-  "Date string."
-  (interactive)
-  (insert "\n\n#" (format-time-string "%Y%m%d") " "))
-
-
-
-(defun diaspora-post-append-to-file ()
-  ;; Based on take-notes.el/remember.el
-  (with-temp-buffer
-    (insert-buffer diaspora-post-buffer)
-    (insert "\n" "---" "\n")
-    (if (find-buffer-visiting diaspora-data-file)
-	(let ((post-text (buffer-string)))
-	  (set-buffer (get-file-buffer diaspora-data-file))
-	  (save-excursion
-	    (goto-char (point-min))
-	    (insert post-text)
-	    (insert "\n")
-	    (when diaspora-save-after-posting (save-buffer)))
-	  (append-to-file (point-min) (point-max) diaspora-data-file)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -400,6 +241,13 @@ I expect to be already logged in. Use `diaspora' for log-in."
   :group 'diaspora
   :group 'faces)
 
+;; (defcustom diaspora-regex-bare-link
+;;   "http://[a-zA-Z0-9-_\./?=&]*"
+;; or "^http://.*"
+;;   "Regular expression for a `http://'"
+;;   :type 'regexp
+;;   :group 'diaspora)
+
 (defcustom diaspora-regex-image
   "\\(!?\\[[^]]*?\\]\\)\\(([^\\)]*)\\)"
   "Regular expression for a [text](file) or an image link ![text](file)."
@@ -407,13 +255,13 @@ I expect to be already logged in. Use `diaspora' for log-in."
   :group 'diaspora)
 
 (defcustom diaspora-regex-user-entry 
-"^[a-zA-Z0-9_\s-]*([a-zA-Z0-9_\s-]*@[a-zA-Z0-9\s-]*\.[a-zA-Z0-9\s-]*)"
+"^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
   "Regular expression for user entry."
   :type 'regexp
   :group 'diaspora)
 
 (defcustom diaspora-regex-tag
-  "#\\([a-zA-Z0-9_]\\)+"
+  "#[a-zA-Z0-9_/\.]+"
   "Regular expression for a tag."
   :type 'regexp
   :group 'diaspora)
@@ -565,6 +413,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
 
 (defvar diaspora-mode-font-lock-keywords
   (list
+;   (cons diaspora-regex-bare-link '(2 diaspora-url-face t))
    (cons diaspora-regex-blockquote 'diaspora-blockquote-face)
    (cons diaspora-regex-user-entry 'diaspora-header-face-1)
    (cons diaspora-regex-header-1 'diaspora-header-face-1)
