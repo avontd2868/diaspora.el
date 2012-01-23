@@ -87,7 +87,6 @@
   (interactive)
   (diaspora-ask)
   (message (concat "Getting authenticity token..."))
-  (message (concat "done: " diaspora-auth-token))
   (diaspora-authenticity-token diaspora-sign-in-url)
   (message (concat "done: " diaspora-auth-token))
   (diaspora-post (buffer-string))
