@@ -1,3 +1,35 @@
+;;; diaspora.el --- Simple Emacs-based client for diaspora*
+
+;; Author: Tiago Charters de Azevedo <tca@diale.org>
+;; Maintainer: Tiago Charters de Azevedo <tca@diale.org>
+;; Created: Jan 16, 2012
+;; Version: .0
+;; Keywords: diaspora*
+;; URL: http://diale.org/diaspora.html
+
+;; Copyright (c) 2011 Tiago Charters de Azevedo, Christian Giménez
+;;
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
+;;
+;; This program is distributed in the hope that it will be useful,
+;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
+;; You should have received a copy of the GNU General Public License
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+;; 02110-1301, USA.
+
+;;; Commentary:
+
+;; A diaspora* client for emacs
+
+;, Streaming 
+
 (defun diaspora-show-stream (status &optional new-buffer-name)
   "Show what was recieved in a new buffer.
 If new-buffer-name is given then, the new buffer will have that name, 
@@ -174,3 +206,6 @@ If buffer is nil, then use the `current-buffer'."
     ;; Show all elements
       (dotimes (i le)
 	(diaspora-show-message (aref lstparsed i) buff)))))
+
+
+(provide 'diaspora-stream)
