@@ -84,6 +84,10 @@ If nil, you will be prompted."
   "URL used to update diaspora status messages."
   :group 'diaspora)
 
+(defcustom diaspora-single-message-url
+  "https://joindiaspora.com/posts"
+  "URL used to get a single message.")
+
 (defcustom diaspora-entry-stream-url 
   "https://joindiaspora.com/stream.json"
   "JSON version of the entry stream(the main stream)."
@@ -123,12 +127,18 @@ If nil, you will be prompted."
 ;(defvar diaspora-auth-token nil
 ;  "")
 
+(defvar diaspora-temp-directory "~/.emacs.d/diaspora.el/"
+  "Temporal directory where to save files for diaspora.el.")
+
 (defvar diaspora-stream-buffer "*diaspora stream*"
   "The name of the diaspora stream buffer.")
 
 (defvar diaspora-post-buffer "*diaspora post*"
   "The name of the diaspora post buffer.")
 
+(defvar diaspora-single-message-buffer "*diaspora message*"
+  "The name of the diaspora single message buffer."
+  )
 
 ;;; User Functions:
 
@@ -143,18 +153,16 @@ If nil, you will be prompted."
 
 
 (defun diaspora-ask ()
-  "Ask for username and password 
-if `diaspora-username' and  `diaspora-password' 
-has not been setted."
-  (unless (and diaspora-username diaspora-password)
-    (read-from-minibuffer "username: "
-			  (car diaspora-username)
-			  nil nil
-			  'diaspora-username)
-    (read-from-minibuffer "password: "
-			  (car diaspora-password)
-			  nil nil
-			  'diaspora-password)))
+  "Ask for username and password if `diaspora-username' and  `diaspora-password' has not been setted."
+  (unless (and
+	   diaspora-username
+	   diaspora-password)
+      ;; Diaspora username and password was not setted.
+    (list
+     (setq diaspora-username (read-string "username: "
+					  diaspora-username
+					  nil nil))
+     (setq diaspora-password (read-passwd "password: ")))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
