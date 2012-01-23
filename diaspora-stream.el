@@ -221,5 +221,4 @@ buffer or in the buffer specified."
       (insert (format "\n---\n%s at %s:\n" name created_at))
       (insert text))))
 
-     
 (provide 'diaspora-stream)
