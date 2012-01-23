@@ -107,7 +107,7 @@ Check if the temporal directory exists, if not create it."
 
 (defvar diaspora-show-message-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'diaspora-show-message-new-buffer)
+    (define-key map [return] 'diaspora-show-message-new-buffer)
     (define-key map [mouse-2] 'diaspora-show-message-new-buffer)
     map)
   "Keymap used when the user clics on a name link.")
@@ -135,7 +135,7 @@ If buffer is nil, then use the `current-buffer'."
 		 (format "%s(%s):\n" name diaspora_id)
 		 'mouse-face 'highlight
 		 'face "link"
-		 'keymap 'diaspora-show-message-map
+		 'keymap diaspora-show-message-map
 		 'diaspora-id-message id
 		 'help-echo "Click here to see this message in new buffer."))
 	(insert (format "%s\n" date))
@@ -143,7 +143,7 @@ If buffer is nil, then use the `current-buffer'."
 	(insert (format "%s\n\n" text))))))
   
 
-(defun diaspora-show-message-new-buffer ()
+(defun diaspora-show-message-new-buffer (&rest r)
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
   (interactive)
   (let ((id-message (get-text-property (+ 1 
@@ -164,6 +164,7 @@ If buffer is nil, then use the `current-buffer'."
       )
     
     (diaspora-parse-single-message-json buff-http buff)
+    (diaspora-insert-comments-for-message id-message buff)
     (switch-to-buffer buff)
     (diaspora-mode)))
 
@@ -207,5 +208,32 @@ If buffer is nil, then use the `current-buffer'."
       (dotimes (i le)
 	(diaspora-show-message (aref lstparsed i) buff)))))
 
+(defun diaspora-insert-comments-for-message (message-id &optional buffer)
+  "Get the comments for the given message, and insert it in the current buffer or in the buffer specified."
+  (let ((buff-http (diaspora-get-url-entry-stream (format "%s/%s/comments.json" diaspora-single-message-url message-id)))
+	(buffer (if (null buffer)
+		    (current-buffer)
+		  buffer)))
 
+    (with-current-buffer buff-http
+      (diaspora-delete-http-header)
+      (let ((lstparsed (json-read)))
+	;; parse all comments one by one and insert it
+	(let ((le (length lstparsed))
+	      (inhibit-read-only t))
+	  (dotimes (i le)
+	    (diaspora-insert-comment (aref lstparsed i) buffer)))))))
+	    
+(defun diaspora-insert-comment (comment buffer)
+  "Insert a JSON parsed (with `json-read') into a specific buffer."
+  (let ((name (cdr (assoc 'name (cdr (assoc 'author comment)))))
+	(text (cdr (assoc 'text comment)))
+	(created_at (cdr (assoc 'created_at comment))))
+    
+    (with-current-buffer buffer
+      (insert (format "\n---\n%s at %s:\n" name created_at))
+      (insert text)	    
+      )))
+
+     
 (provide 'diaspora-stream)
