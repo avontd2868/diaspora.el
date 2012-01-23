@@ -40,7 +40,8 @@
   (insert diaspora-footer-post)
   (goto-char (point-min))
   (insert diaspora-header-post)
-  (diaspora-mode))
+  (diaspora-mode)
+  (message "Use C-c C-c to post to diaspora*."))
 
 (defun diaspora-authenticity-token (url)
   "Get the authenticity token."
