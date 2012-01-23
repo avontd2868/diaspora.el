@@ -28,10 +28,17 @@
 
 ;; A diaspora* client for emacs
 
+;; Save all the files in a DIR and add that DIR to `load-path'; 
+;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
+;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
+
 (require 'url)
 (require 'url-http)
 (require 'json)
 (require 'font-lock)
+
+(require 'diaspora-post)
+(require 'diaspora-stream)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
@@ -143,17 +150,7 @@ If nil, you will be prompted."
 ;;     (switch-to-buffer post-buffer)
 ;;     (diaspora-mode)))
 
-;; Posting
 
-(defun diaspora-post-to ()
-  (interactive)
-  (get-buffer-create diaspora-post-buffer)
-  (switch-to-buffer diaspora-post-buffer)
-  (diaspora-date)
-  (insert diaspora-footer-post)
-  (goto-char (point-min))
-  (insert diaspora-header-post)
-  (diaspora-mode))
 
 (defun diaspora-ask ()
   "Ask for username and password if `diaspora-username' and  `diaspora-password' has not been setted."
@@ -167,6 +164,7 @@ If nil, you will be prompted."
 					  nil nil))
      (setq diaspora-password (read-passwd "password: ")))))
 
+<<<<<<< HEAD
 (defun diaspora-authenticity-token (url)
   "Get the authenticity token."
   (let ((url-request-method "POST")
@@ -426,6 +424,8 @@ If buffer is nil, then use the `current-buffer'."
 	    (when diaspora-save-after-posting (save-buffer)))
 	  (append-to-file (point-min) (point-max) diaspora-data-file)))))
 
+=======
+>>>>>>> upstream/test
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defvar diaspora-mode-map 
@@ -511,6 +511,13 @@ If buffer is nil, then use the `current-buffer'."
   :group 'diaspora
   :group 'faces)
 
+;; (defcustom diaspora-regex-bare-link
+;;   "http://[a-zA-Z0-9-_\./?=&]*"
+;; or "^http://.*"
+;;   "Regular expression for a `http://'"
+;;   :type 'regexp
+;;   :group 'diaspora)
+
 (defcustom diaspora-regex-image
   "\\(!?\\[[^]]*?\\]\\)\\(([^\\)]*)\\)"
   "Regular expression for a [text](file) or an image link ![text](file)."
@@ -518,13 +525,13 @@ If buffer is nil, then use the `current-buffer'."
   :group 'diaspora)
 
 (defcustom diaspora-regex-user-entry 
-"^[a-zA-Z0-9_\s-]*([a-zA-Z0-9_\s-]*@[a-zA-Z0-9\s-]*\.[a-zA-Z0-9\s-]*)"
+"^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
   "Regular expression for user entry."
   :type 'regexp
   :group 'diaspora)
 
 (defcustom diaspora-regex-tag
-  "#\\([a-zA-Z0-9_]\\)+"
+  "#[a-zA-Z0-9_/\.]+"
   "Regular expression for a tag."
   :type 'regexp
   :group 'diaspora)
@@ -676,6 +683,7 @@ If buffer is nil, then use the `current-buffer'."
 
 (defvar diaspora-mode-font-lock-keywords
   (list
+;   (cons diaspora-regex-bare-link '(2 diaspora-url-face t))
    (cons diaspora-regex-blockquote 'diaspora-blockquote-face)
    (cons diaspora-regex-user-entry 'diaspora-header-face-1)
    (cons diaspora-regex-header-1 'diaspora-header-face-1)
