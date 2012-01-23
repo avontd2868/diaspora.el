@@ -93,11 +93,9 @@ I expect to be already logged in. Use `diaspora' for log-in."
 (defun diaspora-get-tmp-path (filename)
   "Return the path of temporal files. 
 Check if the temporal directory exists, if not create it."
-  (unless (file-exists-p diaspora-temp-directory)    
-    (make-directory diaspora-temp-directory)
-    )
-  (format "%s/%s" diaspora-temp-directory filename)
-  )
+  (unless (file-exists-p diaspora-tmp-directory)    
+    (make-directory diaspora-tmp-directory))
+  (format "%s/%s" diaspora-tmp-directory filename))
 
 (defun diaspora-change-to-html ()
   "Change current buffer from markdown into html and htmlize"
@@ -146,10 +144,10 @@ If buffer is nil, then use the `current-buffer'."
 (defun diaspora-show-message-new-buffer (&rest r)
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
   (interactive)
-  (let ((id-message (get-text-property (+ 1 
-					  (previous-single-property-change (point) 'diaspora-id-message))
-		     'diaspora-id-message)))
-    
+  (let ((id-message 
+	 (get-text-property (+ 1 
+			       (previous-single-property-change (point) 'diaspora-id-message))
+			    'diaspora-id-message)))
     (diaspora-get-single-message id-message)))
 
 (defun diaspora-get-single-message (id-message)
@@ -196,7 +194,8 @@ If buffer is nil, then use the `current-buffer'."
 (defun diaspora-parse-json (&optional status)
   "Parse de JSON entry stream."
   (goto-char (point-min))
-  ;; Create a new buffer called according `diaspora-buffer' say and parse the json code into lists.
+  ;; Create a new buffer called according `diaspora-buffer' say 
+  ;; and parse the json code into lists.
   (let ((lstparsed (cdr (assoc 'posts (json-read))))
 	(buff (get-buffer-create diaspora-stream-buffer))) 
     ;; clean the new buffer
@@ -209,8 +208,10 @@ If buffer is nil, then use the `current-buffer'."
 	(diaspora-show-message (aref lstparsed i) buff)))))
 
 (defun diaspora-insert-comments-for-message (message-id &optional buffer)
-  "Get the comments for the given message, and insert it in the current buffer or in the buffer specified."
-  (let ((buff-http (diaspora-get-url-entry-stream (format "%s/%s/comments.json" diaspora-single-message-url message-id)))
+  "Get the comments for the given message, and insert it in the current 
+buffer or in the buffer specified."
+  (let ((buff-http (diaspora-get-url-entry-stream 
+		    (format "%s/%s/comments.json" diaspora-single-message-url message-id)))
 	(buffer (if (null buffer)
 		    (current-buffer)
 		  buffer)))

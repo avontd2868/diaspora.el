@@ -55,6 +55,12 @@
   :type 'string
   :group 'diaspora)
 
+(defcustom diaspora-tmp-directory
+  "~/tmp_diaspora"
+  "Diaspora* pod."
+  :type 'dir
+  :group 'diaspora)
+
 
 (defcustom diaspora-mode-hook nil
   "Functions run upon entering `diaspora-mode'."
@@ -124,11 +130,13 @@ If nil, you will be prompted."
 
 ;;; Internal Variables:
 
-;(defvar diaspora-auth-token nil
-;  "")
+(defvar diaspora-auth-token nil
+  "Authenticity token variable name.")
 
-(defvar diaspora-temp-directory "~/.emacs.d/diaspora.el/"
-  "Temporal directory where to save files for diaspora.el.")
+;; This definition conflits with my .el files
+;; defined above as a custom variable 
+;; (defvar diaspora-temp-directory "~/.emacs.d/diaspora.el/"
+;;   "Temporal directory where to save files for diaspora.el.")
 
 (defvar diaspora-stream-buffer "*diaspora stream*"
   "The name of the diaspora stream buffer.")
@@ -137,8 +145,7 @@ If nil, you will be prompted."
   "The name of the diaspora post buffer.")
 
 (defvar diaspora-single-message-buffer "*diaspora message*"
-  "The name of the diaspora single message buffer."
-  )
+  "The name of the diaspora single message buffer.")
 
 ;;; User Functions:
 
@@ -153,10 +160,9 @@ If nil, you will be prompted."
 
 
 (defun diaspora-ask ()
-  "Ask for username and password if `diaspora-username' and  `diaspora-password' has not been setted."
-  (unless (and
-	   diaspora-username
-	   diaspora-password)
+  "Ask for username and password if `diaspora-username' 
+and  `diaspora-password' has not been setted."
+  (unless (and diaspora-username diaspora-password)
       ;; Diaspora username and password was not setted.
     (list
      (setq diaspora-username (read-string "username: "
