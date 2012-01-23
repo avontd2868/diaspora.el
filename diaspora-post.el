@@ -48,8 +48,8 @@
 	(url-request-data
 	 (mapconcat (lambda (arg)
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" (car diaspora-username))
-			  (cons "user[password]" (car diaspora-password))
+		    (list (cons "user[username]" diaspora-username)
+			  (cons "user[password]" diaspora-password)
 			  (cons "user[remember_me]" "1"))
 		    "&")))
     (url-retrieve url 'diaspora-find-auth-token)))
@@ -71,8 +71,8 @@
 	(url-request-data
 	 (mapconcat (lambda (arg)
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" (car diaspora-username))
-			  (cons "user[password]" (car diaspora-password))
+		    (list (cons "user[username]" diaspora-username)
+			  (cons "user[password]" diaspora-password)
 			  (cons "status_message[text]" post)
 			  (cons "user[remember_me]" "1")
 			  (cons "authenticity_token" diaspora-auth-token)
