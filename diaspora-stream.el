@@ -59,8 +59,7 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
 This is used after getting a stream or any URL in JSON format."
    (goto-char (point-min))
    (search-forward "\n\n")      
-   (delete-region (point-min) (match-beginning 0))
-  )
+   (delete-region (point-min) (match-beginning 0)))
 
 (defun diaspora-get-entry-stream ()
   "Show the entry stream. 
@@ -76,15 +75,12 @@ I expect to be already logged in. Use `diaspora' for log-in."
       (diaspora-delete-http-header)
       ;; Parse JSON...
       (diaspora-parse-json)
-
       ;;Change markdown to html... not so good.      
       ;;(diaspora-change-to-html)
       ;;Better using diaspora-mode already done by Tiago!      
       (diaspora-mode) 
       (set (make-local-variable 'buffer-read-only) t)
-
-      (goto-char (point-min))
-      )
+      (goto-char (point-min)))
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
     ))
@@ -148,19 +144,17 @@ If buffer is nil, then use the `current-buffer'."
 	 (get-text-property (+ 1 
 			       (previous-single-property-change (point) 'diaspora-id-message))
 			    'diaspora-id-message)))
-    (diaspora-get-single-message id-message)))
+    (diaspora-get-single-message id-message))
+      (set (make-local-variable 'buffer-read-only) t))
 
 (defun diaspora-get-single-message (id-message)
   "Get from the `diaspora-single-message-url' URL the given message by id."
   (let ((buff (get-buffer-create diaspora-single-message-buffer))
 	(buff-http (diaspora-get-url-entry-stream
 		    (format "%s/%s.json" diaspora-single-message-url id-message))))
-    
     (with-current-buffer buff-http
       ;; Delete HTTP header!
-      (diaspora-delete-http-header)
-      )
-    
+      (diaspora-delete-http-header))
     (diaspora-parse-single-message-json buff-http buff)
     (diaspora-insert-comments-for-message id-message buff)
     (switch-to-buffer buff)
@@ -175,10 +169,7 @@ If buffer is nil, then use the `current-buffer'."
       (with-current-buffer buff-to
 	;; Clean buffer buff-to and insert message
 	(delete-region (point-min) (point-max))
-	(diaspora-show-message lstparsed)
-	)
-      )    
-    ))
+	(diaspora-show-message lstparsed)))))
 
 (defun diaspora-get-entry-stream-tag (tag)
   "Get stream of tag. Just an idea... needs working."
@@ -215,7 +206,6 @@ buffer or in the buffer specified."
 	(buffer (if (null buffer)
 		    (current-buffer)
 		  buffer)))
-
     (with-current-buffer buff-http
       (diaspora-delete-http-header)
       (let ((lstparsed (json-read)))
@@ -233,8 +223,7 @@ buffer or in the buffer specified."
     
     (with-current-buffer buffer
       (insert (format "\n---\n%s at %s:\n" name created_at))
-      (insert text)	    
-      )))
+      (insert text))))
 
      
 (provide 'diaspora-stream)
