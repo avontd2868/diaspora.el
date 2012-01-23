@@ -185,10 +185,10 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
     (define-key diaspora-mode-map "\C-c\C-c-" 'diaspora-markdown-insert-horizontal-rule)
     (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
     (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
-    (define-key diaspora-mode-map "\C-c\C-cm" ' diaspora-markdown-mention-user)
+    (define-key diaspora-mode-map "\C-c\C-cm" 'diaspora-markdown-mention-user)
     (define-key diaspora-mode-map "\C-c\C-c" 'diaspora-post-this-buffer)
     (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
-    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-highlight) ; not implemente yet
+    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-highlight) ; not implemented yet
     diaspora-mode-map)
   "Keymap based on html-mode")
 
