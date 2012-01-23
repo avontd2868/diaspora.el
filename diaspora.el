@@ -269,7 +269,7 @@ If nil, you will be prompted."
   :group 'diaspora)
 
 (defcustom diaspora-regex-tag
-  "#[a-zA-Z0-9_/\.]+"
+  "#[a-zA-Z0-9_/\.-]+"
   "Regular expression for a tag."
   :type 'regexp
   :group 'diaspora)
