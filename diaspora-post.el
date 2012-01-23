@@ -30,10 +30,12 @@
 
 ;; Posting
 
-(defun diaspora-post-to ()
+(defun diaspora-post-to (&optional initial)
+  "Post to diaspora."
   (interactive)
+  (window-configuration-to-register diaspora-post-register)
   (get-buffer-create diaspora-post-buffer)
-  (switch-to-buffer diaspora-post-buffer)
+  (switch-to-buffer-other-window diaspora-post-buffer)
   (diaspora-date)
   (insert diaspora-footer-post)
   (goto-char (point-min))
@@ -65,6 +67,7 @@
 
 
 (defun diaspora-post (post &optional id)
+  "Post `post' to diaspora."
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
@@ -116,12 +119,43 @@
 	  (append-to-file (point-min) (point-max) diaspora-data-file)))))
 
 
-(defun diaspora-find-all-user-in-buffer (&optional buffer)
-  "Find all users in buffer BUFFER and return 
-a list of strings `user name(username@joinsdiaspora.com)'"
-;  (switch-to-buffer buffer)
-  (cond ((search-forward-regexp  diaspora-regex-user-entry (point-max) t)
-	 (cons (match-string-no-properties 0) (diaspora-find-all-user-in-buffer)))
-	(t nil)))
+(defun diaspora-find-all-markdown (regexp)
+  "Find all markdown strings given by `regexp' and return all of them in a list.
+Usage example: `(diaspora-find-all-markdown diaspora-regex-tag)'"
+  (flet ((d-find-aux (regexp)
+		       (cond ((search-forward-regexp  regexp (point-max) t)
+			      (cons (match-string-no-properties 0) 
+				    (d-find-aux regexp)))
+			     (t nil))))
+    (remove-duplicates (d-find-aux regexp) :test 'equal)))
+
+
+(defun diaspora-post-buffer-desc ()
+  "Using the first line of the current buffer."
+    (interactive)
+    (let ((post (buffer-substring (point-min)
+				  (save-excursion
+				    (goto-char (point-min))
+				    (end-of-line)
+				    (if (> (- (point) (point-min)) 60)
+					(goto-char (+ (point-min) 60)))
+				    (point)))))
+      (diaspora-ask)
+      (diaspora-post post)))
+
+(defun diaspora-post-clipboard ()
+  "Post to diaspora the contents of the current clipboard.
+Most useful for take-notesing things from Netscape or other X Windows
+application."
+  (interactive)
+  (disapora-ask)
+  (diaspora-post-to (current-kill 0)))
+
+(defun diaspora-post-destroy ()
+  "Destroy the current diaspora post buffer."
+  (interactive)
+  (when (equal diaspora-post-buffer (buffer-name))
+    (kill-buffer (current-buffer))
+    (jump-to-register diaspora-post-register)))
 
 (provide 'diaspora-post)

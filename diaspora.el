@@ -128,6 +128,11 @@ If nil, you will be prompted."
   :type 'boolean
   :group 'diaspora)
 
+(defcustom diaspora-post-register ?R
+  "The register in which the window configuration is stored."
+  :type 'character
+  :group 'disapora)
+
 ;;; Internal Variables:
 
 (defvar diaspora-auth-token nil
@@ -149,20 +154,16 @@ If nil, you will be prompted."
 
 ;;; User Functions:
 
-;; (defun diaspora-create-file-post ()
-;;   (interactive)
-;;   (read-from-minibuffer "Find file: "
-;; 			nil nil nil 'diaspora-post-file-name)
-;;   (let ((post-buffer (get-buffer-create (car diaspora-post-file-name))))
-;;     (switch-to-buffer post-buffer)
-;;     (diaspora-mode)))
-
-
-
-(defun diaspora-ask ()
+(defun diaspora ()
+  "Set `diaspora-username' and  `diaspora-password' no matter what. 
+To be called interactively instead of `diaspora-ask'"
+  (interactive)
+  (diaspora-ask t))
+  
+(defun diaspora-ask (&optional opt)
   "Ask for username and password if `diaspora-username' 
-and  `diaspora-password' has not been setted."
-  (unless (and diaspora-username diaspora-password)
+and  `diaspora-password' has not been setted. `opt' t forces setting."
+  (unless (and diaspora-username diaspora-password (null opt))
       ;; Diaspora username and password was not setted.
     (list
      (setq diaspora-username (read-string "username: "
@@ -185,7 +186,8 @@ and  `diaspora-password' has not been setted."
     (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
     (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
     (define-key diaspora-mode-map "\C-c\C-cm" ' diaspora-markdown-mention-user)
-    (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
+    (define-key diaspora-mode-map "\C-c\C-c" 'diaspora-post-this-buffer)
+    (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
     (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-highlight) ; not implemente yet
     diaspora-mode-map)
   "Keymap based on html-mode")
@@ -464,4 +466,4 @@ and  `diaspora-password' has not been setted."
 
 (provide 'diaspora)
 
-;;; diaspora.el ends here
+;;; diaspora.el ends here.

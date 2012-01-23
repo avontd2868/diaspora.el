@@ -85,7 +85,6 @@ I expect to be already logged in. Use `diaspora' for log-in."
     ;;(kill-buffer buff)
     ))
 
-
 (defun diaspora-get-tmp-path (filename)
   "Return the path of temporal files. 
 Check if the temporal directory exists, if not create it."
@@ -96,8 +95,7 @@ Check if the temporal directory exists, if not create it."
 (defun diaspora-change-to-html ()
   "Change current buffer from markdown into html and htmlize"
   (write-file (diaspora-get-tmp-path "entry-stream.markdown"))
-  (markdown-preview)
-  )
+  (markdown-preview))
 
 (defvar diaspora-show-message-map
   (let ((map (make-sparse-keymap)))
@@ -114,8 +112,7 @@ If buffer is nil, then use the `current-buffer'."
 		    (current-buffer)
 		  buffer)))
     (with-current-buffer buffer
-      (let ( 
-	    (id (cdr (assoc 'id parsed-message)))
+      (let ((id (cdr (assoc 'id parsed-message)))
 	    (name (cdr (assoc 'name (assoc 'author parsed-message))))
 	    (diaspora_id (cdr (assoc 'diaspora_id (assoc 'author parsed-message))))
 	    (text (cdr (assoc 'text parsed-message)))
@@ -220,7 +217,6 @@ buffer or in the buffer specified."
   (let ((name (cdr (assoc 'name (cdr (assoc 'author comment)))))
 	(text (cdr (assoc 'text comment)))
 	(created_at (cdr (assoc 'created_at comment))))
-    
     (with-current-buffer buffer
       (insert (format "\n---\n%s at %s:\n" name created_at))
       (insert text))))
