@@ -111,7 +111,7 @@ If nil, you will be prompted."
   :group 'diaspora)
 
 (defcustom diaspora-header-post
-  "## "
+  "### "
   "Header for each post:"
   :type 'string
   :group 'diaspora)
@@ -133,6 +133,9 @@ If nil, you will be prompted."
   :group 'disapora)
 
 ;;; Internal Variables:
+
+(defvar  diaspora-wegfinger-list nil
+  "")
 
 (defvar diaspora-auth-token nil
   "Authenticity token variable name.")
@@ -464,41 +467,26 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 		  (setq diaspora-resource-descriptor-webfinger-string (match-string-no-properties 1))))
   diaspora-resource-descriptor-webfinger-string)
 
-(diaspora-resource-descriptor-webfinger "joindiaspora.com")
-(diaspora-webfinger "joindiaspora.com" "tca")
-
 (defun diaspora-webfinger (pod user)
+  "Returns a list with webfinger.
+(QUERY GUID PROFILE-PAGE ATOM D*PUBLICKEY)"
   (diaspora-resource-descriptor-webfinger pod)
   (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user "@" pod)
-		(lambda (arg nil) 
-		  (switch-to-buffer (current-buffer)))))
-
-;; (defun diaspora-webfinger (pod user)
-;;   (diaspora-resource-descriptor-webfinger pod)
-;;   (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user "@" pod)
-;; 		(lambda (arg) 
-;; 		  (switch-to-buffer (current-buffer))
-;; 		  (mapcar (lambda (x)
-;; 			    (save-excursion
-;; 			      (goto-char (point-min))
-;; 			      (search-forward-regexp arg))) diaspora-regexp-webfinder-all))))
+		(lambda (arg) 
+		  (setq diaspora-wegfinger-list 
+			(mapcar (lambda (x)
+				  (save-excursion
+				    (goto-char (point-min))
+				    (search-forward-regexp x)
+				    (match-string-no-properties 1))) diaspora-regexp-webfinger-all)))))
 
 
-(defvar diaspora-regexp-webfinder-all
-  (list  diaspora-regex-webfinger-query
-	 diaspora-regex-webfinger-hcard
-	 diaspora-regex-webfinger-guid
-	 diaspora-regex-webfinger-profile-page
-	 diaspora-regex-webfinger-atom
-	 diaspora-regex-webfinger-publickey)
-	 "")
   
 (defcustom diaspora-regex-webfinger-query
   "<Link rel=\'lrdd\'\n[\s-]*template=\'\\(.*\\)\{uri\}\'>"
   "Regular expression for resource-descriptor-webfinger."
   :type 'regexp
   :group 'diaspora)
-
 
 (defcustom diaspora-regex-webfinger-hcard
   "<Link rel=\"http://microformats.org/profile/hcard\" type=\"text/html\" href=\"\\(.*\\)\"/>"
@@ -530,6 +518,14 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
   "webfinger-publickey"
   :type 'regexp
   :group 'diaspora)
+
+(defvar diaspora-regexp-webfinger-all
+  (list diaspora-regex-webfinger-profile-page
+	diaspora-regex-webfinger-guid
+	diaspora-regex-webfinger-hcard
+	diaspora-regex-webfinger-atom
+	diaspora-regex-webfinger-publickey)
+  "List of all the regexp used to webfinger.")
 
 
 ;; Mode
