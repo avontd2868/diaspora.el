@@ -134,7 +134,7 @@ If nil, you will be prompted."
 
 ;;; Internal Variables:
 
-(defvar  diaspora-wegfinger-list nil
+(defvar  diaspora-webfinger-list nil
   "")
 
 (defvar diaspora-auth-token nil
@@ -468,18 +468,17 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
   diaspora-resource-descriptor-webfinger-string)
 
 (defun diaspora-webfinger (pod user)
-  "Returns a list with webfinger.
-(QUERY GUID PROFILE-PAGE ATOM D*PUBLICKEY)"
+  "Returns a list with webfinger with the form PROFILE-PAGE GUID HCARD ATOM D*PUBLICKEY"
   (diaspora-resource-descriptor-webfinger pod)
   (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user "@" pod)
 		(lambda (arg) 
-		  (setq diaspora-wegfinger-list 
+		  (setq diaspora-webfinger-list 
 			(mapcar (lambda (x)
 				  (save-excursion
 				    (goto-char (point-min))
 				    (search-forward-regexp x)
-				    (match-string-no-properties 1))) diaspora-regexp-webfinger-all)))))
-
+				    (match-string-no-properties 1))) 
+				diaspora-regexp-webfinger-all)))))
 
   
 (defcustom diaspora-regex-webfinger-query
