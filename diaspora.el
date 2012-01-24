@@ -51,7 +51,7 @@
 
 (defcustom diaspora-pod 
   "joinsdiaspora.com"
-  "Diaspora* pod."
+  "Your diaspora* pod."
   :type 'string
   :group 'diaspora)
 

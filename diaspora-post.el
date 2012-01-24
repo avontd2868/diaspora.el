@@ -32,10 +32,13 @@
 
 (defun diaspora-post-to (&optional initial)
   "Post to diaspora."
-  (interactive)
+  (interactive
+   (list (when current-prefix-arg
+           (buffer-substring (point) (mark)))))
   (window-configuration-to-register diaspora-post-register)
   (get-buffer-create diaspora-post-buffer)
   (switch-to-buffer-other-window diaspora-post-buffer)
+  (when initial (insert initial))
   (diaspora-date)
   (insert diaspora-footer-post)
   (goto-char (point-min))
@@ -149,7 +152,7 @@ Usage example: `(diaspora-find-all-markdown diaspora-regex-tag)'"
 Most useful for take-notesing things from Netscape or other X Windows
 application."
   (interactive)
-  (disapora-ask)
+  (diaspora-ask)
   (diaspora-post-to (current-kill 0)))
 
 (defun diaspora-post-destroy ()
