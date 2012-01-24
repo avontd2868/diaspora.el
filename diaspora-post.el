@@ -31,16 +31,20 @@
 ;; Posting
 
 (defun diaspora-post-to (&optional initial)
-  "Post to diaspora."
+  "Post to diaspora.
+With a prefix, uses the region as INITIAL.
+For example: C-u M-x diaspora-post-to."
   (interactive
    (list (when current-prefix-arg
            (buffer-substring (point) (mark)))))
   (window-configuration-to-register diaspora-post-register)
   (get-buffer-create diaspora-post-buffer)
   (switch-to-buffer-other-window diaspora-post-buffer)
-  (when initial (insert initial))
   (diaspora-date)
   (insert diaspora-footer-post)
+  (goto-char (point-min))
+  (when initial 
+    (insert initial))
   (goto-char (point-min))
   (insert diaspora-header-post)
   (diaspora-mode)
