@@ -65,19 +65,19 @@
 (defcustom diaspora-mode-hook nil
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill markdown-mode)
+  :options '(flyspell-mode turn-on-auto-fill longlines-mode)
   :group 'diaspora)
 
 (defcustom diaspora-username nil
   "Username to use for connecting to diaspora.
 If nil, you will be prompted."
-  :type '(choice (const :tag "Ask" nil) (string))
+  :type 'string
   :group 'diaspora)
 
 (defcustom diaspora-password nil
   "Password to use for connecting to diaspora.
 If nil, you will be prompted."
-  :type '(choice (const :tag "Ask" nil) (string))
+  :type 'string
   :group 'diaspora)
 
 (defcustom diaspora-sign-in-url 
@@ -98,7 +98,6 @@ If nil, you will be prompted."
   "https://joindiaspora.com/stream.json"
   "JSON version of the entry stream(the main stream)."
   :group 'diaspora)
-
 
 (defcustom diaspora-entry-file-dir
   "~/public_html/diaspora.posts/"
@@ -137,6 +136,9 @@ If nil, you will be prompted."
 
 (defvar diaspora-auth-token nil
   "Authenticity token variable name.")
+
+(defvar  diaspora-host-meta-route-string nil
+  "")
 
 ;; This definition conflits with my .el files
 ;; defined above as a custom variable 
@@ -186,7 +188,7 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
     (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
     (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
     (define-key diaspora-mode-map "\C-c\C-cm" 'diaspora-markdown-mention-user)
-    (define-key diaspora-mode-map "\C-c\C-p" 'diaspora-post-this-buffer)
+    (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
     (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
     (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-highlight) ; not implemented yet
     diaspora-mode-map)
@@ -446,6 +448,29 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
    (cons diaspora-regex-email 'diaspora-link-face)
    (cons diaspora-regex-tag 'diaspora-url-face))
   "Syntax highlighting for diaspora files.")
+
+
+;; webfinger
+;; see: http://devblog.joindiaspora.com/2012/01/22/how-diaspora-connects-users/
+
+(defun diaspora-resource-descriptor-webfinger (pod)
+  "Get host meta route."
+  (url-retrieve (concat "https://" pod "/.well-known/host-meta") 
+		(lambda (arg)
+		  (save-excursion
+		    (goto-char (point-min))
+		    (search-forward-regexp "<Link rel=\'lrdd\'\n[\s-]*template=\'\\(.*\\)\{uri\}\'>"))
+		  (setq diaspora-resource-descriptor-webfinger-string (match-string-no-properties 1))))
+  diaspora-resource-descriptor-webfinger-string)
+
+
+
+(defun diaspora-webfinger (pod user)
+  (diaspora-host-meta-route pod)
+  (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user)
+		(lambda (arg) 
+		  (switch-to-buffer (current-buffer)))))
+
 
 
 ;; Mode
