@@ -137,7 +137,7 @@ If nil, you will be prompted."
 (defvar diaspora-auth-token nil
   "Authenticity token variable name.")
 
-(defvar  diaspora-host-meta-route-string nil
+(defvar  diaspora-resource-descriptor-webfinger-string nil
   "")
 
 ;; This definition conflits with my .el files
@@ -452,25 +452,84 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 
 ;; webfinger
 ;; see: http://devblog.joindiaspora.com/2012/01/22/how-diaspora-connects-users/
+;; Probably this is not the simplest way to go...
 
 (defun diaspora-resource-descriptor-webfinger (pod)
-  "Get host meta route."
+  "Get host resource descriptor webfinger."
   (url-retrieve (concat "https://" pod "/.well-known/host-meta") 
 		(lambda (arg)
 		  (save-excursion
 		    (goto-char (point-min))
-		    (search-forward-regexp "<Link rel=\'lrdd\'\n[\s-]*template=\'\\(.*\\)\{uri\}\'>"))
+		    (search-forward-regexp diaspora-regex-webfinger-query))
 		  (setq diaspora-resource-descriptor-webfinger-string (match-string-no-properties 1))))
   diaspora-resource-descriptor-webfinger-string)
 
-
+(diaspora-resource-descriptor-webfinger "joindiaspora.com")
+(diaspora-webfinger "joindiaspora.com" "tca")
 
 (defun diaspora-webfinger (pod user)
-  (diaspora-host-meta-route pod)
-  (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user)
-		(lambda (arg) 
+  (diaspora-resource-descriptor-webfinger pod)
+  (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user "@" pod)
+		(lambda (arg nil) 
 		  (switch-to-buffer (current-buffer)))))
 
+;; (defun diaspora-webfinger (pod user)
+;;   (diaspora-resource-descriptor-webfinger pod)
+;;   (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user "@" pod)
+;; 		(lambda (arg) 
+;; 		  (switch-to-buffer (current-buffer))
+;; 		  (mapcar (lambda (x)
+;; 			    (save-excursion
+;; 			      (goto-char (point-min))
+;; 			      (search-forward-regexp arg))) diaspora-regexp-webfinder-all))))
+
+
+(defvar diaspora-regexp-webfinder-all
+  (list  diaspora-regex-webfinger-query
+	 diaspora-regex-webfinger-hcard
+	 diaspora-regex-webfinger-guid
+	 diaspora-regex-webfinger-profile-page
+	 diaspora-regex-webfinger-atom
+	 diaspora-regex-webfinger-publickey)
+	 "")
+  
+(defcustom diaspora-regex-webfinger-query
+  "<Link rel=\'lrdd\'\n[\s-]*template=\'\\(.*\\)\{uri\}\'>"
+  "Regular expression for resource-descriptor-webfinger."
+  :type 'regexp
+  :group 'diaspora)
+
+
+(defcustom diaspora-regex-webfinger-hcard
+  "<Link rel=\"http://microformats.org/profile/hcard\" type=\"text/html\" href=\"\\(.*\\)\"/>"
+  "regex-webfinger-hcard"
+  :type 'regexp
+  :group 'diaspora)
+
+
+(defcustom diaspora-regex-webfinger-guid
+"<Link rel=\"http://joindiaspora.com/guid\" type = \'text/html\' href=\"\\(.*\\)\"/>"
+  "regex-webfinger-guid"
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regex-webfinger-profile-page
+"<Link rel=\'http://webfinger.net/rel/profile-page\' type=\'text/html\' href=\"\\(.*\\)\"/>"
+  ""
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regex-webfinger-atom
+    "<Link rel=\"http://schemas.google.com/g/2010#updates-from\" type=\"application/atom\\+xml\" href=\"\\(.*\\)\"/>" 
+    "regex-webfinger-atom"
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regex-webfinger-publickey
+  "<Link rel=\"diaspora-public-key\" type = \'RSA\' href=\"\\(.*\\)\"/>"
+  "webfinger-publickey"
+  :type 'regexp
+  :group 'diaspora)
 
 
 ;; Mode
