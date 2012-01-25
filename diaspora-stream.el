@@ -104,6 +104,13 @@ Check if the temporal directory exists, if not create it."
     map)
   "Keymap used when the user clics on a name link.")
 
+(defvar diaspora-stream-message-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [\C-q] 'diaspora-single-message-destroy)
+    map)
+  "Keymap used in the stream and messages buffers.")
+
+
 (defun diaspora-show-message (parsed-message &optional buffer)
   "Show a parsed message in a given buffer.
 If buffer is nil, then use the `current-buffer'."
@@ -138,14 +145,23 @@ If buffer is nil, then use the `current-buffer'."
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
   (interactive)
   (let ((id-message 
-	 (get-text-property (+ 1 
-			       (previous-single-property-change (point) 'diaspora-id-message))
+	 (get-text-property (+ 1 (previous-single-property-change (point) 'diaspora-id-message))
 			    'diaspora-id-message)))
     (diaspora-get-single-message id-message))
-      (set (make-local-variable 'buffer-read-only) t))
+;This does not work!      (set (make-local-variable 'buffer-read-only) t))
+  )
+
+(defun diaspora-single-message-destroy ()
+  "Destroy the current diaspora single message buffer."
+  (interactive)
+  (when (equal diaspora-single-message-buffer (buffer-name))
+    (kill-buffer (current-buffer))
+    (jump-to-register diaspora-single-message-register)))
+
 
 (defun diaspora-get-single-message (id-message)
   "Get from the `diaspora-single-message-url' URL the given message by id."
+  (window-configuration-to-register diaspora-single-message-register)
   (let ((buff (get-buffer-create diaspora-single-message-buffer))
 	(buff-http (diaspora-get-url-entry-stream
 		    (format "%s/%s.json" diaspora-single-message-url id-message))))
@@ -154,7 +170,8 @@ If buffer is nil, then use the `current-buffer'."
       (diaspora-delete-http-header))
     (diaspora-parse-single-message-json buff-http buff)
     (diaspora-insert-comments-for-message id-message buff)
-    (switch-to-buffer buff)
+    (switch-to-buffer-other-window buff)
+;    (switch-to-buffer buff)
     (diaspora-mode)))
 
 (defun diaspora-parse-single-message-json (buff-from buff-to)

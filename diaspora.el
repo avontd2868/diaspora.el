@@ -130,7 +130,12 @@ If nil, you will be prompted."
 (defcustom diaspora-post-register ?R
   "The register in which the window configuration is stored."
   :type 'character
-  :group 'disapora)
+  :group 'diaspora)
+
+(defcustom diaspora-single-message-register ?R
+  "The register in which the window configuration is stored."
+  :type 'character
+  :group 'diaspora)
 
 (defcustom diaspora-save-after-posting t
   "*Non-nil means automatically save after posting."

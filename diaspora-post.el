@@ -124,8 +124,7 @@ For example: C-u M-x diaspora-post-to."
 	    (insert post-text)
 	    (insert "\n")
 	    (when diaspora-save-after-posting (save-buffer))))
-	  (write-region (point-min) (point-max) diaspora-data-file 0))))
-;      (append-to-file (point-min) (point-max) diaspora-data-file)))))
+      (append-to-file (point-min) (point-max) diaspora-data-file))))
 
 
 (defun diaspora-find-all-markdown (regexp)
