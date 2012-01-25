@@ -120,11 +120,12 @@ For example: C-u M-x diaspora-post-to."
 	(let ((post-text (buffer-string)))
 	  (set-buffer (get-file-buffer diaspora-data-file))
 	  (save-excursion
-	    (goto-char (point-min))
+	    (goto-char (point-max))
 	    (insert post-text)
 	    (insert "\n")
-	    (when diaspora-save-after-posting (save-buffer)))
-	  (append-to-file (point-min) (point-max) diaspora-data-file)))))
+	    (when diaspora-save-after-posting (save-buffer))))
+	  (write-region (point-min) (point-max) diaspora-data-file 0))))
+;      (append-to-file (point-min) (point-max) diaspora-data-file)))))
 
 
 (defun diaspora-find-all-markdown (regexp)

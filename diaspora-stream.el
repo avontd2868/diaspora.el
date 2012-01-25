@@ -85,16 +85,16 @@ I expect to be already logged in. Use `diaspora' for log-in."
     ;;(kill-buffer buff)
     ))
 
-(defun diaspora-get-tmp-path (filename)
+(defun diaspora-get-temp-path (filename)
   "Return the path of temporal files. 
 Check if the temporal directory exists, if not create it."
-  (unless (file-exists-p diaspora-tmp-directory)    
-    (make-directory diaspora-tmp-directory))
-  (format "%s/%s" diaspora-tmp-directory filename))
+  (unless (file-exists-p diaspora-temp-directory)    
+    (make-directory diaspora-temp-directory))
+  (format "%s/%s" diaspora-temp-directory filename))
 
 (defun diaspora-change-to-html ()
   "Change current buffer from markdown into html and htmlize"
-  (write-file (diaspora-get-tmp-path "entry-stream.markdown"))
+  (write-file (diaspora-get-temp-path "entry-stream.markdown"))
   (markdown-preview))
 
 (defvar diaspora-show-message-map

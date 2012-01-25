@@ -55,7 +55,7 @@
   :type 'string
   :group 'diaspora)
 
-(defcustom diaspora-tmp-directory
+(defcustom diaspora-temp-directory
   "~/tmp_diaspora"
   "Diaspora* pod."
   :type 'dir
@@ -131,6 +131,11 @@ If nil, you will be prompted."
   "The register in which the window configuration is stored."
   :type 'character
   :group 'disapora)
+
+(defcustom diaspora-save-after-posting t
+  "*Non-nil means automatically save after posting."
+  :type 'boolean
+  :group 'diaspora)
 
 ;;; Internal Variables:
 
