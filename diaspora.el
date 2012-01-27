@@ -214,7 +214,7 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
     (define-key diaspora-mode-map "\C-c\C-cm" 'diaspora-markdown-mention-user)
     (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
     (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
-    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-highlight) ; not implemented yet
+    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-images) ; not implemented yet
     diaspora-mode-map)
   "Keymap based on html-mode")
 

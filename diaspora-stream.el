@@ -115,21 +115,21 @@ Check if the temporal directory exists, if not create it."
   "Show a parsed message in a given buffer.
 If buffer is nil, then use the `current-buffer'."
   ;; Ensure that buffer is not nil, in case is nil, buffer will be `current-buffer'.
-;  (princ parsed-message)
+  (setq aux  parsed-message)
   (let ((buffer (if (null buffer)
 		    (current-buffer)
 		  buffer)))
     (with-current-buffer buffer
-      (let ((id (cdr (assoc 'id parsed-message)))
+      (let* ((id (cdr (assoc 'id parsed-message)))
 	    (name (cdr (assoc 'name (assoc 'author parsed-message))))
 	    (diaspora_id (cdr (assoc 'diaspora_id (assoc 'author parsed-message))))
 	    (text (cdr (assoc 'text parsed-message)))
 	    (date (cdr (assoc 'created_at parsed-message)))
 	    (avatar (cdr (assoc 'small (assoc 'avatar (assoc 'author parsed-message)))))
+	    (photos (cdr (assoc 'photos parsed-message)))
 	    (amount-comments (cdr (assoc 'comments_count parsed-message)))
-	    (amount-likes (cdr (assoc 'likes_count parsed-message)))
 	    ;; We can look for more data, including the last 3 comments!
-	    )
+	    (amount-likes (cdr (assoc 'likes_count parsed-message))))
 	(insert  "---\n")
 	(insert "![" name "](" avatar ")\n")
 	(insert (propertize
@@ -141,8 +141,14 @@ If buffer is nil, then use the `current-buffer'."
 		 'help-echo "Click here to see this message in new buffer."))
 	(insert (format "%s\n" date))
 	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
-	(insert (format "%s\n\n" text))))))
-  
+	(insert (format "%s\n\n" text))
+;;	(message (concat name " " photos))
+	(if (equal (length photos) 0) ""
+	  (insert "![photo](" 
+		  (cdr (assoc 'large (car (aref (cdr (assoc 'photos aux))0))))
+		  ")\n"))))))
+
+;(assoc 'photos aux)
 
 (defun diaspora-show-message-new-buffer (&rest r)
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
