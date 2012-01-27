@@ -79,7 +79,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
       ;;(diaspora-change-to-html)
       ;;Better using diaspora-mode already done by Tiago!      
       (diaspora-mode) 
-      (set (make-local-variable 'buffer-read-only) t)
+;      (set (make-local-variable 'buffer-read-only) t)
       (goto-char (point-min)))
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
@@ -115,6 +115,7 @@ Check if the temporal directory exists, if not create it."
   "Show a parsed message in a given buffer.
 If buffer is nil, then use the `current-buffer'."
   ;; Ensure that buffer is not nil, in case is nil, buffer will be `current-buffer'.
+;  (princ parsed-message)
   (let ((buffer (if (null buffer)
 		    (current-buffer)
 		  buffer)))
@@ -124,11 +125,13 @@ If buffer is nil, then use the `current-buffer'."
 	    (diaspora_id (cdr (assoc 'diaspora_id (assoc 'author parsed-message))))
 	    (text (cdr (assoc 'text parsed-message)))
 	    (date (cdr (assoc 'created_at parsed-message)))
+	    (avatar (cdr (assoc 'small (assoc 'avatar (assoc 'author parsed-message)))))
 	    (amount-comments (cdr (assoc 'comments_count parsed-message)))
 	    (amount-likes (cdr (assoc 'likes_count parsed-message)))
 	    ;; We can look for more data, including the last 3 comments!
 	    )
 	(insert  "---\n")
+	(insert "![" name "](" avatar ")\n")
 	(insert (propertize
 		 (format "%s(%s):\n" name diaspora_id)
 		 'mouse-face 'highlight
@@ -205,8 +208,8 @@ If buffer is nil, then use the `current-buffer'."
 	(buff (get-buffer-create diaspora-stream-buffer))) 
     ;; clean the new buffer
     (switch-to-buffer buff)
-    (let ((le (length lstparsed))
-	  (inhibit-read-only t))
+    (let ((le (length lstparsed)))
+	  ;(inhibit-read-only t))
       (delete-region (point-min) (point-max))
     ;; Show all elements
       (dotimes (i le)
@@ -225,7 +228,8 @@ buffer or in the buffer specified."
       (let ((lstparsed (json-read)))
 	;; parse all comments one by one and insert it
 	(let ((le (length lstparsed))
-	      (inhibit-read-only t))
+;	      (inhibit-read-only t)
+	      )
 	  (dotimes (i le)
 	    (diaspora-insert-comment (aref lstparsed i) buffer)))))))
 	    
@@ -237,5 +241,75 @@ buffer or in the buffer specified."
     (with-current-buffer buffer
       (insert (format "\n---\n%s at %s:\n" name created_at))
       (insert text))))
+
+;; images: needs working
+
+(defun diaspora-get-user-avatar (url &optional user-id)
+  (let ((url-request-method "GET")
+	(url-show-status nil))
+	(url-retrieve url 'diaspora-write-image
+		      (list url user-id))))
+				 
+(defun diaspora-get-image (url)
+  (let ((url-request-method "GET")
+	(url-show-status nil))
+	(url-retrieve url 'diaspora-write-image
+		      (list url))))
+
+(defun diaspora-write-image (status url &optional user-id)
+  (let ((image-file-name
+	 (concat diaspora-user-image-dir "/" 
+		 (if user-id 
+		     (concat user-id "-"))
+		 (file-name-nondirectory url))))
+    (when (not (file-directory-p diaspora-user-image-dir))
+      (make-directory diaspora-user-image-dir))
+    (setq buffer-file-coding-system 'no-conversion)
+    (setq buffer-file-name image-file-name)
+    (goto-char (point-min))
+    (delete-region (point-min) (search-forward "\C-j\C-j"))
+    (save-buffer 0)
+    (kill-buffer (current-buffer))))
+
+(defun diaspora-get-all-images ()
+  (interactive)
+  (mapcar 'diaspora-get-image (diaspora-get-all-image-links)))
+
+(defun diaspora-show-images (&optional opt)
+  "If OPT nil shows images."
+  (interactive)
+  (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-image))
+	(modp (buffer-modified-p (current-buffer))))
+    (save-excursion
+      (dolist (ipoint images-points)
+	(if (not opt)
+	    (add-text-properties (cadr ipoint) (cddr ipoint)
+				 (list 'display (create-image 
+						 (concat diaspora-user-image-dir "/" 
+							 (file-name-nondirectory 
+							  (car ipoint))))))
+	  (remove-text-properties (cadr ipoint) (cddr ipoint)
+				 '(display)))))))
+	    
+
+
+(defun diaspora-get-all-regexp-markdown-points (regexp)
+  (cond ((search-forward-regexp regexp (point-max) t)
+	 (cons (cons (match-string-no-properties 2) 
+	       (cons (match-beginning 0) 
+		     (match-end 0)))
+	 (diaspora-get-all-regexp-markdown-points regexp)))
+	(t nil)))
+
+
+
+(defun diaspora-get-all-image-links ()
+  (flet ((d-find-aux ()
+		       (cond ((search-forward-regexp diaspora-regexp-image (point-max) t)
+			      (cons (match-string-no-properties 2)
+				    (d-find-aux)))
+			     (t nil))))
+    (remove-duplicates (d-find-aux) :test 'equal)))
+
 
 (provide 'diaspora-stream)

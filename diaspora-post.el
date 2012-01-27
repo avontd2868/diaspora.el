@@ -126,13 +126,13 @@ For example: C-u M-x diaspora-post-to."
 	    (when diaspora-save-after-posting (save-buffer))))
       (append-to-file (point-min) (point-max) diaspora-data-file))))
 
-
-(defun diaspora-find-all-markdown (regexp)
+ 
+(defun diaspora-find-all-markdown (regexp &optional opt)
   "Find all markdown strings given by `regexp' and return all of them in a list.
 Usage example: `(diaspora-find-all-markdown diaspora-regex-tag)'"
   (flet ((d-find-aux (regexp)
 		       (cond ((search-forward-regexp  regexp (point-max) t)
-			      (cons (match-string-no-properties 0) 
+			      (cons (match-string-no-properties (if (not opt) 0 opt)) 
 				    (d-find-aux regexp)))
 			     (t nil))))
     (remove-duplicates (d-find-aux regexp) :test 'equal)))
@@ -165,5 +165,17 @@ application."
   (when (equal diaspora-post-buffer (buffer-name))
     (kill-buffer (current-buffer))
     (jump-to-register diaspora-post-register)))
+
+
+(defun diaspora-short-url (url)
+  "Short URL function, user is.gd."
+  (interactive "M")
+  (let ((url-request-method "GET"))
+    (url-retrieve (concat "http://is.gd/create.php?format=simple&url=" url)
+                   (lambda (x)
+		     (goto-char (point-min))
+		     (search-forward-regexp "http://.*")
+		     (setq s-url (match-string-no-properties 0))))
+   (insert s-url)))
 
 (provide 'diaspora-post)

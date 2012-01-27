@@ -61,6 +61,17 @@
   :type 'dir
   :group 'diaspora)
 
+(defcustom diaspora-user-image-dir
+  "~/dir.diaspora"
+  "Diaspora* pod."
+  :type 'dir
+  :group 'diaspora)
+
+
+(defcustom diaspora-show-user-avatar t
+   "Show user images beside each users entru."
+   :type 'boolean
+   :group 'diaspora)
 
 (defcustom diaspora-mode-hook nil
   "Functions run upon entering `diaspora-mode'."
@@ -279,71 +290,72 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 ;;   :type 'regexp
 ;;   :group 'diaspora)
 
-(defcustom diaspora-regex-image
-  "\\(!?\\[[^]]*?\\]\\)\\(([^\\)]*)\\)"
-  "Regular expression for a [text](file) or an image link ![text](file)."
+(defcustom diaspora-regexp-image
+"!\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
+  "Regular expression for a [text](file) or an image link ![text](file).
+Note: this is not correct! Needs more thought to get all images right."
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-user-entry 
+(defcustom diaspora-regexp-user-entry 
 "^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
   "Regular expression for user entry."
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-tag
+(defcustom diaspora-regexp-tag
   "#[a-zA-Z0-9_/\.-]+"
   "Regular expression for a tag."
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-header-1
+(defcustom diaspora-regexp-header-1
   "^\\(# \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 1"
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-header-2
+(defcustom diaspora-regexp-header-2
   "^\\(## \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 2"
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-header-3
+(defcustom diaspora-regexp-header-3
   "^\\(### \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 3"
   :type 'regexp
   :group 'diaspora)
 
 
-(defcustom diaspora-regex-header-4
+(defcustom diaspora-regexp-header-4
   "^\\(#### \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 4"
   :type 'regexp
   :group 'diaspora)
 
-(defconst diaspora-regex-code
+(defconst diaspora-regexp-code
   "\\(^\\|[^\\]\\)\\(\\(`\\{1,2\\}\\)\\([^ \\]\\|[^ ]\\(.\\|\n[^\n]\\)*?[^ \\]\\)\\3\\)"
   "Regular expression for matching inline code fragments.")
 
 
-(defconst diaspora-regex-bold
+(defconst diaspora-regexp-bold
   "\\(^\\|[^\\]\\)\\(\\([*_]\\{2\\}\\)\\(.\\|\n[^\n]\\)*?[^\\ ]\\3\\)"
   "Regular expression for matching bold text.")
 
-(defconst diaspora-regex-emph
+(defconst diaspora-regexp-emph
   "\\(^\\|[^\\]\\)\\(\\([*_]\\)\\([^ \\]\\3\\|[^ ]\\(.\\|\n[^\n]\\)*?[^\\ ]\\3\\)\\)"
   "Regular expression for matching emph text.")
 
-(defconst diaspora-regex-email
+(defconst diaspora-regexp-email
   "<\\(\\sw\\|\\s_\\|\\s.\\)+@\\(\\sw\\|\\s_\\|\\s.\\)+>"
   "Regular expression for matching inline email addresses.")
 
-(defconst diaspora-regex-blockquote
+(defconst diaspora-regexp-blockquote
   "^>.*$"
   "Regular expression for matching blockquote lines.")
 
-(defconst diaspora-regex-hr
+(defconst diaspora-regexp-hr
   "^\\(\\*[ ]?\\*[ ]?\\*[ ]?[\\* ]*\\|-[ ]?-[ ]?-[--- ]*\\)$"
   "Regular expression for matching markdown horizontal rules.")
 
@@ -444,22 +456,22 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 
 (defvar diaspora-mode-font-lock-keywords
   (list
-;   (cons diaspora-regex-bare-link '(2 diaspora-url-face t))
-   (cons diaspora-regex-blockquote 'diaspora-blockquote-face)
-   (cons diaspora-regex-user-entry 'diaspora-header-face-1)
-   (cons diaspora-regex-header-1 'diaspora-header-face-1)
-   (cons diaspora-regex-header-2 'diaspora-header-face-2)
-   (cons diaspora-regex-header-3 'diaspora-header-face-3)
-   (cons diaspora-regex-header-4 'diaspora-header-face-4)
-   (cons diaspora-regex-hr 'diaspora-header-face-1)
-   (cons diaspora-regex-image
+;   (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
+   (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
+   (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
+   (cons diaspora-regexp-header-1 'diaspora-header-face-1)
+   (cons diaspora-regexp-header-2 'diaspora-header-face-2)
+   (cons diaspora-regexp-header-3 'diaspora-header-face-3)
+   (cons diaspora-regexp-header-4 'diaspora-header-face-4)
+   (cons diaspora-regexp-hr 'diaspora-header-face-1)
+   (cons diaspora-regexp-image
          '((1 diaspora-link-face t)
            (2 diaspora-url-face t)))
-   (cons diaspora-regex-bold '(2 diaspora-bold-face))
-   (cons diaspora-regex-emph '(2 diaspora-emph-face))
-   (cons diaspora-regex-code '(2 diaspora-inline-code-face))
-   (cons diaspora-regex-email 'diaspora-link-face)
-   (cons diaspora-regex-tag 'diaspora-url-face))
+   (cons diaspora-regexp-bold '(2 diaspora-bold-face))
+   (cons diaspora-regexp-emph '(2 diaspora-emph-face))
+   (cons diaspora-regexp-code '(2 diaspora-inline-code-face))
+   (cons diaspora-regexp-email 'diaspora-link-face)
+   (cons diaspora-regexp-tag 'diaspora-url-face))
   "Syntax highlighting for diaspora files.")
 
 
@@ -491,53 +503,56 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 				diaspora-regexp-webfinger-all)))))
 
   
-(defcustom diaspora-regex-webfinger-query
+(defcustom diaspora-regexp-image-alist
+  "\\(`?http.://\\|\\[\\[\\|<\\|`\\)?\\([-+./_0-9a-zA-Z]+\\.\\(GIF\\|JP\\(?:E?G\\)\\|P\\(?:BM\\|GM\\|N[GM]\\|PM\\)\\|SVG\\|TIFF?\\|X\\(?:[BP]M\\)\\|gif\\|jp\\(?:e?g\\)\\|p\\(?:bm\\|gm\\|n[gm]\\|pm\\)\\|svg\\|tiff?\\|x\\(?:[bp]m\\)\\)\\)\\(\\]\\]\\|>\\|'\\)?"
+  "Taken from iimage-mode."
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regexp-webfinger-query
   "<Link rel=\'lrdd\'\n[\s-]*template=\'\\(.*\\)\{uri\}\'>"
   "Regular expression for resource-descriptor-webfinger."
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-webfinger-hcard
+(defcustom diaspora-regexp-webfinger-hcard
   "<Link rel=\"http://microformats.org/profile/hcard\" type=\"text/html\" href=\"\\(.*\\)\"/>"
   "regex-webfinger-hcard"
   :type 'regexp
   :group 'diaspora)
 
 
-(defcustom diaspora-regex-webfinger-guid
+(defcustom diaspora-regexp-webfinger-guid
 "<Link rel=\"http://joindiaspora.com/guid\" type = \'text/html\' href=\"\\(.*\\)\"/>"
-  "regex-webfinger-guid"
+  "regexp-webfinger-guid"
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-webfinger-profile-page
+(defcustom diaspora-regexp-webfinger-profile-page
 "<Link rel=\'http://webfinger.net/rel/profile-page\' type=\'text/html\' href=\"\\(.*\\)\"/>"
   ""
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-webfinger-atom
+(defcustom diaspora-regexp-webfinger-atom
     "<Link rel=\"http://schemas.google.com/g/2010#updates-from\" type=\"application/atom\\+xml\" href=\"\\(.*\\)\"/>" 
     "regex-webfinger-atom"
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-webfinger-publickey
+(defcustom diaspora-regexp-webfinger-publickey
   "<Link rel=\"diaspora-public-key\" type = \'RSA\' href=\"\\(.*\\)\"/>"
   "webfinger-publickey"
   :type 'regexp
   :group 'diaspora)
 
 (defvar diaspora-regexp-webfinger-all
-  (list diaspora-regex-webfinger-profile-page
-	diaspora-regex-webfinger-guid
-	diaspora-regex-webfinger-hcard
-	diaspora-regex-webfinger-atom
-	diaspora-regex-webfinger-publickey)
+  (list diaspora-regexp-webfinger-profile-page
+	diaspora-regexp-webfinger-guid
+	diaspora-regexp-webfinger-hcard
+	diaspora-regexp-webfinger-atom
+	diaspora-regexp-webfinger-publickey)
   "List of all the regexp used to webfinger.")
-
-
-;; Mode
 
 (defun diaspora-show-version ()
   "Show the version number in the minibuffer."
@@ -556,3 +571,4 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 (provide 'diaspora)
 
 ;;; diaspora.el ends here.
+
