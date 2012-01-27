@@ -278,8 +278,8 @@ buffer or in the buffer specified."
 (defun diaspora-show-images (&optional opt)
   "If OPT nil shows images."
   (interactive)
-  (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-image))
-	(modp (buffer-modified-p (current-buffer))))
+  (goto-char (point-min))
+  (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-image)))
     (save-excursion
       (dolist (ipoint images-points)
 	(if (not opt)
@@ -290,8 +290,6 @@ buffer or in the buffer specified."
 							  (car ipoint))))))
 	  (remove-text-properties (cadr ipoint) (cddr ipoint)
 				 '(display)))))))
-	    
-
 
 (defun diaspora-get-all-regexp-markdown-points (regexp)
   (cond ((search-forward-regexp regexp (point-max) t)
