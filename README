@@ -4,11 +4,17 @@ This is in a very early stage of development...it will probably break some where
 
 See diaspora stream:
 
-(diaspora-get-entry-stream)
+M-x diaspora-get-entry-stream
 
 Post to diaspora:
 
-(diaspora-post-to)
+M-x diaspora-post-to
+
+You also have 
+
+M-x diaspora-post-clipboard
+
+for posting from clipboard :)
 
 Check keybindings
 
@@ -22,6 +28,6 @@ M-x diaspora-get-all-images
 
 and then 
 
-diaspora-show-images
+M-x diaspora-show-images
 
 ... It still needs some work.
