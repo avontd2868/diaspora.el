@@ -13,3 +13,15 @@ Post to diaspora:
 Check keybindings
 
 C-c C-h
+
+See images:
+
+in the *diaspora stream* buffer type:
+
+M-x diaspora-get-all-images 
+
+and then 
+
+diaspora-show-images
+
+... It still needs some work.

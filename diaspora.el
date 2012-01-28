@@ -290,6 +290,13 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 ;;   :type 'regexp
 ;;   :group 'diaspora)
 
+(defcustom diaspora-regexp-youtube-link
+  "^\\(http.*://www.youtube.com/watch\\?v=\\)\\([^\)].*\\)"
+  "Regular expression for youtube link"
+  :type 'regexp
+  :group 'diaspora)
+
+
 (defcustom diaspora-regexp-image
 "!\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
   "Regular expression for a [text](file) or an image link ![text](file).

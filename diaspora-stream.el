@@ -305,6 +305,22 @@ buffer or in the buffer specified."
 	 (diaspora-get-all-regexp-markdown-points regexp)))
 	(t nil)))
 
+image
+(defun diaspora-show-videos (&optional opt)
+  ""
+  (interactive)
+  (goto-char (point-min))
+  (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-youtube-link)))
+    (save-excursion
+      (dolist (ipoint images-points)
+	(if (not opt)
+	    (add-text-properties (cadr ipoint) (cddr ipoint)
+				 (list 'display (create-image 
+						 (concat diaspora-user-image-dir "/" 
+							 "video.png"))))
+	  (remove-text-properties (cadr ipoint) (cddr ipoint)
+				  '(display)))))))
+
 
 
 (defun diaspora-get-all-image-links ()
