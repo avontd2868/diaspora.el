@@ -305,7 +305,7 @@ buffer or in the buffer specified."
 	 (diaspora-get-all-regexp-markdown-points regexp)))
 	(t nil)))
 
-image
+;; image
 (defun diaspora-show-videos (&optional opt)
   ""
   (interactive)
