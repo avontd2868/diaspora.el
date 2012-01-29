@@ -37,6 +37,7 @@
 (require 'json)
 (require 'font-lock)
 
+(require 'diaspora-notifications)
 (require 'diaspora-post)
 (require 'diaspora-stream)
 

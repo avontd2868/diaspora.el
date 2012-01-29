@@ -47,7 +47,8 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
     (kill-buffer buf-kill)))
 
 (defun diaspora-get-url-entry-stream (url)
-  "Get the Diáspora URL and leave it in a new buffer."
+  "Get the Diáspora URL and leave it in a new buffer.
+Returns: A new buffer where is all the information retrieved from the URL."
   (let ((url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
 	   ("Accept-Language" . "en")
