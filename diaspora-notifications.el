@@ -55,11 +55,19 @@
 (defvar diaspora-notifications-buffer-name "*diaspora notifications*"
   "This is the name of the buffer that shows notifications from D*.")
 
+(defun diaspora-add-key-to-w3m-link-keymap ()
+  "Add to the `w3m-link-map' the keys necesary to use only the keyboard."
+  (interactive)
+  (define-key w3m-link-map "\C-c\C-o" 'diaspora-notification-goto-link)
+  )
+
 (defun diaspora-get-notifications () 
   "Get notifications from diáspora and show them in a new buffer"
   (interactive)
+  (diaspora-ask)
   (let ((http-buff (diaspora-get-url-entry-stream diaspora-notifications-url))
-	(buff (get-buffer-create diaspora-notifications-buffer-name)))
+	(buff (get-buffer-create diaspora-notifications-buffer-name))
+	(inhibit-read-only t))    
     (with-current-buffer http-buff
       (diaspora-delete-http-header))
     (diaspora-parse-notifications-json http-buff buff)
@@ -73,8 +81,7 @@
 (defun diaspora-show-notification (notification buffer)
   "Insert into buffer the JSON formated notification in a most human readable text."  
   (with-current-buffer buffer    
-    (let ((inhibit-read-only t)
-	  (type (car (car notification)))
+    (let ((type (car (car notification)))
 	  (date (cdr (assoc 'updated_at (cdr (car notification)))))
 	  (unread (cdr (assoc 'unread (cdr (car notification)))))
 	  (target (cdr (assoc 'target_type (cdr (car notification)))))
@@ -92,6 +99,8 @@
 	(let ((le (length lst-parsed)))
 	  (dotimes (i le)
 	    (diaspora-show-notification (aref lst-parsed i) buffer-to)))))))
+
+(provide 'diaspora-notifications)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; diaspora-notifications.el ends here

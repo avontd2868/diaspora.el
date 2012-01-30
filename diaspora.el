@@ -37,9 +37,9 @@
 (require 'json)
 (require 'font-lock)
 
-(require 'diaspora-notifications)
 (require 'diaspora-post)
 (require 'diaspora-stream)
+(require 'diaspora-notifications)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
