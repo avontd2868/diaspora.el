@@ -7,7 +7,7 @@
 ;; Keywords: diaspora*
 ;; URL: http://diale.org/diaspora.html
 
-;; Copyright (c) 2011 Tiago Charters de Azevedo
+;; Copyright (c) 2012 Tiago Charters de Azevedo
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -30,6 +30,8 @@
 
 ;; Streaming ideas
 
+
+;; file with leftovers!!!!
 
 
 (defun diaspora-get-url(url)
