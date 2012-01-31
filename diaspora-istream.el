@@ -52,6 +52,8 @@ This is used after getting a stream or any URL in JSON format."
 
 ;; Getting info from JSON format
 
+(defun cdas (e a)
+  (cdr (assoc e a)))
 
 (defun diaspora-extract-json (e a)
   (cond ((listp a)
