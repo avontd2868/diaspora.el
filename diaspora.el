@@ -7,7 +7,7 @@
 ;; Keywords: diaspora*
 ;; URL: http://diale.org/diaspora.html
 
-;; Copyright (c) 2011 Tiago Charters de Azevedo, Christian Giménez
+;; Copyright (c) 2012 Tiago Charters de Azevedo, Christian Giménez
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -50,7 +50,7 @@
 ;;; User variable:
 
 (defcustom diaspora-pod 
-  "joinsdiaspora.com"
+  "joindiaspora.com"
   "Your diaspora* pod."
   :type 'string
   :group 'diaspora)
@@ -191,6 +191,11 @@ If nil, you will be prompted."
 
 (defvar diaspora-single-message-buffer "*diaspora message*"
   "The name of the diaspora single message buffer.")
+
+(defvar  diaspora-stream-tag-buffer
+  "*diaspora stream tag*"
+  "The name of the diaspora tag stream buffer.")
+
 
 ;;; User Functions:
 

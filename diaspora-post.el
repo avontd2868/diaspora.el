@@ -7,7 +7,7 @@
 ;; Keywords: diaspora*
 ;; URL: http://diale.org/diaspora.html
 
-;; Copyright (c) 2011 Tiago Charters de Azevedo, Christian Giménez
+;; Copyright (c) 2012 Tiago Charters de Azevedo, Christian Giménez
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -66,7 +66,6 @@ For example: C-u M-x diaspora-post-to."
 
 (defun diaspora-find-auth-token (&optional status)
   "Find the authenticity token."  
-;  (switch-to-buffer (current-buffer))
   (save-excursion
     (goto-char (point-min))
     (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
@@ -101,7 +100,6 @@ For example: C-u M-x diaspora-post-to."
   (diaspora-authenticity-token diaspora-sign-in-url)
   (message (concat "done: " diaspora-auth-token))
   (diaspora-post (buffer-string))
-;  (diaspora-post-append-to-file)
   (diaspora-save-post-to-file)
   (kill-buffer))
 

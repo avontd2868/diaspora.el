@@ -7,7 +7,7 @@
 ;; Keywords: diaspora*
 ;; URL: http://diale.org/diaspora.html
 
-;; Copyright (c) 2011 Tiago Charters de Azevedo, Christian Giménez
+;; Copyright (c) 2012 Tiago Charters de Azevedo, Christian Giménez
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,7 +28,7 @@
 
 ;; A diaspora* client for emacs
 
-;, Streaming 
+;; Streaming 
 
 (defun diaspora-show-stream (status &optional new-buffer-name)
   "Show what was recieved in a new buffer.
@@ -129,15 +129,22 @@ If buffer is nil, then use the `current-buffer'."
 		  buffer)))
     (with-current-buffer buffer
       (let* ((id (cdr (assoc 'id parsed-message)))
-	    (name (cdr (assoc 'name (assoc 'author parsed-message))))
-	    (diaspora_id (cdr (assoc 'diaspora_id (assoc 'author parsed-message))))
-	    (text (cdr (assoc 'text parsed-message)))
-	    (date (cdr (assoc 'created_at parsed-message)))
-	    (avatar (cdr (assoc 'small (assoc 'avatar (assoc 'author parsed-message)))))
-	    (photos (cdr (assoc 'photos parsed-message)))
-	    (amount-comments (cdr (assoc 'comments_count parsed-message)))
-	    ;; We can look for more data, including the last 3 comments!
-	    (amount-likes (cdr (assoc 'likes_count parsed-message))))
+	     (name (diaspora-extract-json-list 
+		    '(author name) parsed-message))
+	     (diaspora_id (diaspora-extract-json-list 
+			   '(author diaspora_id) parsed-message))
+	     (text (diaspora-extract-json-list 
+		    '(text) parsed-message))
+	     (date  (diaspora-extract-json-list 
+		     '(created_at) parsed-message))
+	     (avatar (diaspora-extract-json-list
+		      '(author avatar small) parsed-message))
+	     (photos (cdr (assoc 'photos parsed-message)))
+	     (amount-comments (diaspora-extract-json-list
+			       '(comments_count) parsed-message))
+	     (amount-likes (diaspora-extract-json-list
+			    '(likes_count) parsed-message)))
+	
 	(insert  "---\n")
 	(insert "![" name "](" avatar ")\n")
 	(insert (propertize
@@ -150,7 +157,6 @@ If buffer is nil, then use the `current-buffer'."
 	(insert (format "%s\n" date))
 	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
 	(insert (format "%s\n\n" text))
-;;	(message (concat name " " photos))
 	(if (equal (length photos) 0) ""
 	  (insert "![photo](" 
 		  (cdr (assoc 'large (car (aref (cdr (assoc 'photos aux))0))))
@@ -164,9 +170,7 @@ If buffer is nil, then use the `current-buffer'."
   (let ((id-message 
 	 (get-text-property (+ 1 (previous-single-property-change (point) 'diaspora-id-message))
 			    'diaspora-id-message)))
-    (diaspora-get-single-message id-message))
-;This does not work!      (set (make-local-variable 'buffer-read-only) t))
-  )
+    (diaspora-get-single-message id-message)))
 
 (defun diaspora-single-message-destroy ()
   "Destroy the current diaspora single message buffer."
@@ -201,25 +205,6 @@ If buffer is nil, then use the `current-buffer'."
 	;; Clean buffer buff-to and insert message
 	(delete-region (point-min) (point-max))
 	(diaspora-show-message lstparsed)))))
-
-(defvar  diaspora-stream-tag-buffer
-  "*diaspora stream tag*"
-"")
-
-(defun diaspora-get-single-message (id-message)
-  "Get from the `diaspora-single-message-url' URL the given message by id."
-  (let ((buff (get-buffer-create diaspora-single-message-buffer))
-	(buff-http (diaspora-get-url-entry-stream
-		    (format "%s/%s.json" diaspora-single-message-url id-message))))
-    (with-current-buffer buff-http
-      ;; Delete HTTP header!
-      (diaspora-delete-http-header))
-    (diaspora-parse-single-message-json buff-http buff)
-    (diaspora-insert-comments-for-message id-message buff)
-    (switch-to-buffer-other-window buff)
-;    (switch-to-buffer buff)
-    (diaspora-mode)))
-		   
 
 (defun diaspora-parse-json (&optional status)
   "Parse de JSON entry stream."
@@ -354,21 +339,38 @@ buffer or in the buffer specified."
     (goto-char (point-min))
     (let ((markdown-points (diaspora-get-all-regexp-markdown-points  diaspora-regexp-tag 0)))
       (dolist (mpoint markdown-points)
-	(if (not opt)
-	    (add-text-properties (cadr mpoint) (cddr mpoint)
-				 (list 'mouse-face 'highlight
-				       'face "link"
-				       'keymap diaspora-show-tag-map
-				       'diaspora-tag (car mpoint)
-				       'help-echo "Click here to see the tag stream in new buffer."))
-	  )))))
+	(add-text-properties (cadr mpoint) (cddr mpoint)
+			     (list 'mouse-face 'highlight
+				   'face "link"
+				   'keymap diaspora-show-tag-map
+				   'diaspora-tag (car mpoint)
+				   'help-echo "Click here to see the tag stream in new buffer."))
+	))
+    (goto-char (point-min))
+    (let ((markdown-points (diaspora-get-all-regexp-markdown-points  diaspora-regexp-user-entry 0)))
+      (dolist (mpoint markdown-points)
+	(add-text-properties (cadr mpoint) (cddr mpoint)
+			     (list 'mouse-face 'highlight
+				   'face "link"
+				   'keymap diaspora-show-message-map
+				   'diaspora-id-message id
+				   'help-echo "Click here to see this message in new buffer."))
+	))))
+    
+;; (insert (propertize
+	;; 	 (format "%s(%s):\n" name diaspora_id)
+	;; 	 'mouse-face 'highlight
+	;; 	 'face "link"
+	;; 	 'keymap diaspora-show-message-map
+	;; 	 'diaspora-id-message id
+	;; 	 'help-echo "Click here to see this message in new buffer."))
 
 (defun diaspora-show-tag-new-buffer (&rest r)
   (interactive)
   (let ((tag
 	 (get-text-property (+ 1 (previous-single-property-change (point) 'diaspora-tag))
 			    'diaspora-tag)))
-    (diaspora-get-entry-stream-tag  tag)))
+    (diaspora-get-entry-stream-tag  (diaspora-markdown-tag-strip tag))))
 
 (defvar diaspora-show-tag-map
   (let ((map (make-sparse-keymap)))
@@ -377,6 +379,19 @@ buffer or in the buffer specified."
     map)
   "")
 
+;; TODO
+;; diaspora-markdown-strip
+;; diaspora-html-strip
+
+(defun diaspora-markdown-tag-strip (string)
+  (save-match-data
+    (if (string-match "#\\([a-zA-Z0-9_/\.-]+\\)" string)
+        (match-string 1 string)
+      string)))
+
+(defun diaspora-html-strip-links (string)
+  "Remove all HTML links from STRING."
+  (replace-regexp-in-string "\\(<a .*?>\\|</a>\\)" "" string nil t))
 
 ;; Functions to extract content from json-read
 ;; They are, probably, done some where else...but I don't no where
@@ -391,14 +406,28 @@ buffer or in the buffer specified."
 
 (defun diaspora-extract-json-list (e a)
   (cond (e
-	 (eval-json-list (cdr e) 
-			 (eval-json (car e) a)))
+	 (diaspora-extract-json-list (cdr e) 
+			 (diaspora-extract-json (car e) a)))
 	(a)))
 
 
-;(diaspora-get-all-regexp-markdown-points diaspora-regexp-tag 0)
+
+
+(defun diaspora-get-entry-stream-tag (tag)
+  ""
+  (interactive)  
+  (diaspora-ask)
+  (diaspora-authenticity-token diaspora-sign-in-url)
+  (let ((buff (diaspora-get-url-entry-stream
+	       (concat "https://" diaspora-pod "/tags/" tag ".json"))))
+    (with-current-buffer buff
+      (diaspora-delete-http-header)
+      (switch-to-buffer buff)
+      (diaspora-parse-json)
+      (diaspora-mode) 
+      (goto-char (point-min)))))
+
 
 (provide 'diaspora-stream)
 
-; (diaspora-get-entry-stream-tag  "linux")
 
