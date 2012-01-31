@@ -55,21 +55,28 @@
   :type 'string
   :group 'diaspora)
 
-(defcustom diaspora-temp-directory
-  "~/tmp_diaspora"
-  "Diaspora* pod."
+(defcustom diaspora-posts-directory
+  "~/.diaspora/posts/"
+  "Diaspora* temp dir (abs path)."
   :type 'dir
   :group 'diaspora)
 
-(defcustom diaspora-user-image-dir
-  "~/dir.diaspora"
-  "Diaspora* pod."
+
+(defcustom diaspora-temp-directory
+  "~/.diaspora/temp/"
+  "Diaspora* temp dir (abs path)."
+  :type 'dir
+  :group 'diaspora)
+
+(defcustom diaspora-image-directory
+  "~/.diaspora/img/"
+  "Diaspora* image dir (abs path)."
   :type 'dir
   :group 'diaspora)
 
 
 (defcustom diaspora-show-user-avatar t
-   "Show user images beside each users entru."
+   "Show user images beside each users entry."
    :type 'boolean
    :group 'diaspora)
 
@@ -115,11 +122,18 @@ If nil, you will be prompted."
   "Directory where to save posts made to diaspora*."
   :group 'diaspora)
 
-(defcustom diaspora-data-file
-  "~/.diaspora"
-  "Name of the file do save posts made to diaspora*."
+;; (defcustom diaspora-data-file
+;;   "~/.diaspora"
+;;   "Name of the file do save posts made to diaspora*."
+;;   :type 'file
+;;   :group 'diaspora)
+
+(defcustom diaspora-data-directory
+  "~/.diaspora/"
+  "Directory where for saving."
   :type 'file
   :group 'diaspora)
+
 
 (defcustom diaspora-header-post
   "### "
@@ -181,11 +195,25 @@ If nil, you will be prompted."
 ;;; User Functions:
 
 (defun diaspora ()
-  "Set `diaspora-username' and  `diaspora-password' no matter what. 
+  "Make all dirs if they don' exist and set `diaspora-username' 
+and  `diaspora-password' no matter what.  
 To be called interactively instead of `diaspora-ask'"
   (interactive)
+  (diaspora-make-dirs)
   (diaspora-ask t))
   
+(defun diaspora-make-dirs ()
+  "Make all dirs if they don' exist."
+  (unless (file-exists-p diaspora-data-directory)    
+    (make-directory diaspora-data-directory))
+  (unless (file-exists-p diaspora-temp-directory)
+    (make-directory diaspora-temp-directory))
+  (unless (file-exists-p diaspora-posts-directory)
+    (make-directory diaspora-posts-directory))
+  (unless (file-exists-p diaspora-image-directory)
+    (make-directory diaspora-image-directory)))
+
+
 (defun diaspora-ask (&optional opt)
   "Ask for username and password if `diaspora-username' 
 and  `diaspora-password' has not been setted. `opt' t forces setting."

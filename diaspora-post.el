@@ -101,32 +101,32 @@ For example: C-u M-x diaspora-post-to."
   (diaspora-authenticity-token diaspora-sign-in-url)
   (message (concat "done: " diaspora-auth-token))
   (diaspora-post (buffer-string))
-  (diaspora-post-append-to-file)
+;  (diaspora-post-append-to-file)
+  (diaspora-save-post-to-file)
   (kill-buffer))
-
-
 
 (defsubst diaspora-date ()
   "Date string."
   (interactive)
   (insert "\n\n#" (format-time-string "%Y%m%d") " "))
 
-(defun diaspora-post-append-to-file ()
-  ;; Based on take-notes.el/remember.el
+  
+(defun diaspora-save-post-to-file ()
   (with-temp-buffer
     (insert-buffer diaspora-post-buffer)
     (insert "\n" "---" "\n")
-    (if (find-buffer-visiting diaspora-data-file)
-	(let ((post-text (buffer-string)))
-	  (set-buffer (get-file-buffer diaspora-data-file))
-	  (save-excursion
-	    (goto-char (point-max))
-	    (insert post-text)
-	    (insert "\n")
-	    (when diaspora-save-after-posting (save-buffer))))
-      (append-to-file (point-min) (point-max) diaspora-data-file))))
-
- 
+    (let ((file-name-for-saving-post (format-time-string "%Y%m%d")))
+      (if (find-buffer-visiting file-name-for-saving-post)
+	  (let ((post-text (buffer-string)))
+	    (set-buffer (get-file-buffer (concat diaspora-posts-directory file-name-for-saving-post)))
+	    (save-excursion
+	      (goto-char (point-max))
+	      (insert post-text)
+	      (insert "\n")
+	      (when diaspora-save-after-posting (save-buffer))))
+	(append-to-file (point-min) (point-max) 
+			(concat diaspora-posts-directory file-name-for-saving-post))))))
+	
 (defun diaspora-find-all-markdown (regexp &optional opt)
   "Find all markdown strings given by `regexp' and return all of them in a list.
 Usage example: `(diaspora-find-all-markdown diaspora-regex-tag)'"

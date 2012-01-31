@@ -111,6 +111,14 @@ Check if the temporal directory exists, if not create it."
   "Keymap used in the stream and messages buffers.")
 
 
+;; A few notes about the next functiom `diaspora-show-message`
+;; date: 20120128
+;;
+;; It would be much easier not to insert the text with properties as is done
+;; I think it is preferable to add the properties latter on; using the same type
+;; of procedures that is used to insert images. Just a thought.
+
+
 (defun diaspora-show-message (parsed-message &optional buffer)
   "Show a parsed message in a given buffer.
 If buffer is nil, then use the `current-buffer'."
@@ -148,7 +156,7 @@ If buffer is nil, then use the `current-buffer'."
 		  (cdr (assoc 'large (car (aref (cdr (assoc 'photos aux))0))))
 		  ")\n"))))))
 
-;(assoc 'photos aux)
+
 
 (defun diaspora-show-message-new-buffer (&rest r)
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
@@ -194,16 +202,24 @@ If buffer is nil, then use the `current-buffer'."
 	(delete-region (point-min) (point-max))
 	(diaspora-show-message lstparsed)))))
 
-(defun diaspora-get-entry-stream-tag (tag)
-  "Get stream of tag. Just an idea... needs working."
-  (let ((buff (diaspora-get-url-entry-stream
-	       (concat "https://joindiaspora.com/tags/" tag ".json"))))
-    (with-current-buffer buff
-      (goto-char (point-min))
-      (search-forward "\n\n")      
-      (delete-region (point-min) (match-beginning 0))
-      (diaspora-parse-json))
-    (kill-buffer buff)))
+(defvar  diaspora-stream-tag-buffer
+  "*diaspora stream tag*"
+"")
+
+(defun diaspora-get-single-message (id-message)
+  "Get from the `diaspora-single-message-url' URL the given message by id."
+  (let ((buff (get-buffer-create diaspora-single-message-buffer))
+	(buff-http (diaspora-get-url-entry-stream
+		    (format "%s/%s.json" diaspora-single-message-url id-message))))
+    (with-current-buffer buff-http
+      ;; Delete HTTP header!
+      (diaspora-delete-http-header))
+    (diaspora-parse-single-message-json buff-http buff)
+    (diaspora-insert-comments-for-message id-message buff)
+    (switch-to-buffer-other-window buff)
+;    (switch-to-buffer buff)
+    (diaspora-mode)))
+		   
 
 (defun diaspora-parse-json (&optional status)
   "Parse de JSON entry stream."
@@ -264,12 +280,10 @@ buffer or in the buffer specified."
 
 (defun diaspora-write-image (status url &optional user-id)
   (let ((image-file-name
-	 (concat diaspora-user-image-dir "/" 
+	 (concat diaspora-image-directory
 		 (if user-id 
 		     (concat user-id "-"))
 		 (file-name-nondirectory url))))
-    (when (not (file-directory-p diaspora-user-image-dir))
-      (make-directory diaspora-user-image-dir))
     (setq buffer-file-coding-system 'no-conversion)
     (setq buffer-file-name image-file-name)
     (goto-char (point-min))
@@ -291,27 +305,30 @@ buffer or in the buffer specified."
 	(if (not opt)
 	    (add-text-properties (cadr ipoint) (cddr ipoint)
 				 (list 'display (create-image 
-						 (concat diaspora-user-image-dir "/" 
+						 (concat diaspora-image-directory
 							 (file-name-nondirectory 
 							  (car ipoint))))))
 	  (remove-text-properties (cadr ipoint) (cddr ipoint)
 				 '(display)))))))
 
-(defun diaspora-get-all-regexp-markdown-points (regexp)
+(defun diaspora-get-all-regexp-markdown-points (regexp &optional opt)
   (cond ((search-forward-regexp regexp (point-max) t)
-	 (cons (cons (match-string-no-properties 2) 
+	 (cons (cons (match-string-no-properties 
+		      (if (not opt) 2
+			opt))
 	       (cons (match-beginning 0) 
 		     (match-end 0)))
-	 (diaspora-get-all-regexp-markdown-points regexp)))
+	 (diaspora-get-all-regexp-markdown-points regexp
+						  (if (not opt) 2
+						    opt))))
 	(t nil)))
 
-image
 (defun diaspora-show-videos (&optional opt)
   ""
   (interactive)
   (goto-char (point-min))
-  (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-youtube-link)))
-    (save-excursion
+  (save-excursion
+    (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-youtube-link)))
       (dolist (ipoint images-points)
 	(if (not opt)
 	    (add-text-properties (cadr ipoint) (cddr ipoint)
@@ -331,5 +348,57 @@ image
 			     (t nil))))
     (remove-duplicates (d-find-aux) :test 'equal)))
 
+(defun diaspora-see-regexp-markdow (&optional opt)
+  (interactive)
+  (save-excursion
+    (goto-char (point-min))
+    (let ((markdown-points (diaspora-get-all-regexp-markdown-points  diaspora-regexp-tag 0)))
+      (dolist (mpoint markdown-points)
+	(if (not opt)
+	    (add-text-properties (cadr mpoint) (cddr mpoint)
+				 (list 'mouse-face 'highlight
+				       'face "link"
+				       'keymap diaspora-show-tag-map
+				       'diaspora-tag (car mpoint)
+				       'help-echo "Click here to see the tag stream in new buffer."))
+	  )))))
+
+(defun diaspora-show-tag-new-buffer (&rest r)
+  (interactive)
+  (let ((tag
+	 (get-text-property (+ 1 (previous-single-property-change (point) 'diaspora-tag))
+			    'diaspora-tag)))
+    (diaspora-get-entry-stream-tag  tag)))
+
+(defvar diaspora-show-tag-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] 'diaspora-show-tag-new-buffer)
+    (define-key map [mouse-2] 'diaspora-show-tag-new-buffer)
+    map)
+  "")
+
+
+;; Functions to extract content from json-read
+;; They are, probably, done some where else...but I don't no where
+;; so there you have them.
+
+
+(defun diaspora-extract-json (e a)
+  (cond ((listp a)
+	 (cdr (assoc e a)))
+	((vectorp a)
+	 (cdr (assoc e (aref a 0))))))
+
+(defun diaspora-extract-json-list (e a)
+  (cond (e
+	 (eval-json-list (cdr e) 
+			 (eval-json (car e) a)))
+	(a)))
+
+
+;(diaspora-get-all-regexp-markdown-points diaspora-regexp-tag 0)
 
 (provide 'diaspora-stream)
+
+; (diaspora-get-entry-stream-tag  "linux")
+
