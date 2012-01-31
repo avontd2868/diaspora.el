@@ -50,7 +50,7 @@
 ;;; User variable:
 
 (defcustom diaspora-pod 
-  "www.joinsdiaspora.com"
+  "joinsdiaspora.com"
   "Your diaspora* pod."
   :type 'string
   :group 'diaspora)
