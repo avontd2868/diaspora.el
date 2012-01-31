@@ -608,6 +608,9 @@ Note: this is not correct! Needs more thought to get all images right."
   (use-local-map diaspora-mode-map)
   (run-hooks 'diaspora-mode-hook))
 
+;; (add-hook 'diaspora-mode-hook 'diaspora-get-all-images 
+;; 	  'diaspora-show-images)
+
 (provide 'diaspora)
 
 ;;; diaspora.el ends here.

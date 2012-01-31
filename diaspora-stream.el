@@ -79,6 +79,8 @@ I expect to be already logged in. Use `diaspora' for log-in."
       ;;(diaspora-change-to-html)
       ;;Better using diaspora-mode already done by Tiago!      
       (diaspora-mode) 
+      (diaspora-get-all-images)
+      (diaspora-show-images)
 ;      (set (make-local-variable 'buffer-read-only) t)
       (goto-char (point-min)))
     ;; Delete HTTP Buffer
@@ -283,7 +285,6 @@ buffer or in the buffer specified."
 (defun diaspora-show-images (&optional opt)
   "If OPT nil shows images."
   (interactive)
-  (goto-char (point-min))
   (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-image)))
     (save-excursion
       (dolist (ipoint images-points)
@@ -294,7 +295,8 @@ buffer or in the buffer specified."
 							 (file-name-nondirectory 
 							  (car ipoint))))))
 	  (remove-text-properties (cadr ipoint) (cddr ipoint)
-				 '(display)))))))
+				 '(display))))
+      (goto-char (point-min)))))
 
 (defun diaspora-get-all-regexp-markdown-points (regexp &optional opt)
   (cond ((search-forward-regexp regexp (point-max) t)
