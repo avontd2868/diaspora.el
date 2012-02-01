@@ -1,4 +1,4 @@
-## diaspora(dot)el --- Simple Emacs-based client for diaspora*
+# diaspora(dot)el --- Simple Emacs-based client for diaspora*
 
 You can find me: https://joindiaspora.com/u/tca
 
@@ -8,41 +8,41 @@ This version is not compatible with the master branch dir structure and the earl
 
 This is in a very early stage of development...it will probably break some where. 
 
-### Before anything else:
+## Before anything else:
 
-M-x diaspora
+     M-x diaspora
 
 this wil create a dir structure and ask for user name and password. Be sure to set the var `diaspora-pod' to your pod, by default is set to joindiaspora.com
 
-### See diaspora stream:
+## See diaspora stream:
 
-M-x diaspora-get-entry-stream
+     M-x diaspora-get-entry-stream
 
-### Post to diaspora:
+## Post to diaspora:
 
-M-x diaspora-post-to
+     M-x diaspora-post-to
 
-#### You also have 
+### You also have 
 
-M-x diaspora-post-clipboard
+     M-x diaspora-post-clipboard
 
 for posting from clipboard :)
 
-#### Check keybindings
+## Check keybindings
 
-C-c C-h
+      C-c C-h
 
-### See images:
+## See images:
 
 in the *diaspora stream* buffer type:
 
-M-x diaspora-get-all-images 
+     M-x diaspora-get-all-images 
 
 and then 
 
-M-x diaspora-show-images
+     M-x diaspora-show-images
 
----
+## Contributions
 
 ... It still needs some work.
 
