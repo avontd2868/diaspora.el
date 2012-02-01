@@ -113,7 +113,7 @@ For example: C-u M-x diaspora-post-to."
   (with-temp-buffer
     (insert-buffer diaspora-post-buffer)
     (insert "\n" "---" "\n")
-    (let ((file-name-for-saving-post (format-time-string "%Y%m%d")))
+    (let ((file-name-for-saving-post (format-time-string "%y%m%d")))
       (if (find-buffer-visiting file-name-for-saving-post)
 	  (let ((post-text (buffer-string)))
 	    (set-buffer (get-file-buffer (concat diaspora-posts-directory file-name-for-saving-post)))

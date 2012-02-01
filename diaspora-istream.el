@@ -31,7 +31,7 @@
 ;; Streaming ideas
 
 
-;; file with leftovers!!!!
+;; file with leftovers!!!! and crazy ideas...
 
 
 (defun diaspora-get-url(url)
@@ -52,10 +52,13 @@ This is used after getting a stream or any URL in JSON format."
 
 ;; Getting info from JSON format
 
-(defun cdas (e a)
-  (cdr (assoc e a)))
+(defun cdas(item alist)
+  "Alias for (cdr (assoc item alist)): see file utils.lisp in cl-json."
+  (cdr (assoc item alist)))
 
 (defun diaspora-extract-json (e a)
+  "Alias for a conceptual (cdr (assoc item alist)); 
+works either if A is a list or a vector."
   (cond ((listp a)
 	 (cdr (assoc e a)))
 	((vectorp a)
@@ -68,18 +71,21 @@ This is used after getting a stream or any URL in JSON format."
 	(a)))
 
 (defun diaspora-json-car (x)
+  "Alias for `car' to work with a list or  vector."
   (cond ((listp x)
 	 (car x))
 	((vectorp x)
 	 (car (append x nil)))))
 
 (defun diaspora-json-cdr (x)
+  "Alias for `cdr' to work with a list or  vector."
   (cond ((listp x)
 	 (cdr x))
 	((vectorp x)
 	 (cdr (append x nil)))))
 
 (defun diaspora-json-read (url)
+  "Returns a JSON parsed string from URL."
   (interactive)
   (let ((http-buffer (diaspora-get-url url)))
     (with-current-buffer http-buffer
@@ -94,23 +100,84 @@ This is used after getting a stream or any URL in JSON format."
   (let ((buffer (diaspora-get-url diaspora-entry-stream-url)))
     (with-current-buffer buffer
       (diaspora-delete-http-header)
-      (diaspora-parse-json)
+      (diaspora-parse-json 'posts)
       (diaspora-mode)
       (goto-char (point-min)))))
 
 (defun diaspora-parse-json (name)
-  "Parse de JSON entry `name' stream."
+  "Parse de JSON entry NAME stream."
   (goto-char (point-min))
-  ;; Create a new buffer called according `diaspora-buffer' say 
-  ;; and parse the json code into lists.
   (let ((lstparsed (cdr (assoc name (json-read))))
 	(buff (get-buffer-create diaspora-stream-buffer))) 
-    ;; clean the new buffer
     (switch-to-buffer buff)
     (let ((le (length lstparsed)))
-	  ;(inhibit-read-only t))
       (delete-region (point-min) (point-max))
-    ;; Show all elements
       (dotimes (i le)
 	(diaspora-show-message (aref lstparsed i) buff)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; From wikipedia
+;; http://en.wikipedia.org/wiki/JSON
+
+;(setq env (json-read))
+
+;; {
+;;      "firstName": "John",
+;;      "lastName" : "Smith",
+;;      "age"      : 25,
+;;      "address"  :
+;;      {
+;;          "streetAddress": "21 2nd Street",
+;;          "city"         : "New York",
+;;          "state"        : "NY",
+;;          "postalCode"   : "10021"
+;;      },
+;;      "phoneNumber":
+;;      [
+;;          {
+;;            "type"  : "home",
+;;            "number": "212 555-1234"
+;;          },
+;;          {
+;;            "type"  : "fax",
+;;            "number": "646 555-4567"
+;;          }
+;;      ]
+;;  }
+
+(defun diaspora-json-1 (lst)
+  (flet ((d-json-aux (lst)
+		     (cond ((diaspora-json-cdr lst)
+			    (diaspora-json-car lst))
+			   (t
+			    (list (diaspora-json-car lst) 
+				  (diaspora-json-cdr lst))))))
+    (mapcar 'd-json-aux lst)))
+
+(setq env (diaspora-json-read 
+	   (concat "https://" diaspora-pod "/stream.json")))
+
+(diaspora-json-1 env)(phoneNumber address age lastName firstName)
+
+(mapcar 'diaspora-json-1 (diaspora-extract-json 'phoneNumber env))
+(mapcar 'diaspora-json-1 (diaspora-extract-json 'address env))
+
+
+(mapcar 'diaspora-json-1 (mapcar 'diaspora-extract-json 
+				 (diaspora-json-1 env)) env)
+
+(defun add (x y)
+  (+ x y))
+
+((lambda (y)
+  (mapcar 'add '(1 2 3) y)) 1))
+
+(mapcar (lambda (x)
+	  (+ 1 x)) '(1 2 3))
+
+(mapcar (lambda (x) (add x 2))
+	 
+
+(defun lookup-variable (var env)
+)
 
