@@ -165,19 +165,3 @@ works either if A is a list or a vector."
 
 (mapcar 'diaspora-json-1 (mapcar 'diaspora-extract-json 
 				 (diaspora-json-1 env)) env)
-
-(defun add (x y)
-  (+ x y))
-
-((lambda (y)
-  (mapcar 'add '(1 2 3) y)) 1))
-
-(mapcar (lambda (x)
-	  (+ 1 x)) '(1 2 3))
-
-(mapcar (lambda (x) (add x 2))
-	 
-
-(defun lookup-variable (var env)
-)
-
