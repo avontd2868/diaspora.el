@@ -32,11 +32,6 @@
 ;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
 ;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
 
-(defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
-  "This is the URL where I can get in JSON format the notifications.")
-
-(defvar diaspora-notifications-buffer-name "*diaspora notifications*"
-  "This is the name of the buffer that shows notifications from D*.")
 
 (defun diaspora-add-key-to-w3m-link-keymap ()
   "Add to the `w3m-link-map' the keys necesary to use only the keyboard."
@@ -49,7 +44,7 @@
   (interactive)
   (diaspora-ask)
   (let ((http-buff (diaspora-get-url-entry-stream diaspora-notifications-url))
-	(buff (get-buffer-create diaspora-notifications-buffer-name))
+	(buff (get-buffer-create diaspora-notifications-buffer))
 	(inhibit-read-only t))    
     (with-current-buffer http-buff
       (diaspora-delete-http-header))

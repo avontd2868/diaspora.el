@@ -117,6 +117,10 @@ If nil, you will be prompted."
   "JSON version of the entry stream(the main stream)."
   :group 'diaspora)
 
+(defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
+  "This is the URL for JSON format notifications.")
+
+
 (defcustom diaspora-entry-file-dir
   "~/public_html/diaspora.posts/"
   "Directory where to save posts made to diaspora*."
@@ -178,10 +182,6 @@ If nil, you will be prompted."
 (defvar  diaspora-resource-descriptor-webfinger-string nil
   "")
 
-;; This definition conflits with my .el files
-;; defined above as a custom variable 
-;; (defvar diaspora-temp-directory "~/.emacs.d/diaspora.el/"
-;;   "Temporal directory where to save files for diaspora.el.")
 
 (defvar diaspora-stream-buffer "*diaspora stream*"
   "The name of the diaspora stream buffer.")
@@ -195,6 +195,10 @@ If nil, you will be prompted."
 (defvar  diaspora-stream-tag-buffer
   "*diaspora stream tag*"
   "The name of the diaspora tag stream buffer.")
+
+(defvar diaspora-notifications-buffer
+  "*diaspora notifications*"
+    "The name of the diaspora notifications buffer.")
 
 
 ;;; User Functions:
@@ -230,84 +234,6 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 					  nil nil))
      (setq diaspora-password (read-passwd "password: ")))))
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defvar diaspora-mode-map 
-  (let ((diaspora-mode-map (make-sparse-keymap)))
-    (define-key diaspora-mode-map "\C-c4" 'diaspora-markdown-insert-headline-4)
-    (define-key diaspora-mode-map "\C-c3" 'diaspora-markdown-insert-headline-3)
-    (define-key diaspora-mode-map "\C-c2" 'diaspora-markdown-insert-headline-2)
-    (define-key diaspora-mode-map "\C-c1" 'diaspora-markdown-insert-headline-1)
-    (define-key diaspora-mode-map "\C-c\C-cl" 'diaspora-markdown-insert-unordered-list)
-    (define-key diaspora-mode-map "\C-c\C-ce" 'diaspora-markdown-insert-emph-text)
-    (define-key diaspora-mode-map "\C-c\C-cb" 'diaspora-markdown-insert-bold-text)
-    (define-key diaspora-mode-map "\C-c\C-c-" 'diaspora-markdown-insert-horizontal-rule)
-    (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
-    (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
-    (define-key diaspora-mode-map "\C-c\C-cm" 'diaspora-markdown-mention-user)
-    (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
-    (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
-    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-images) ; not implemented yet
-    diaspora-mode-map)
-  "Keymap based on html-mode")
-
-
-
-(define-skeleton diaspora-markdown-insert-headline-1
-  "Headline 1."
-  "Text: "
-  "# " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-headline-2
-  "Headline 2."
-  "Text: "
-  "## " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-headline-3
-  "Headline 3."
-  "Text: "
-  "### " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-headline-4
-  "Headline 4."
-  "Text: "
-  "#### " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-unordered-list
-  "Unordered list."
-  "Text: "
-  "* " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-emph-text
-  "Emphasis."
-  "Text: "
-  "*" str "*")
-
-(define-skeleton diaspora-markdown-insert-bold-text
-  "Bold."
-  "Text: "
-  "**" str "**")
-
-(define-skeleton diaspora-markdown-insert-horizontal-rule
-  "Horizontal rule tag."
-  nil
-  "---" \n \n)
-
-(define-skeleton diaspora-markdown-insert-link
-  "Link"
-  "Text: "
-  "[" str "](http://" _ ")")
-
-(define-skeleton diaspora-markdown-insert-image
-  "Image with URL."
-  "Text: "
-  "![" str "](http://" _ ")")
-
-(define-skeleton diaspora-markdown-mention-user
-  "Mention user."
-  "User: "
-  "@{" str ";" _ (concat "@" diaspora-pod "}"))
-
 
 ;; Font lock
 
@@ -325,10 +251,15 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 
 (defcustom diaspora-regexp-youtube-link
   "^\\(http.*://www.youtube.com/watch\\?v=\\)\\([^\)].*\\)"
-  "Regular expression for youtube link"
+  "Regular expression for a youtube link"
   :type 'regexp
   :group 'diaspora)
 
+(defcustom diaspora-regexp-image-alist
+  "\\(`?http.://\\|\\[\\[\\|<\\|`\\)?\\([-+./_0-9a-zA-Z]+\\.\\(GIF\\|JP\\(?:E?G\\)\\|P\\(?:BM\\|GM\\|N[GM]\\|PM\\)\\|SVG\\|TIFF?\\|X\\(?:[BP]M\\)\\|gif\\|jp\\(?:e?g\\)\\|p\\(?:bm\\|gm\\|n[gm]\\|pm\\)\\|svg\\|tiff?\\|x\\(?:[bp]m\\)\\)\\)\\(\\]\\]\\|>\\|'\\)?"
+  "Taken from iimage-mode."
+  :type 'regexp
+  :group 'diaspora)
 
 (defcustom diaspora-regexp-image
 "!\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
@@ -515,6 +446,7 @@ Note: this is not correct! Needs more thought to get all images right."
   "Syntax highlighting for diaspora files.")
 
 
+
 ;; webfinger
 ;; see: http://devblog.joindiaspora.com/2012/01/22/how-diaspora-connects-users/
 ;; Probably this is not the simplest way to go...
@@ -541,13 +473,6 @@ Note: this is not correct! Needs more thought to get all images right."
 				    (search-forward-regexp x)
 				    (match-string-no-properties 1))) 
 				diaspora-regexp-webfinger-all)))))
-
-  
-(defcustom diaspora-regexp-image-alist
-  "\\(`?http.://\\|\\[\\[\\|<\\|`\\)?\\([-+./_0-9a-zA-Z]+\\.\\(GIF\\|JP\\(?:E?G\\)\\|P\\(?:BM\\|GM\\|N[GM]\\|PM\\)\\|SVG\\|TIFF?\\|X\\(?:[BP]M\\)\\|gif\\|jp\\(?:e?g\\)\\|p\\(?:bm\\|gm\\|n[gm]\\|pm\\)\\|svg\\|tiff?\\|x\\(?:[bp]m\\)\\)\\)\\(\\]\\]\\|>\\|'\\)?"
-  "Taken from iimage-mode."
-  :type 'regexp
-  :group 'diaspora)
 
 (defcustom diaspora-regexp-webfinger-query
   "<Link rel=\'lrdd\'\n[\s-]*template=\'\\(.*\\)\{uri\}\'>"
