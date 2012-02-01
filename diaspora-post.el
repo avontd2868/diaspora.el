@@ -74,7 +74,7 @@ For example: C-u M-x diaspora-post-to."
 
 
 (defun diaspora-post (post &optional id)
-  "Post `post' to diaspora."
+  "Post POST to diaspora."
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
@@ -94,6 +94,7 @@ For example: C-u M-x diaspora-post-to."
 		    (kill-buffer (current-buffer))))))
 
 (defun diaspora-post-this-buffer ()
+  "Post the current buffer to diaspora."
   (interactive)
   (diaspora-ask)
   (message (concat "Getting authenticity token..."))
@@ -104,12 +105,13 @@ For example: C-u M-x diaspora-post-to."
   (kill-buffer))
 
 (defsubst diaspora-date ()
-  "Date string."
+  "Date string for inserting in posts."
   (interactive)
   (insert "\n\n#" (format-time-string "%Y%m%d") " "))
 
   
 (defun diaspora-save-post-to-file ()
+  "Save post to backup file. Backup file is ymd, a new post is append."
   (with-temp-buffer
     (insert-buffer diaspora-post-buffer)
     (insert "\n" "---" "\n")
@@ -126,7 +128,7 @@ For example: C-u M-x diaspora-post-to."
 			(concat diaspora-posts-directory file-name-for-saving-post))))))
 	
 (defun diaspora-find-all-markdown (regexp &optional opt)
-  "Find all markdown strings given by `regexp' and return all of them in a list.
+  "Find all markdown strings given by REGEXP and return all of them in a list.
 Usage example: `(diaspora-find-all-markdown diaspora-regex-tag)'"
   (flet ((d-find-aux (regexp)
 		       (cond ((search-forward-regexp  regexp (point-max) t)
@@ -151,8 +153,7 @@ Usage example: `(diaspora-find-all-markdown diaspora-regex-tag)'"
 
 (defun diaspora-post-clipboard ()
   "Post to diaspora the contents of the current clipboard.
-Most useful for take-notesing things from Netscape or other X Windows
-application."
+Most useful for posting things from any where."
   (interactive)
   (diaspora-ask)
   (diaspora-post-to (current-kill 0)))
@@ -166,7 +167,7 @@ application."
 
 
 (defun diaspora-short-url (url)
-  "Short URL function, user is.gd."
+  "Short URL function, uses is.gd."
   (interactive "M")
   (let ((url-request-method "GET"))
     (url-retrieve (concat "http://is.gd/create.php?format=simple&url=" url)

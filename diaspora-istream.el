@@ -75,14 +75,18 @@ works either if A is a list or a vector."
   (cond ((listp x)
 	 (car x))
 	((vectorp x)
-	 (car (append x nil)))))
+	 (car (append x nil)))
+	(t
+	 nil)))
 
 (defun diaspora-json-cdr (x)
   "Alias for `cdr' to work with a list or  vector."
   (cond ((listp x)
 	 (cdr x))
 	((vectorp x)
-	 (cdr (append x nil)))))
+	 (cdr (append x nil)))
+	(t 
+	 nil)))
 
 (defun diaspora-json-read (url)
   "Returns a JSON parsed string from URL."
@@ -157,8 +161,9 @@ works either if A is a list or a vector."
 (setq env (diaspora-json-read 
 	   (concat "https://" diaspora-pod "/stream.json")))
 
-(diaspora-json-1 env)(phoneNumber address age lastName firstName)
+(diaspora-json-1 env)
 
+(mapcar 'diaspora-json-car (diaspora-extract-json (diaspora-json-car (diaspora-json-car env)) env))
 (mapcar 'diaspora-json-1 (diaspora-extract-json 'phoneNumber env))
 (mapcar 'diaspora-json-1 (diaspora-extract-json 'address env))
 
