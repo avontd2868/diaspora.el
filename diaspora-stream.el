@@ -286,7 +286,13 @@ buffer or in the buffer specified."
   "Shows images in buffer."
   (interactive)
   (save-excursion
-    (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-image)))
+    (let ((buffer-undo-list t)
+	  (inhibit-read-only t)
+	  (inhibit-point-motion-hooks t)
+	  (inhibit-modification-hooks t)
+	  (modified-p (buffer-modified-p))
+	  deactivate-mark
+	  (images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-image)))
       (dolist (ipoint images-points)
 	(diaspora-insert-image (cadr ipoint) (cddr ipoint)))
       (goto-char (point-min)))))
@@ -429,9 +435,6 @@ buffer or in the buffer specified."
 	 (diaspora-extract-json-list (cdr e) 
 			 (diaspora-extract-json (car e) a)))
 	(a)))
-
-
-
 
 (defun diaspora-get-entry-stream-tag (tag)
   ""
