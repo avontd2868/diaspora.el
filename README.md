@@ -18,15 +18,15 @@ this wil create a dir structure and ask for user name and password. Be sure to s
 
     M-x diaspora-get-entry-stream
 
-images are displayed 
+images are displayed by default
 
-to remove images from buffer 
+#### to remove images from buffer 
 
-   M-x diaspora-unshow-images
+    M-x diaspora-unshow-images
 
-to show them again
+#### to show images  again
 
-   M-x diaspora-unshow-images
+    M-x diaspora-unshow-images
 
 ### Post to diaspora:
 
@@ -34,13 +34,13 @@ to show them again
 
 #### You also have 
 
-     M-x diaspora-post-clipboard
+    M-x diaspora-post-clipboard
 
 for posting from clipboard :)
 
 #### Check keybindings
 
-     C-c C-h
+    C-c C-h
 
 ---
 
