@@ -12,7 +12,7 @@ This is in a very early stage of development...it will probably break some where
 
     M-x diaspora
     
-this wil create a dir structure and ask for user name and password. Be sure to set the var `diaspora-pod' to your pod, by default is set to joindiaspora.com
+this wil create a dir structure and ask for user name and password. Be sure to set the var `diaspora-pod` to your pod, by default is set to joindiaspora.com
 
 ### See diaspora stream:
 

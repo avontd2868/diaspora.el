@@ -83,7 +83,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
       (diaspora-show-images)
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
-    ))
+    )))
 
 (defun diaspora-get-temp-path (filename)
   "Return the path of temporal files. 
@@ -201,7 +201,9 @@ If buffer is nil, then use the `current-buffer'."
   (with-current-buffer buff-from
     ;; Get the post message parsed from JSON
     (goto-char (point-min))
-    (let ((lstparsed (cdr (assoc 'posts (json-read)))))
+    (let ((json-array-type 'list)
+	  (json-object-type 'alist)
+	  (lstparsed (cdr (assoc 'posts (json-read)))))
       (with-current-buffer buff-to
 	;; Clean buffer buff-to and insert message
 	(delete-region (point-min) (point-max))
@@ -213,8 +215,10 @@ If buffer is nil, then use the `current-buffer'."
     (window-configuration-to-register diaspora-stream-register)
   ;; Create a new buffer called according `diaspora-buffer' say 
   ;; and parse the json code into lists.
-  (let ((lstparsed (cdr (assoc 'posts (json-read))))
-	(buff (get-buffer-create diaspora-stream-buffer))) 
+  (let ((json-array-type 'list)
+       (json-object-type 'alist)
+       (lstparsed (cdr (assoc 'posts (json-read))))
+       (buff (get-buffer-create diaspora-stream-buffer)))
     ;; clean the new buffer
     (switch-to-buffer buff)
     (let ((le (length lstparsed)))
@@ -234,7 +238,9 @@ buffer or in the buffer specified."
 		  buffer)))
     (with-current-buffer buff-http
       (diaspora-delete-http-header)
-      (let ((lstparsed (json-read)))
+      (let ((json-array-type 'list)
+	    (json-object-type 'alist)
+	    (lstparsed (json-read)))
 	;; parse all comments one by one and insert it
 	(let ((le (length lstparsed))
 ;	      (inhibit-read-only t)
@@ -441,14 +447,12 @@ buffer or in the buffer specified."
   (interactive)  
   (diaspora-ask)
   (diaspora-authenticity-token diaspora-sign-in-url)
-  (let ((buff (diaspora-get-url-entry-stream
-	       (concat "https://" diaspora-pod "/tags/" tag ".json"))))
-    (with-current-buffer buff
-      (diaspora-delete-http-header)
-      (switch-to-buffer buff)
-      (diaspora-parse-json)
-      (diaspora-mode) 
-      (goto-char (point-min)))))
-
-
+  (save-excursion
+    (let ((buff (diaspora-get-url-entry-stream
+		 (concat "https://" diaspora-pod "/tags/" tag ".json"))))
+      (with-current-buffer buff
+	(diaspora-delete-http-header)
+	(switch-to-buffer buff)
+	(diaspora-parse-json)
+	(diaspora-mode)))))
 (provide 'diaspora-stream)
