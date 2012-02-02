@@ -150,7 +150,7 @@ If buffer is nil, then use the `current-buffer'."
 	(insert  "---\n")
 	(insert "![" name "](" avatar ")\n")
 	(insert (propertize
-		 (format "%s(%s):\n" name diaspora_id)
+		 (format "%s (%s):\n" name diaspora_id)
 		 'mouse-face 'highlight
 		 'face "link"
 		 'keymap diaspora-show-message-map
@@ -282,21 +282,36 @@ buffer or in the buffer specified."
   (interactive)
   (mapcar 'diaspora-get-image (diaspora-get-all-image-links)))
 
-(defun diaspora-show-images (&optional opt)
-  "If OPT nil shows images."
+(defun diaspora-show-images ()
+  "Shows images in buffer."
   (interactive)
-  (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-image)))
-    (save-excursion
+  (save-excursion
+    (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-image)))
       (dolist (ipoint images-points)
-	(if (not opt)
-	    (add-text-properties (cadr ipoint) (cddr ipoint)
-				 (list 'display (create-image 
-						 (concat diaspora-image-directory
-							 (file-name-nondirectory 
-							  (car ipoint))))))
-	  (remove-text-properties (cadr ipoint) (cddr ipoint)
-				 '(display))))
+	(diaspora-insert-image (cadr ipoint) (cddr ipoint)))
       (goto-char (point-min)))))
+
+(defun diaspora-insert-image (beg end)
+  "Create an image  and insert it place of an `diaspora-regexp-image' defined by BEG and END."
+  (add-text-properties (cadr ipoint) (cddr ipoint)
+		       (list 'display (create-image 
+				       (concat diaspora-image-directory
+					       (file-name-nondirectory 
+						(car ipoint)))))))
+(defun diaspora-unshow-images ()
+  "Un shows images in buffer."
+  (interactive)
+  (save-excursion
+    (let ((buffer-undo-list t)
+	  (inhibit-read-only t)
+	  (inhibit-point-motion-hooks t)
+	  (inhibit-modification-hooks t)
+	  (modified-p (buffer-modified-p))
+	  deactivate-mark)
+      (unwind-protect
+	  (remove-text-properties (point-min) (point-max)
+				  '(display)))
+      (set-buffer-modified-p modified-p))))
 
 (defun diaspora-get-all-regexp-markdown-points (regexp &optional opt)
   (cond ((search-forward-regexp regexp (point-max) t)
@@ -328,12 +343,14 @@ buffer or in the buffer specified."
 
 
 (defun diaspora-get-all-image-links ()
-  (flet ((d-find-aux ()
+  (goto-char (point-min))
+  (save-excursion
+    (flet ((d-find-aux ()
 		       (cond ((search-forward-regexp diaspora-regexp-image (point-max) t)
 			      (cons (match-string-no-properties 2)
 				    (d-find-aux)))
 			     (t nil))))
-    (remove-duplicates (d-find-aux) :test 'equal)))
+      (remove-duplicates (d-find-aux) :test 'equal))))
 
 (defun diaspora-see-regexp-markdow (&optional opt)
   (interactive)
@@ -347,17 +364,18 @@ buffer or in the buffer specified."
 				   'keymap diaspora-show-tag-map
 				   'diaspora-tag (car mpoint)
 				   'help-echo "Click here to see the tag stream in new buffer."))
-	))
-    (goto-char (point-min))
-    (let ((markdown-points (diaspora-get-all-regexp-markdown-points  diaspora-regexp-user-entry 0)))
-      (dolist (mpoint markdown-points)
-	(add-text-properties (cadr mpoint) (cddr mpoint)
-			     (list 'mouse-face 'highlight
-				   'face "link"
-				   'keymap diaspora-show-message-map
-				   'diaspora-id-message id
-				   'help-echo "Click here to see this message in new buffer."))
 	))))
+
+    ;; (goto-char (point-min))
+    ;; (let ((markdown-points (diaspora-get-all-regexp-markdown-points  diaspora-regexp-user-entry 0)))
+    ;;   (dolist (mpoint markdown-points)
+    ;; 	(add-text-properties (cadr mpoint) (cddr mpoint)
+    ;; 			     (list 'mouse-face 'highlight
+    ;; 				   'face "link"
+    ;; 				   'keymap diaspora-show-message-map
+    ;; 				   'diaspora-id-message id
+    ;; 				   'help-echo "Click here to see this message in new buffer."))
+    ;; 	))))
     
 ;; (insert (propertize
 	;; 	 (format "%s(%s):\n" name diaspora_id)
