@@ -51,7 +51,7 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
   (let ((url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
 	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "UTF-8"))))
+	   ("Accept-Charset" . "utf-8"))))
     (url-retrieve-synchronously url)))
 
 (defun diaspora-delete-http-header ()
@@ -81,8 +81,6 @@ I expect to be already logged in. Use `diaspora' for log-in."
       (diaspora-mode) 
       (diaspora-get-all-images)
       (diaspora-show-images)
-;      (set (make-local-variable 'buffer-read-only) t)
-      (goto-char (point-min)))
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
     ))
@@ -125,7 +123,8 @@ Check if the temporal directory exists, if not create it."
   "Show a parsed message in a given buffer.
 If buffer is nil, then use the `current-buffer'."
   ;; Ensure that buffer is not nil, in case is nil, buffer will be `current-buffer'.
-  (setq aux  parsed-message)
+;; debug
+;  (setq aux  parsed-message)
   (let ((buffer (if (null buffer)
 		    (current-buffer)
 		  buffer)))
@@ -161,7 +160,7 @@ If buffer is nil, then use the `current-buffer'."
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
 	  (insert "![photo](" 
-		  (cdr (assoc 'large (car (aref (cdr (assoc 'photos aux))0))))
+		  (cdr (assoc 'large (car (aref (cdr (assoc 'photos parsed-message))0))))
 		  ")\n"))))))
 
 
@@ -211,6 +210,7 @@ If buffer is nil, then use the `current-buffer'."
 (defun diaspora-parse-json (&optional status)
   "Parse de JSON entry stream."
   (goto-char (point-min))
+    (window-configuration-to-register diaspora-stream-register)
   ;; Create a new buffer called according `diaspora-buffer' say 
   ;; and parse the json code into lists.
   (let ((lstparsed (cdr (assoc 'posts (json-read))))
@@ -449,5 +449,3 @@ buffer or in the buffer specified."
 
 
 (provide 'diaspora-stream)
-
-

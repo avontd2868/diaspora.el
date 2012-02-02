@@ -83,7 +83,7 @@
 (defcustom diaspora-mode-hook nil
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill longlines-mode)
+  :options '(flyspell-mode turn-on-auto-fill longlines-mode diaspora-get-all-images diaspora-show-images)
   :group 'diaspora)
 
 (defcustom diaspora-username nil
@@ -155,6 +155,13 @@ If nil, you will be prompted."
   "*Non-nil means automatically save after posting."
   :type 'boolean
   :group 'diaspora)
+
+
+(defcustom diaspora-stream-register ?R
+  "The register in which the window configuration is stored."
+  :type 'character
+  :group 'diaspora)
+
 
 (defcustom diaspora-post-register ?R
   "The register in which the window configuration is stored."
@@ -269,7 +276,7 @@ Note: this is not correct! Needs more thought to get all images right."
   :group 'diaspora)
 
 (defcustom diaspora-regexp-user-entry 
-"^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
+"^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
   "Regular expression for user entry."
   :type 'regexp
   :group 'diaspora)
