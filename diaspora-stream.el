@@ -51,7 +51,8 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
   (let ((url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
 	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "utf-8"))))
+	   ("Accept-Charset" . "utf-8")))
+	(buffer-file-coding-system 'utf-8))
     (url-retrieve-synchronously url)))
 
 (defun diaspora-delete-http-header ()
@@ -364,7 +365,7 @@ buffer or in the buffer specified."
 			     (t nil))))
       (remove-duplicates (d-find-aux) :test 'equal))))
 
-(defun diaspora-see-regexp-markdow (&optional opt)
+(defun diaspora-see-regexp-markdow ()
   (interactive)
   (save-excursion
     (goto-char (point-min))
@@ -431,10 +432,7 @@ buffer or in the buffer specified."
 
 
 (defun diaspora-extract-json (e a)
-  (cond ((listp a)
-	 (cdr (assoc e a)))
-	((vectorp a)
-	 (cdr (assoc e (aref a 0))))))
+  (cdr (assoc e a)))
 
 (defun diaspora-extract-json-list (e a)
   (cond (e
@@ -455,4 +453,40 @@ buffer or in the buffer specified."
 	(switch-to-buffer buff)
 	(diaspora-parse-json)
 	(diaspora-mode)))))
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun diaspora-get-url(url)
+  "Get a diaspora URL and leave it in a new buffer."
+  (let ((url-request-extra-headers
+	 '(("Content-Type" . "application/x-www-form-urlencoded")
+	   ("Accept-Language" . "en")
+	   ("Accept-Charset" . "UTF-8"))))
+    (url-retrieve-synchronously url)))
+
+
+(defun diaspora-inspect-json (env)
+  (flet ((f-car (lst)
+		(cond ((listp lst)
+		       (if (listp (car lst))
+			   (mapcar 'f-car lst)
+			 (f-car (car lst))))
+		      (t 
+		       lst))))
+    (cond ((listp env)
+	   (mapcar 'f-car env))
+	  (t
+	   env))))
+
+(defun diaspora-json-read-url (url)
+  "Returns a JSON parsed string from URL."
+  (interactive)
+  (let ((json-array-type 'list)
+	(json-object-type 'alist)
+	(http-buffer (diaspora-get-url url)))
+    (with-current-buffer http-buffer
+      (diaspora-delete-http-header)
+      (let ((stream-parsed (json-read)))
+	 stream-parsed))))
+
 (provide 'diaspora-stream)

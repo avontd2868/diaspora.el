@@ -26,7 +26,7 @@ images are displayed by default
 
 #### to show images  again
 
-    M-x diaspora-unshow-images
+    M-x diaspora-show-images
 
 ### Post to diaspora:
 
