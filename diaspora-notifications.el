@@ -1,53 +1,36 @@
-;;; diaspora-notifications.el --- 
-;; 
-;; Filename: diaspora-notifications.el
-;; Description: 
-;; Author: Christian
-;; Maintainer: 
-;; Created: sáb ene 28 21:25:27 2012 (-0300)
-;; Version: 
-;; Last-Updated: 
-;;           By: 
-;;     Update #: 0
-;; URL: 
-;; Keywords: 
-;; Compatibility: 
-;; 
-;; Features that might be required by this library:
+;;; diaspora.el --- Simple Emacs-based client for diaspora*
+
+;; Author: Christian Giménez
+;; Maintainer: Tiago Charters de Azevedo <tca@diale.org>
+;; Created: Jan 31, 2012
+;; Version: .0
+;; Keywords: diaspora*
+;; URL: http://diale.org/diaspora.html
+
+;; Copyright (c) 2012 Tiago Charters de Azevedo, Christian Giménez
 ;;
-;;   None
+;; This program is free software; you can redistribute it and/or modify
+;; it under the terms of the GNU General Public License as published by
+;; the Free Software Foundation; either version 2, or (at your option)
+;; any later version.
 ;;
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;;; Commentary: 
-;; 
-;; 
-;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;;; Change Log:
-;; 
-;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;; This program is free software; you can redistribute it and/or
-;; modify it under the terms of the GNU General Public License as
-;; published by the Free Software Foundation; either version 3, or
-;; (at your option) any later version.
-;; 
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-;; General Public License for more details.
-;; 
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+;; GNU General Public License for more details.
+;;
 ;; You should have received a copy of the GNU General Public License
-;; along with this program; see the file COPYING.  If not, write to
-;; the Free Software Foundation, Inc., 51 Franklin Street, Fifth
-;; Floor, Boston, MA 02110-1301, USA.
-;; 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; 
-;;; Code:
+;; along with this program; if not, write to the Free Software
+;; Foundation, Inc., 51 Franklin Street, Fifth Floor, Boston, MA
+;; 02110-1301, USA.
+
+;;; Commentary:
+
+;; A diaspora* client for emacs
+
+;; Save all the files in a DIR and add that DIR to `load-path'; 
+;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
+;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
 
 (defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
   "This is the URL where I can get in JSON format the notifications.")
@@ -109,6 +92,3 @@
       (insert (format "\n<hr />\n%s:%s<br />" date note)))))
 
 (provide 'diaspora-notifications)
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;;; diaspora-notifications.el ends here
