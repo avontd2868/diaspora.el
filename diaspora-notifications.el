@@ -82,12 +82,10 @@
   "Insert into buffer the JSON formated notification in a most human readable text."  
   (with-current-buffer buffer    
     (let ((type (car (car notification)))
-	  (date (cdr (assoc 'updated_at (cdr (car notification)))))
-	  (unread (cdr (assoc 'unread (cdr (car notification)))))
-	  (target (cdr (assoc 'target_type (cdr (car notification)))))
-	  (recipient (cdr (assoc 'recipient_id (cdr (car notification)))))
-	  (note (cdr (assoc 'note_html (cdr (car notification))))))
-      (insert (format "\n<hr />\n%s:%s<br />" date note)))))
+	  (diaspora-write-notifications notification buffer)	  
+	  (cond 
+	   ((eq type likes) (diaspora-liked-notifications notification buffer))
+	   (t (diaspora-rest-notifications)))))))
 
 (defun diaspora-parse-notifications-json (buffer buffer-to)
   "Parse all the notifications in the JSON that are in the given buffer, and put the result in the \"buffer-to\" buffer."
@@ -99,6 +97,16 @@
 	(let ((le (length lst-parsed)))
 	  (dotimes (i le)
 	    (diaspora-show-notification (aref lst-parsed i) buffer-to)))))))
+
+(defun diaspora-write-notifications (notification buffer-to)
+  "Write an unknown type of notification. That's mean, write every data in the notification."
+  (with-current-buffer buffer-to
+    (let ((date (cdr (assoc 'updated_at (cdr (car notification)))))
+	  (unread (cdr (assoc 'unread (cdr (car notification)))))
+	  (target (cdr (assoc 'target_type (cdr (car notification)))))
+	  (recipient (cdr (assoc 'recipient_id (cdr (car notification)))))
+	  (note (cdr (assoc 'note_html (cdr (car notification))))))
+      (insert (format "\n<hr />\n%s:%s<br />" date note)))))
 
 (provide 'diaspora-notifications)
 
