@@ -80,6 +80,7 @@
       (cond 
        ((eq type 'likes) (diaspora-liked-notifications notification buffer))
        ((eq type 'started_sharing) (diaspora-started-sharing-notification notification buffer))
+       ((eq type 'comment_on_post) (diaspora-comment-on-post-notification notification buffer))
        (t (diaspora-unknown-notifications notification buffer))))))
 
 (defun diaspora-header-notifications (notification buffer-to)
@@ -92,7 +93,7 @@
 	  (unread (cdr (assoc 'unread (cdr (car notification))))))
       (insert (format "\n---\nAt %s:" date))
       (if (eq unread :json-true)
-	  (insert "Unread!\n")
+	  (insert "**Unread!**\n")
 	(insert "Readed\n")))))
 
 (defun diaspora-unknown-notifications (notification buffer-to)
@@ -105,33 +106,53 @@
 	  (note (cdr (assoc 'note_html (cdr (car notification))))))
       (insert (format "\n<hr />\n%s:%s<br />" date note)))))
 
-(defun diaspora-liked-notifications (notification buffer-to)
+(defun diaspora-notification-remove-image-tags (line)
+  "Remove the tags and replace it with the apropiate markdown."
+  (replace-regexp-in-string "'>" ")" 
+			    (replace-regexp-in-string "<img src='" "![Avatar](" line)))
+
+(defun diaspora-notification-remove-link-tags (line)
+  "Remove the link tags."
+  (replace-regexp-in-string "</a>" ""
+			    (replace-regexp-in-string "<a \[^>\]*>" "" line)))
+
+(defun diaspora-comment-on-post-notification (notification buffer-to)
+  "Write a \"comment-on-post\" notification."
+  (with-current-buffer buffer-to
+    (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
+	  (note-html (cdr (assoc 'note_html (cdr (car notification))))))
+      (let ((splited-html (split-string note-html "\n")))
+	(insert 
+	 (diaspora-notification-remove-image-tags (nth 1 splited-html))
+	 "\n")
+	
+	(insert 
+	 ;; Remove the name link property
+	 (diaspora-notification-remove-link-tags (nth 2 splited-html))
+	 "\n")
+	(insert (diaspora-add-link-to-publication "Goto publication" target-id)
+		"\n")
+	 ))))
+
+(defun diaspora-liked-notification (notification buffer-to)
+  "Write a \"liked\" notification."
   
   )
-
-(defun diaspora-comment-notification (notification buffer-to)
-  "Write a \"commented\" notification."
-  (with-current-buffer buffer-to
-    (let ((target (cdr (assoc 'recipient_id (cdr (car notification))))))
-      )
-    ))
 
 (defun diaspora-started-sharing-notification (notification buffer-to)
   "Write a \"started sharing\" notification. in buffer 'buffer-to'."
   (with-current-buffer buffer-to
-    (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
+    (let ((target-id (cdr (assoc 'target_id (cdr (car notification))))) ;;Target is a person here!
 	  (note-html (cdr (assoc 'note_html (cdr (car notification))))))
       ;; Parse HTML!
       (let ((splited-html (split-string note-html "\n")))
 	;; take off the <img src='... '> into ![Avatar](...).
 	(insert 
-	 (replace-regexp-in-string "'>" ")" 
-				   (replace-regexp-in-string "<img src='" "![Avatar](" (nth 1 splited-html)))
+	 (diaspora-notification-remove-image-tags (nth 1 splited-html))
 	 "\n")
 	
 	(insert 
-	 (replace-regexp-in-string "</a>" ""
-				   (replace-regexp-in-string "<a \[^>\]*>" "" (nth 2 sh)))
+	 (diaspora-notification-remove-link-tags (nth 2 splited-html))
 	 "\n")))))
 
 (provide 'diaspora-notifications)

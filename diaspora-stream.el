@@ -154,13 +154,9 @@ If buffer is nil, then use the `current-buffer'."
 	
 	(insert  "---\n")
 	(insert "![" name "](" avatar ")\n")
-	(insert (propertize
-		 (format "%s (%s):\n" name diaspora_id)
-		 'mouse-face 'highlight
-		 'face "link"
-		 'keymap diaspora-show-message-map
-		 'diaspora-id-message id
-		 'help-echo "Click here to see this message in new buffer."))
+	(insert (diaspora-add-link-to-publication 
+		 (format "%s (%s):\n" name diaspora_id) 
+		 id))
 	(insert (format "%s\n" date))
 	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
 	(insert (format "%s\n\n" text))
@@ -169,7 +165,17 @@ If buffer is nil, then use the `current-buffer'."
 		  (cdr (assoc 'large (car (aref (cdr (assoc 'photos parsed-message))0))))
 		  ")\n"))))))
 
-
+(defun diaspora-add-link-to-publication (text id-message)
+  "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
+or a function like `diaspora-show-message-new-buffer'."
+  (propertize
+   text
+   'mouse-face 'highlight
+   'face "link"
+   'keymap diaspora-show-message-map
+   'diaspora-id-message id-message
+   'help-echo "Click here to see this message in new buffer.")
+  )
 
 (defun diaspora-show-message-new-buffer (&rest r)
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
