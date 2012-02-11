@@ -81,8 +81,12 @@ I expect to be already logged in. Use `diaspora' for log-in."
       ;;(diaspora-change-to-html)
       ;;Better using diaspora-mode already done by Tiago!      
       (diaspora-mode) 
-      (diaspora-get-all-images)
-      (diaspora-show-images)
+      (if diaspora-show-images-by-default
+	  (progn
+	    (diaspora-get-all-images)
+	    (diaspora-show-images)
+	    )
+	)
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
     )))

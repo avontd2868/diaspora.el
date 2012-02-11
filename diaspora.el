@@ -75,6 +75,12 @@
   :type 'dir
   :group 'diaspora)
 
+(defcustom diaspora-show-images-by-default
+  t
+  "Loads images by default at start."
+  :type 'boolean
+  :group 'diaspora)
+
 
 (defcustom diaspora-show-user-avatar t
    "Show user images beside each users entry."
@@ -540,10 +546,6 @@ Note: this is not correct! Needs more thought to get all images right."
   (set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
   (run-hooks 'diaspora-mode-hook))
-
-(add-hook 'diaspora-mode-hook 'diaspora-get-all-images 
- 	  'diaspora-show-images)
-
 
 
 (provide 'diaspora)
