@@ -61,15 +61,6 @@
       (setq buffer-read-only t))))
 
 
-(defun diaspora-show-notification (notification buffer)
-  "Insert into buffer the JSON formated notification in a most human readable text."  
-  (with-current-buffer buffer    
-    (let ((type (car (car notification)))
-	  (diaspora-write-notifications notification buffer)	  
-	  (cond 
-	   ((eq type likes) (diaspora-liked-notifications notification buffer))
-	   (t (diaspora-rest-notifications)))))))
-
 (defun diaspora-parse-notifications-json (buffer buffer-to)
   "Parse all the notifications in the JSON that are in the given buffer, and put the result in the \"buffer-to\" buffer."
   (with-current-buffer buffer
@@ -81,7 +72,30 @@
 	  (dotimes (i le)
 	    (diaspora-show-notification (aref lst-parsed i) buffer-to)))))))
 
-(defun diaspora-write-notifications (notification buffer-to)
+(defun diaspora-show-notification (notification buffer)
+  "Insert into buffer the JSON formated notification in a most human readable text."  
+  (with-current-buffer buffer    
+    (let ((type (car (car notification))))
+      (diaspora-header-notifications notification buffer)
+      (cond 
+       ((eq type 'likes) (diaspora-liked-notifications notification buffer))
+       ((eq type 'started_sharing) (diaspora-started-sharing-notification notification buffer))
+       (t (diaspora-unknown-notifications notification buffer))))))
+
+(defun diaspora-header-notifications (notification buffer-to)
+  "Write the header of each notification. That is the common information of all types of notifications:
+- Date
+- Is unread?
+"
+  (with-current-buffer buffer-to
+    (let ((date (cdr (assoc 'updated_at (cdr (car notification)))))
+	  (unread (cdr (assoc 'unread (cdr (car notification))))))
+      (insert (format "\n---\nAt %s:" date))
+      (if (eq unread :json-true)
+	  (insert "Unread!\n")
+	(insert "Readed\n")))))
+
+(defun diaspora-unknown-notifications (notification buffer-to)
   "Write an unknown type of notification. That's mean, write every data in the notification."
   (with-current-buffer buffer-to
     (let ((date (cdr (assoc 'updated_at (cdr (car notification)))))
@@ -90,5 +104,34 @@
 	  (recipient (cdr (assoc 'recipient_id (cdr (car notification)))))
 	  (note (cdr (assoc 'note_html (cdr (car notification))))))
       (insert (format "\n<hr />\n%s:%s<br />" date note)))))
+
+(defun diaspora-liked-notifications (notification buffer-to)
+  
+  )
+
+(defun diaspora-comment-notification (notification buffer-to)
+  "Write a \"commented\" notification."
+  (with-current-buffer buffer-to
+    (let ((target (cdr (assoc 'recipient_id (cdr (car notification))))))
+      )
+    ))
+
+(defun diaspora-started-sharing-notification (notification buffer-to)
+  "Write a \"started sharing\" notification. in buffer 'buffer-to'."
+  (with-current-buffer buffer-to
+    (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
+	  (note-html (cdr (assoc 'note_html (cdr (car notification))))))
+      ;; Parse HTML!
+      (let ((splited-html (split-string note-html "\n")))
+	;; take off the <img src='... '> into ![Avatar](...).
+	(insert 
+	 (replace-regexp-in-string "'>" ")" 
+				   (replace-regexp-in-string "<img src='" "![Avatar](" (nth 1 splited-html)))
+	 "\n")
+	
+	(insert 
+	 (replace-regexp-in-string "</a>" ""
+				   (replace-regexp-in-string "<a \[^>\]*>" "" (nth 2 sh)))
+	 "\n")))))
 
 (provide 'diaspora-notifications)

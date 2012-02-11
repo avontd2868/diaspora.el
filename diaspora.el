@@ -120,7 +120,7 @@ If nil, you will be prompted."
   "URL used to get a single message.")
 
 (defcustom diaspora-entry-stream-url 
-  "https://joindiaspora.com/stream.json"
+  "https://joindiaspora.com/explore.json"
   "JSON version of the entry stream(the main stream)."
   :group 'diaspora)
 

@@ -175,7 +175,7 @@ If buffer is nil, then use the `current-buffer'."
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
   (interactive)
   (let ((id-message 
-	 (get-text-property (+ 1 (previous-single-property-change (point) 'diaspora-id-message))
+	 (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-id-message))
 			    'diaspora-id-message)))
     (diaspora-get-single-message id-message)))
 
