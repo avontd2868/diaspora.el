@@ -110,6 +110,11 @@ I expect to be logged in, but if not, I download the authenticity token."
 
 					; Streams!
 
+(defun diaspora-get-participate-stream ()
+  "Show the participate stream."
+  (interactive)
+  (diaspora-get-stream-by-name diaspora-participate-stream-name))  
+
 (defun diaspora-get-entry-stream ()
   "Show the entry stream. 
 First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
@@ -118,10 +123,31 @@ I expect to be already logged in. Use `diaspora' for log-in."
   (diaspora-get-stream-by-name diaspora-entry-stream-url)
   )
 
+(defun diaspora-get-public-stream ()
+  "Show the public stream."
+  (interactive)
+  (diaspora-get-stream-by-name diaspora-public-stream-name))
+
+(defun diaspora-get-followed-tags-stream ()
+  "Show the followed tags stream."
+  (interactive)
+  (diaspora-get-stream-by-name diaspora-followed-tags-stream-name))
+
 (defun diaspora-get-mentions-stream ()
   "Show the mentions stream."
   (interactive)
   (diaspora-get-stream-by-name diaspora-mentions-stream-name))
+
+(defun diaspora-get-liked-stream ()
+  "Show the liked stream."
+  (interactive)
+  (diaspora-get-stream-by-name diaspora-liked-stream-name))
+
+(defun diaspora-get-commented-stream ()
+  "Show the commented stream."
+  (interactive)
+  (diaspora-get-stream-by-name diaspora-commented-stream-name)
+  )
 
 (defun diaspora-get-aspects-stream ()
   "Show the aspects stream."
