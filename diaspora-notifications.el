@@ -57,7 +57,8 @@
     (switch-to-buffer buff)
     (with-current-buffer buff
       (let ((inhibit-read-only t))
-	(w3m-buffer))
+	(diaspora-mode)
+	)
       (setq buffer-read-only t))))
 
 
@@ -78,9 +79,11 @@
     (let ((type (car (car notification))))
       (diaspora-header-notifications notification buffer)
       (cond 
-       ((eq type 'likes) (diaspora-liked-notifications notification buffer))
+       ((eq type 'liked) (diaspora-liked-notification notification buffer))
        ((eq type 'started_sharing) (diaspora-started-sharing-notification notification buffer))
        ((eq type 'comment_on_post) (diaspora-comment-on-post-notification notification buffer))
+       ((eq type 'mentioned) (diaspora-mentioned-notification notification buffer))
+       ((eq type 'also_commented) (diaspora-comment-on-post-notification notification buffer))
        (t (diaspora-unknown-notifications notification buffer))))))
 
 (defun diaspora-header-notifications (notification buffer-to)
@@ -116,6 +119,17 @@
   (replace-regexp-in-string "</a>" ""
 			    (replace-regexp-in-string "<a \[^>\]*>" "" line)))
 
+(defun diaspora-mentioned-notification (notification buffer-to)
+  "Write a \"mentioned\" notification."
+  (with-current-buffer buffer-to
+    (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
+	  (note-html (cdr (assoc 'note_html (cdr (car notification))))))
+      (let ((splited-html (split-string note-html "\n")))
+	(insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
+	(when (string-match "/posts/\\([[:digit:]]*\\)" (nth 2 splited-html))
+	  (insert (diaspora-add-link-to-publication "**Goto publication**" 
+						    (string-to-number (match-string 1 (nth 2 splited-html)))) "\n"))))))
+
 (defun diaspora-comment-on-post-notification (notification buffer-to)
   "Write a \"comment-on-post\" notification."
   (with-current-buffer buffer-to
@@ -130,14 +144,19 @@
 	 ;; Remove the name link property
 	 (diaspora-notification-remove-link-tags (nth 2 splited-html))
 	 "\n")
-	(insert (diaspora-add-link-to-publication "Goto publication" target-id)
+	(insert (diaspora-add-link-to-publication "**Goto publication**" target-id)
 		"\n")
 	 ))))
 
 (defun diaspora-liked-notification (notification buffer-to)
   "Write a \"liked\" notification."
-  
-  )
+  (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
+	(note-html (cdr (assoc 'note_html (cdr (car notification))))))
+    (let ((splited-html (split-string note-html "\n")))
+      (insert (diaspora-notification-remove-image-tags (nth 1 splited-html)) "\n")
+      (insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
+      (insert (diaspora-add-link-to-publication "**Goto publication**" target-id) "\n"))))
+   
 
 (defun diaspora-started-sharing-notification (notification buffer-to)
   "Write a \"started sharing\" notification. in buffer 'buffer-to'."

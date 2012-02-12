@@ -86,6 +86,7 @@ I expect to be already logged in. Use `diaspora' for log-in."
 	    (diaspora-get-all-images)
 	    (diaspora-show-images)
 	    )
+	(goto-char (point-min))
 	)
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
