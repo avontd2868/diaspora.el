@@ -98,7 +98,7 @@ For example: C-u M-x diaspora-post-to."
   (interactive)
   (diaspora-ask)
   (message (concat "Getting authenticity token..."))
-  (diaspora-authenticity-token (disapora-url diaspora-sign-in-url))
+  (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
   (message (concat "done: " diaspora-auth-token))
   (diaspora-post (buffer-string))
   (diaspora-save-post-to-file)
