@@ -7,7 +7,7 @@
 ;; Keywords: diaspora*
 ;; URL: http://diale.org/diaspora.html
 
-;; Copyright (c) 2011 Tiago Charters de Azevedo, Christian Giménez
+;; Copyright (c) 2012 Tiago Charters de Azevedo, Christian Giménez
 ;;
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -28,10 +28,18 @@
 
 ;; A diaspora* client for emacs
 
+;; Save all the files in a DIR and add that DIR to `load-path'; 
+;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
+;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
+
 (require 'url)
 (require 'url-http)
 (require 'json)
 (require 'font-lock)
+
+(require 'diaspora-post)
+(require 'diaspora-stream)
+(require 'diaspora-notifications)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
@@ -43,28 +51,58 @@
 ;;; User variable:
 
 (defcustom diaspora-pod 
-  "joinsdiaspora.com"
-  "Diaspora* pod."
+  "joindiaspora.com"
+  "Your diaspora* pod."
   :type 'string
   :group 'diaspora)
 
+(defcustom diaspora-posts-directory
+  "~/.diaspora/posts/"
+  "Diaspora* temp dir (abs path)."
+  :type 'dir
+  :group 'diaspora)
+
+
+(defcustom diaspora-temp-directory
+  "~/.diaspora/temp/"
+  "Diaspora* temp dir (abs path)."
+  :type 'dir
+  :group 'diaspora)
+
+(defcustom diaspora-image-directory
+  "~/.diaspora/img/"
+  "Diaspora* image dir (abs path)."
+  :type 'dir
+  :group 'diaspora)
+
+(defcustom diaspora-show-images-by-default
+  t
+  "Loads images by default at start."
+  :type 'boolean
+  :group 'diaspora)
+
+
+(defcustom diaspora-show-user-avatar t
+   "Show user images beside each users entry."
+   :type 'boolean
+   :group 'diaspora)
 
 (defcustom diaspora-mode-hook nil
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
-  :options '(flyspell-mode turn-on-auto-fill markdown-mode)
+  :options '(flyspell-mode turn-on-auto-fill longlines-mode diaspora-get-all-images diaspora-show-images)
   :group 'diaspora)
 
 (defcustom diaspora-username nil
   "Username to use for connecting to diaspora.
 If nil, you will be prompted."
-  :type '(choice (const :tag "Ask" nil) (string))
+  :type 'string
   :group 'diaspora)
 
 (defcustom diaspora-password nil
   "Password to use for connecting to diaspora.
 If nil, you will be prompted."
-  :type '(choice (const :tag "Ask" nil) (string))
+  :type 'string
   :group 'diaspora)
 
 (defcustom diaspora-sign-in-url 
@@ -82,9 +120,12 @@ If nil, you will be prompted."
   "URL used to get a single message.")
 
 (defcustom diaspora-entry-stream-url 
-  "https://joindiaspora.com/stream.json"
+  "https://joindiaspora.com/explore.json"
   "JSON version of the entry stream(the main stream)."
   :group 'diaspora)
+
+(defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
+  "This is the URL for JSON format notifications.")
 
 
 (defcustom diaspora-entry-file-dir
@@ -92,14 +133,21 @@ If nil, you will be prompted."
   "Directory where to save posts made to diaspora*."
   :group 'diaspora)
 
-(defcustom diaspora-data-file
-  "~/.diaspora"
-  "Name of the file do save posts made to diaspora*."
+;; (defcustom diaspora-data-file
+;;   "~/.diaspora"
+;;   "Name of the file do save posts made to diaspora*."
+;;   :type 'file
+;;   :group 'diaspora)
+
+(defcustom diaspora-data-directory
+  "~/.diaspora/"
+  "Directory where for saving."
   :type 'file
   :group 'diaspora)
 
+
 (defcustom diaspora-header-post
-  "## "
+  "### "
   "Header for each post:"
   :type 'string
   :group 'diaspora)
@@ -115,13 +163,39 @@ If nil, you will be prompted."
   :type 'boolean
   :group 'diaspora)
 
+
+(defcustom diaspora-stream-register ?R
+  "The register in which the window configuration is stored."
+  :type 'character
+  :group 'diaspora)
+
+
+(defcustom diaspora-post-register ?R
+  "The register in which the window configuration is stored."
+  :type 'character
+  :group 'diaspora)
+
+(defcustom diaspora-single-message-register ?R
+  "The register in which the window configuration is stored."
+  :type 'character
+  :group 'diaspora)
+
+(defcustom diaspora-save-after-posting t
+  "*Non-nil means automatically save after posting."
+  :type 'boolean
+  :group 'diaspora)
+
 ;;; Internal Variables:
 
-;(defvar diaspora-auth-token nil
-;  "")
+(defvar  diaspora-webfinger-list nil
+  "")
 
-(defvar diaspora-temp-directory "~/.emacs.d/diaspora.el/"
-  "Temporal directory where to save files for diaspora.el.")
+(defvar diaspora-auth-token nil
+  "Authenticity token variable name.")
+
+(defvar  diaspora-resource-descriptor-webfinger-string nil
+  "")
+
 
 (defvar diaspora-stream-buffer "*diaspora stream*"
   "The name of the diaspora stream buffer.")
@@ -130,378 +204,49 @@ If nil, you will be prompted."
   "The name of the diaspora post buffer.")
 
 (defvar diaspora-single-message-buffer "*diaspora message*"
-  "The name of the diaspora single message buffer."
-  )
+  "The name of the diaspora single message buffer.")
+
+(defvar  diaspora-stream-tag-buffer
+  "*diaspora stream tag*"
+  "The name of the diaspora tag stream buffer.")
+
+(defvar diaspora-notifications-buffer
+  "*diaspora notifications*"
+    "The name of the diaspora notifications buffer.")
+
 
 ;;; User Functions:
 
-;; (defun diaspora-create-file-post ()
-;;   (interactive)
-;;   (read-from-minibuffer "Find file: "
-;; 			nil nil nil 'diaspora-post-file-name)
-;;   (let ((post-buffer (get-buffer-create (car diaspora-post-file-name))))
-;;     (switch-to-buffer post-buffer)
-;;     (diaspora-mode)))
-
-;; Posting
-
-(defun diaspora-post-to ()
+(defun diaspora ()
+  "Make all dirs if they don' exist and set `diaspora-username' 
+and  `diaspora-password' no matter what.  
+To be called interactively instead of `diaspora-ask'"
   (interactive)
-  (get-buffer-create diaspora-post-buffer)
-  (switch-to-buffer diaspora-post-buffer)
-  (diaspora-date)
-  (insert diaspora-footer-post)
-  (goto-char (point-min))
-  (insert diaspora-header-post)
-  (diaspora-mode))
+  (diaspora-make-dirs)
+  (diaspora-ask t))
+  
+(defun diaspora-make-dirs ()
+  "Make all dirs if they don' exist."
+  (unless (file-exists-p diaspora-data-directory)    
+    (make-directory diaspora-data-directory))
+  (unless (file-exists-p diaspora-temp-directory)
+    (make-directory diaspora-temp-directory))
+  (unless (file-exists-p diaspora-posts-directory)
+    (make-directory diaspora-posts-directory))
+  (unless (file-exists-p diaspora-image-directory)
+    (make-directory diaspora-image-directory)))
 
-(defun diaspora-ask ()
-  "Ask for username and password if `diaspora-username' and  `diaspora-password' has not been setted."
-  (unless (and
-	   diaspora-username
-	   diaspora-password)
+
+(defun diaspora-ask (&optional opt)
+  "Ask for username and password if `diaspora-username' 
+and  `diaspora-password' has not been setted. `opt' t forces setting."
+  (unless (and diaspora-username diaspora-password (null opt))
       ;; Diaspora username and password was not setted.
     (list
      (setq diaspora-username (read-string "username: "
 					  diaspora-username
 					  nil nil))
      (setq diaspora-password (read-passwd "password: ")))))
-
-(defun diaspora-authenticity-token (url)
-  "Get the authenticity token."
-  (let ((url-request-method "POST")
-	(url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")))
-	(url-request-data
-	 (mapconcat (lambda (arg)
-		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" diaspora-username)
-			  (cons "user[password]" diaspora-password)
-			  (cons "user[remember_me]" "1"))
-		    "&")))
-    (url-retrieve url 'diaspora-find-auth-token)))
-
-(defun diaspora-find-auth-token (&optional status)
-  "Find the authenticity token."  
-;  (switch-to-buffer (current-buffer))
-  (save-excursion
-    (goto-char (point-min))
-    (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
-    (setq diaspora-auth-token (match-string-no-properties 1)))
-  diaspora-auth-token)
-
-
-(defun diaspora-post (post &optional id)
-  (let ((url-request-method "POST")
-	(url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")))
-	(url-request-data
-	 (mapconcat (lambda (arg)
-		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" diaspora-username)
-			  (cons "user[password]" diaspora-password)
-			  (cons "status_message[text]" post)
-			  (cons "user[remember_me]" "1")
-			  (cons "authenticity_token" diaspora-auth-token)
-			  (cons "commit" "Sign in")
-			  (cons "aspect_ids[]" "public"))
-		    "&")))
-    (url-retrieve diaspora-status-messages-url
-		  (lambda (arg) 
-		    (kill-buffer (current-buffer))))))
-
-(defun diaspora-post-this-buffer ()
-  (interactive)
-  (diaspora-ask)
-  (message (concat "Getting authenticity token..."))
-  (message (concat "done: " diaspora-auth-token))
-  (diaspora-authenticity-token diaspora-sign-in-url)
-  (message (concat "done: " diaspora-auth-token))
-  (diaspora-post (buffer-string))
-  (diaspora-post-append-to-file)
-  (kill-buffer))
-
-
-					; *******************************
-					; *** Getting the Main Stream ***
-
-
-(defun diaspora-show-stream (status &optional new-buffer-name)
-  "Show what was recieved in a new buffer.
-If new-buffer-name is given then, the new buffer will have that name, 
-if not, the buffer called \"Diáspora Stream\" will be re-used or created if needed."
-  ;; new-buffer-name has been given? if not, use `diaspora-stream-buffer´ as name.
-  (unless new-buffer-name
-    (setq new-buffer-name diaspora-stream-buffer))
-  (let ((buffer (get-buffer-create new-buffer-name))
-	(text (buffer-string))
-	(buf-kill (current-buffer)))    
-    ;; copy text and switch
-    (switch-to-buffer buffer)
-    (insert text)    
-    ;; kill the http buffer
-    (kill-buffer buf-kill)))
-
-(defun diaspora-get-url-entry-stream (url)
-  "Get the Diáspora URL and leave it in a new buffer."
-  (let ((url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")
-	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "UTF-8"))))
-    (url-retrieve-synchronously url)))
-
-(defun diaspora-delete-http-header ()
-  "Delete the first lines that is the HTTP header in the current buffer.
-This is used after getting a stream or any URL in JSON format."
-   (goto-char (point-min))
-   (search-forward "\n\n")      
-   (delete-region (point-min) (match-beginning 0))
-  )
-
-(defun diaspora-get-entry-stream ()
-  "Show the entry stream. 
-First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
-I expect to be already logged in. Use `diaspora' for log-in."
-  (interactive)  
-  (diaspora-ask) ;; don't forget username and password!
-  (diaspora-authenticity-token diaspora-sign-in-url) ;; Get the authenticity token
-  ;; get the in JSON format all the data
-  (let ((buff (diaspora-get-url-entry-stream diaspora-entry-stream-url)))
-    (with-current-buffer buff
-      ;; Delete the HTTP header...
-      (diaspora-delete-http-header)
-      ;; Parse JSON...
-      (diaspora-parse-json)
-
-      ;;Change markdown to html... not so good.      
-      ;;(diaspora-change-to-html)
-      ;;Better using diaspora-mode already done by Tiago!      
-      (diaspora-mode) 
-      (set (make-local-variable 'buffer-read-only) t)
-
-      (goto-char (point-min))
-      )
-    ;; Delete HTTP Buffer
-    ;;(kill-buffer buff)
-    ))
-
-
-(defun diaspora-get-tmp-path (filename)
-  "Return the path of temporal files. 
-Check if the temporal directory exists, if not create it."
-  (unless (file-exists-p diaspora-temp-directory)    
-    (make-directory diaspora-temp-directory)
-    )
-  (format "%s/%s" diaspora-temp-directory filename)
-  )
-
-(defun diaspora-change-to-html ()
-  "Change current buffer from markdown into html and htmlize"
-  (write-file (diaspora-get-tmp-path "entry-stream.markdown"))
-  (markdown-preview)
-  )
-
-(defvar diaspora-show-message-map
-  (let ((map (make-sparse-keymap)))
-    (define-key map "\r" 'diaspora-show-message-new-buffer)
-    (define-key map [mouse-2] 'diaspora-show-message-new-buffer)
-    map)
-  "Keymap used when the user clics on a name link.")
-
-(defun diaspora-show-message (parsed-message &optional buffer)
-  "Show a parsed message in a given buffer.
-If buffer is nil, then use the `current-buffer'."
-  ;; Ensure that buffer is not nil, in case is nil, buffer will be `current-buffer'.
-  (let ((buffer (if (null buffer)
-		    (current-buffer)
-		  buffer)))
-    (with-current-buffer buffer
-      (let ( 
-	    (id (cdr (assoc 'id parsed-message)))
-	    (name (cdr (assoc 'name (assoc 'author parsed-message))))
-	    (diaspora_id (cdr (assoc 'diaspora_id (assoc 'author parsed-message))))
-	    (text (cdr (assoc 'text parsed-message)))
-	    (date (cdr (assoc 'created_at parsed-message)))
-	    (amount-comments (cdr (assoc 'comments_count parsed-message)))
-	    (amount-likes (cdr (assoc 'likes_count parsed-message)))
-	    ;; We can look for more data, including the last 3 comments!
-	    )
-	(insert  "---\n")
-	(insert (propertize
-		 (format "%s(%s):\n" name diaspora_id)
-		 'mouse-face 'highlight
-		 'face "link"
-		 'keymap 'diaspora-show-message-map
-		 'diaspora-id-message id
-		 'help-echo "Click here to see this message in new buffer."))
-	(insert (format "%s\n" date))
-	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
-	(insert (format "%s\n\n" text))))))
-  
-
-(defun diaspora-show-message-new-buffer ()
-  "Show this message in new buffer. Load the message, and all its comments, and show it!."
-  (interactive)
-  (let ((id-message (get-text-property (+ 1 
-					  (previous-single-property-change (point) 'diaspora-id-message))
-		     'diaspora-id-message)))
-    
-    (diaspora-get-single-message id-message)))
-
-(defun diaspora-get-single-message (id-message)
-  "Get from the `diaspora-single-message-url' URL the given message by id."
-  (let ((buff (get-buffer-create diaspora-single-message-buffer))
-	(buff-http (diaspora-get-url-entry-stream
-		    (format "%s/%s.json" diaspora-single-message-url id-message))))
-    
-    (with-current-buffer buff-http
-      ;; Delete HTTP header!
-      (diaspora-delete-http-header)
-      )
-    
-    (diaspora-parse-single-message-json buff-http buff)
-    (switch-to-buffer buff)
-    (diaspora-mode)))
-
-(defun diaspora-parse-single-message-json (buff-from buff-to)
-  "Parse JSON format of a single message from buffer \"buff-from\" and return into \"buff-to\""
-  (with-current-buffer buff-from
-    ;; Get the post message parsed from JSON
-    (goto-char (point-min))
-    (let ((lstparsed (cdr (assoc 'posts (json-read)))))
-      (with-current-buffer buff-to
-	;; Clean buffer buff-to and insert message
-	(delete-region (point-min) (point-max))
-	(diaspora-show-message lstparsed)
-	)
-      )    
-    ))
-
-(defun diaspora-get-entry-stream-tag (tag)
-  "Get stream of tag. Just an idea... needs working."
-  (let ((buff (diaspora-get-url-entry-stream
-	       (concat "https://joindiaspora.com/tags/" tag ".json"))))
-    (with-current-buffer buff
-      (goto-char (point-min))
-      (search-forward "\n\n")      
-      (delete-region (point-min) (match-beginning 0))
-      (diaspora-parse-json))
-    (kill-buffer buff)))
-
-(defun diaspora-parse-json (&optional status)
-  "Parse de JSON entry stream."
-  (goto-char (point-min))
-  ;; Create a new buffer called according `diaspora-buffer' say and parse the json code into lists.
-  (let ((lstparsed (cdr (assoc 'posts (json-read))))
-	(buff (get-buffer-create diaspora-stream-buffer))) 
-    ;; clean the new buffer
-    (switch-to-buffer buff)
-    (let ((le (length lstparsed))
-	  (inhibit-read-only t))
-      (delete-region (point-min) (point-max))
-    ;; Show all elements
-      (dotimes (i le)
-	(diaspora-show-message (aref lstparsed i) buff)))))
-
-
-(defsubst diaspora-date ()
-  "Date string."
-  (interactive)
-  (insert "\n\n#" (format-time-string "%Y%m%d") " "))
-
-
-
-(defun diaspora-post-append-to-file ()
-  ;; Based on take-notes.el/remember.el
-  (with-temp-buffer
-    (insert-buffer diaspora-post-buffer)
-    (insert "\n" "---" "\n")
-    (if (find-buffer-visiting diaspora-data-file)
-	(let ((post-text (buffer-string)))
-	  (set-buffer (get-file-buffer diaspora-data-file))
-	  (save-excursion
-	    (goto-char (point-min))
-	    (insert post-text)
-	    (insert "\n")
-	    (when diaspora-save-after-posting (save-buffer)))
-	  (append-to-file (point-min) (point-max) diaspora-data-file)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defvar diaspora-mode-map 
-  (let ((diaspora-mode-map (make-sparse-keymap)))
-    (define-key diaspora-mode-map "\C-c4" 'diaspora-markdown-insert-headline-4)
-    (define-key diaspora-mode-map "\C-c3" 'diaspora-markdown-insert-headline-3)
-    (define-key diaspora-mode-map "\C-c2" 'diaspora-markdown-insert-headline-2)
-    (define-key diaspora-mode-map "\C-c1" 'diaspora-markdown-insert-headline-1)
-    (define-key diaspora-mode-map "\C-c\C-cl" 'diaspora-markdown-insert-unordered-list)
-    (define-key diaspora-mode-map "\C-c\C-ce" 'diaspora-markdown-insert-emph-text)
-    (define-key diaspora-mode-map "\C-c\C-cb" 'diaspora-markdown-insert-bold-text)
-    (define-key diaspora-mode-map "\C-c\C-c-" 'diaspora-markdown-insert-horizontal-rule)
-    (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
-    (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
-    (define-key diaspora-mode-map "\C-c\C-cm" ' diaspora-markdown-mention-user)
-    (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
-    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-highlight) ; not implemente yet
-    diaspora-mode-map)
-  "Keymap based on html-mode")
-
-
-
-(define-skeleton diaspora-markdown-insert-headline-1
-  "Headline 1."
-  "Text: "
-  "# " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-headline-2
-  "Headline 2."
-  "Text: "
-  "## " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-headline-3
-  "Headline 3."
-  "Text: "
-  "### " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-headline-4
-  "Headline 4."
-  "Text: "
-  "#### " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-unordered-list
-  "Unordered list."
-  "Text: "
-  "* " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-emph-text
-  "Emphasis."
-  "Text: "
-  "*" str "*")
-
-(define-skeleton diaspora-markdown-insert-bold-text
-  "Bold."
-  "Text: "
-  "**" str "**")
-
-(define-skeleton diaspora-markdown-insert-horizontal-rule
-  "Horizontal rule tag."
-  nil
-  "---" \n \n)
-
-(define-skeleton diaspora-markdown-insert-link
-  "Link"
-  "Text: "
-  "[" str "](http://" _ ")")
-
-(define-skeleton diaspora-markdown-insert-image
-  "Image with URL."
-  "Text: "
-  "![" str "](http://" _ ")")
-
-(define-skeleton diaspora-markdown-mention-user
-  "Mention user."
-  "User: "
-  "@{" str ";" _ (concat "@" diaspora-pod "}"))
 
 
 ;; Font lock
@@ -511,71 +256,91 @@ If buffer is nil, then use the `current-buffer'."
   :group 'diaspora
   :group 'faces)
 
-(defcustom diaspora-regex-image
-  "\\(!?\\[[^]]*?\\]\\)\\(([^\\)]*)\\)"
-  "Regular expression for a [text](file) or an image link ![text](file)."
+;; (defcustom diaspora-regex-bare-link
+;;   "http://[a-zA-Z0-9-_\./?=&]*"
+;; or "^http://.*"
+;;   "Regular expression for a `http://'"
+;;   :type 'regexp
+;;   :group 'diaspora)
+
+(defcustom diaspora-regexp-youtube-link
+  "^\\(http.*://www.youtube.com/watch\\?v=\\)\\([^\)].*\\)"
+  "Regular expression for a youtube link"
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-user-entry 
-"^[a-zA-Z0-9_\s-]*([a-zA-Z0-9_\s-]*@[a-zA-Z0-9\s-]*\.[a-zA-Z0-9\s-]*)"
+(defcustom diaspora-regexp-image-alist
+  "\\(`?http.://\\|\\[\\[\\|<\\|`\\)?\\([-+./_0-9a-zA-Z]+\\.\\(GIF\\|JP\\(?:E?G\\)\\|P\\(?:BM\\|GM\\|N[GM]\\|PM\\)\\|SVG\\|TIFF?\\|X\\(?:[BP]M\\)\\|gif\\|jp\\(?:e?g\\)\\|p\\(?:bm\\|gm\\|n[gm]\\|pm\\)\\|svg\\|tiff?\\|x\\(?:[bp]m\\)\\)\\)\\(\\]\\]\\|>\\|'\\)?"
+  "Taken from iimage-mode."
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regexp-image
+"!\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
+  "Regular expression for a [text](file) or an image link ![text](file).
+Note: this is not correct! Needs more thought to get all images right."
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regexp-user-entry 
+"^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
   "Regular expression for user entry."
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-tag
-  "#\\([a-zA-Z0-9_]\\)+"
+(defcustom diaspora-regexp-tag
+  "#[a-zA-Z0-9_/\.-]+"
   "Regular expression for a tag."
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-header-1
+(defcustom diaspora-regexp-header-1
   "^\\(# \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 1"
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-header-2
+(defcustom diaspora-regexp-header-2
   "^\\(## \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 2"
   :type 'regexp
   :group 'diaspora)
 
-(defcustom diaspora-regex-header-3
+(defcustom diaspora-regexp-header-3
   "^\\(### \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 3"
   :type 'regexp
   :group 'diaspora)
 
 
-(defcustom diaspora-regex-header-4
+(defcustom diaspora-regexp-header-4
   "^\\(#### \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 4"
   :type 'regexp
   :group 'diaspora)
 
-(defconst diaspora-regex-code
+(defconst diaspora-regexp-code
   "\\(^\\|[^\\]\\)\\(\\(`\\{1,2\\}\\)\\([^ \\]\\|[^ ]\\(.\\|\n[^\n]\\)*?[^ \\]\\)\\3\\)"
   "Regular expression for matching inline code fragments.")
 
 
-(defconst diaspora-regex-bold
+(defconst diaspora-regexp-bold
   "\\(^\\|[^\\]\\)\\(\\([*_]\\{2\\}\\)\\(.\\|\n[^\n]\\)*?[^\\ ]\\3\\)"
   "Regular expression for matching bold text.")
 
-(defconst diaspora-regex-emph
+(defconst diaspora-regexp-emph
   "\\(^\\|[^\\]\\)\\(\\([*_]\\)\\([^ \\]\\3\\|[^ ]\\(.\\|\n[^\n]\\)*?[^\\ ]\\3\\)\\)"
   "Regular expression for matching emph text.")
 
-(defconst diaspora-regex-email
+(defconst diaspora-regexp-email
   "<\\(\\sw\\|\\s_\\|\\s.\\)+@\\(\\sw\\|\\s_\\|\\s.\\)+>"
   "Regular expression for matching inline email addresses.")
 
-(defconst diaspora-regex-blockquote
+(defconst diaspora-regexp-blockquote
   "^>.*$"
   "Regular expression for matching blockquote lines.")
 
-(defconst diaspora-regex-hr
+(defconst diaspora-regexp-hr
   "^\\(\\*[ ]?\\*[ ]?\\*[ ]?[\\* ]*\\|-[ ]?-[ ]?-[--- ]*\\)$"
   "Regular expression for matching markdown horizontal rules.")
 
@@ -676,25 +441,97 @@ If buffer is nil, then use the `current-buffer'."
 
 (defvar diaspora-mode-font-lock-keywords
   (list
-   (cons diaspora-regex-blockquote 'diaspora-blockquote-face)
-   (cons diaspora-regex-user-entry 'diaspora-header-face-1)
-   (cons diaspora-regex-header-1 'diaspora-header-face-1)
-   (cons diaspora-regex-header-2 'diaspora-header-face-2)
-   (cons diaspora-regex-header-3 'diaspora-header-face-3)
-   (cons diaspora-regex-header-4 'diaspora-header-face-4)
-   (cons diaspora-regex-hr 'diaspora-header-face-1)
-   (cons diaspora-regex-image
+;   (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
+   (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
+   (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
+   (cons diaspora-regexp-header-1 'diaspora-header-face-1)
+   (cons diaspora-regexp-header-2 'diaspora-header-face-2)
+   (cons diaspora-regexp-header-3 'diaspora-header-face-3)
+   (cons diaspora-regexp-header-4 'diaspora-header-face-4)
+   (cons diaspora-regexp-hr 'diaspora-header-face-1)
+   (cons diaspora-regexp-image
          '((1 diaspora-link-face t)
            (2 diaspora-url-face t)))
-   (cons diaspora-regex-bold '(2 diaspora-bold-face))
-   (cons diaspora-regex-emph '(2 diaspora-emph-face))
-   (cons diaspora-regex-code '(2 diaspora-inline-code-face))
-   (cons diaspora-regex-email 'diaspora-link-face)
-   (cons diaspora-regex-tag 'diaspora-url-face))
+   (cons diaspora-regexp-bold '(2 diaspora-bold-face))
+   (cons diaspora-regexp-emph '(2 diaspora-emph-face))
+   (cons diaspora-regexp-code '(2 diaspora-inline-code-face))
+   (cons diaspora-regexp-email 'diaspora-link-face)
+   (cons diaspora-regexp-tag 'diaspora-url-face))
   "Syntax highlighting for diaspora files.")
 
 
-;; Mode
+
+;; webfinger
+;; see: http://devblog.joindiaspora.com/2012/01/22/how-diaspora-connects-users/
+;; Probably this is not the simplest way to go...
+
+(defun diaspora-resource-descriptor-webfinger (pod)
+  "Get host resource descriptor webfinger."
+  (url-retrieve (concat "https://" pod "/.well-known/host-meta") 
+		(lambda (arg)
+		  (save-excursion
+		    (goto-char (point-min))
+		    (search-forward-regexp diaspora-regex-webfinger-query))
+		  (setq diaspora-resource-descriptor-webfinger-string (match-string-no-properties 1))))
+  diaspora-resource-descriptor-webfinger-string)
+
+(defun diaspora-webfinger (pod user)
+  "Returns a list with webfinger with the form PROFILE-PAGE GUID HCARD ATOM D*PUBLICKEY"
+  (diaspora-resource-descriptor-webfinger pod)
+  (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user "@" pod)
+		(lambda (arg) 
+		  (setq diaspora-webfinger-list 
+			(mapcar (lambda (x)
+				  (save-excursion
+				    (goto-char (point-min))
+				    (search-forward-regexp x)
+				    (match-string-no-properties 1))) 
+				diaspora-regexp-webfinger-all)))))
+
+(defcustom diaspora-regexp-webfinger-query
+  "<Link rel=\'lrdd\'\n[\s-]*template=\'\\(.*\\)\{uri\}\'>"
+  "Regular expression for resource-descriptor-webfinger."
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regexp-webfinger-hcard
+  "<Link rel=\"http://microformats.org/profile/hcard\" type=\"text/html\" href=\"\\(.*\\)\"/>"
+  "regex-webfinger-hcard"
+  :type 'regexp
+  :group 'diaspora)
+
+
+(defcustom diaspora-regexp-webfinger-guid
+"<Link rel=\"http://joindiaspora.com/guid\" type = \'text/html\' href=\"\\(.*\\)\"/>"
+  "regexp-webfinger-guid"
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regexp-webfinger-profile-page
+"<Link rel=\'http://webfinger.net/rel/profile-page\' type=\'text/html\' href=\"\\(.*\\)\"/>"
+  ""
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regexp-webfinger-atom
+    "<Link rel=\"http://schemas.google.com/g/2010#updates-from\" type=\"application/atom\\+xml\" href=\"\\(.*\\)\"/>" 
+    "regex-webfinger-atom"
+  :type 'regexp
+  :group 'diaspora)
+
+(defcustom diaspora-regexp-webfinger-publickey
+  "<Link rel=\"diaspora-public-key\" type = \'RSA\' href=\"\\(.*\\)\"/>"
+  "webfinger-publickey"
+  :type 'regexp
+  :group 'diaspora)
+
+(defvar diaspora-regexp-webfinger-all
+  (list diaspora-regexp-webfinger-profile-page
+	diaspora-regexp-webfinger-guid
+	diaspora-regexp-webfinger-hcard
+	diaspora-regexp-webfinger-atom
+	diaspora-regexp-webfinger-publickey)
+  "List of all the regexp used to webfinger.")
 
 (defun diaspora-show-version ()
   "Show the version number in the minibuffer."
@@ -710,6 +547,8 @@ If buffer is nil, then use the `current-buffer'."
   (use-local-map diaspora-mode-map)
   (run-hooks 'diaspora-mode-hook))
 
+
 (provide 'diaspora)
 
-;;; diaspora.el ends here
+;;; diaspora.el ends here.
+
