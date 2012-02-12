@@ -556,4 +556,42 @@ The tag must be a string without the starting \"#\"."
       (let ((stream-parsed (json-read)))
 	 stream-parsed))))
 
+(defsubst diaspora-string-trim (string)
+  "Remove leading and trailing whitespace and all properties from STRING.
+If STRING is nil return an empty string."
+  (if (null string)
+      ""
+    (if (string-match "\\`[ \t\n]+" string)
+        (setq string (substring string (match-end 0))))
+    (if (string-match "[ \t\n]+\\'" string)
+        (setq string (substring string 0 (match-beginning 0))))
+    (substring-no-properties string)))
+
+(defun diaspora-look-for-aspects ()
+  "Search for each aspect name an id and return an alist with all the aspects founded.
+
+We look for the keyword \"data-aspect_id=\" and we are sure that the next line has the name with spaces."
+  (goto-char (point-min))
+  (let ((lista '()))
+    (while (search-forward-regexp "data-aspect_id='?\\([^'> ]*\\)'?" nil t)
+      (let ((value (match-string-no-properties 1))
+	    (name (progn 
+		     (forward-line)
+		     (diaspora-string-trim 
+		      (buffer-substring-no-properties (point) (point-at-eol))))))
+	(push (cons name value) lista)))
+    lista))
+
+(defun diaspora-get-aspects (&optional reload)
+  "If `diaspora-aspect-alist hasn't been generated, get an alist of aspects as key and id as values from the Diaspora pod and return the alist.
+After generate the alist, save it in `diaspora-aspect-alist'.
+If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, reload from the `diaspora-bookmarklet-location' URL."
+  (if (or reload
+	  (null diaspora-aspect-alist))
+      (progn 
+	;; We haven't loaded the aspects yet. Load it!
+	(with-current-buffer (diaspora-get-url-entry-stream (diaspora-url diaspora-bookmarklet-location))
+	  (setq diaspora-aspect-alist (diaspora-look-for-aspects))))
+    diaspora-aspect-alist))
+
 (provide 'diaspora-stream)

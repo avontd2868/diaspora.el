@@ -117,6 +117,13 @@ If nil, you will be prompted."
   :type 'string
   :group 'diaspora-streams)
 
+(defcustom diaspora-bookmarklet-location
+  "/bookmarklet"
+  "Location of the bookmarklet. This is used in `diaspora-get-aspects' for searching for the aspects.
+A bit complicated but the only way known to get a list of aspects."
+  :type 'string
+  :group 'diaspora-streams)
+
 (defcustom diaspora-status-messages-url 
   "/status_messages"
   "URL used to update diaspora status messages."
@@ -234,6 +241,10 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
 (defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
   "This is the URL for JSON format notifications.")
 
+
+(defvar diaspora-aspect-alist nil
+  "This is an alist of a pair of aspects:
+ ((name of the aspect . id of the aspect) ... )")
 
 (defcustom diaspora-entry-file-dir
   "~/public_html/diaspora.posts/"
