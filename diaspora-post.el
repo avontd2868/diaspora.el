@@ -50,6 +50,38 @@ For example: C-u M-x diaspora-post-to."
   (diaspora-mode)
   (message "Use C-cp to post to diaspora*."))
 
+(defun diaspora-add-aspect (aspect-name)
+  "Add an aspect to the list of aspects `diaspora-aspects-for-post' for posting.
+This list is used as parameter for `diaspora-post'."
+  (interactive "MAspect name?")
+  (diaspora-get-aspects)
+  (let ((aspect-id (cdr (assoc aspect-name diaspora-aspect-alist))))
+    (if (null aspect-id)
+	(message "Aspect not founded.")
+      (progn 
+	(setq diaspora-aspects-for-post (push aspect-id diaspora-aspects-for-post))
+	(message (concat "Aspect id Added: " 
+			 (if (numberp aspect-id)
+			     (number-to-string aspect-id)
+			   aspect-id)))))))
+
+(defun diaspora-clear-selected-aspects ()
+  "Clear all the selected aspect to use with the next post."
+  (interactive)
+  (setq diaspora-aspects-for-post nil)
+  )
+
+(defun diaspora-selected-aspects ()
+  "Show the selected aspects to use with the newly post."
+  (interactive)
+ (let ((msg "Aspects: \n"))
+    (dolist (i diaspora-aspects-for-post)
+      (setq msg (concat msg 
+			"-> "
+			(car (rassoc i diaspora-aspect-alist)) 
+			"\n")))
+    (message msg)))
+
 (defun diaspora-authenticity-token (url)
   "Get the authenticity token."
   (let ((url-request-method "POST")
@@ -123,7 +155,7 @@ For example: C-u M-x diaspora-post-to."
     (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
     (message (concat "done: " diaspora-auth-token))
     )
-  (diaspora-post (buffer-string))
+  (diaspora-post (buffer-string) diaspora-aspects-for-post)
   (diaspora-save-post-to-file)
   (kill-buffer))
 

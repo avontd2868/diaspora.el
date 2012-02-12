@@ -244,7 +244,15 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
 
 (defvar diaspora-aspect-alist nil
   "This is an alist of a pair of aspects:
- ((name of the aspect . id of the aspect) ... )")
+ ((name of the aspect . id of the aspect) ... )
+
+This variable will get its values using the function `diaspora-get-aspects'.")
+
+(defvar diaspora-aspects-for-post nil
+  "This is a list of aspects ids. This list is used for posting, and as soon as the newly posted has been sended
+to the pod, the information is discarded for a new post!
+This variable is intended to be as parameter for `diaspora-post'. 
+You may would like to use `diaspora-add-aspect'.")
 
 (defcustom diaspora-entry-file-dir
   "~/public_html/diaspora.posts/"
