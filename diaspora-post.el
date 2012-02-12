@@ -60,9 +60,11 @@ For example: C-u M-x diaspora-post-to."
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
 		    (list (cons "user[username]" diaspora-username)
 			  (cons "user[password]" diaspora-password)
-			  (cons "user[remember_me]" "1"))
+			  (cons "user[remember_me]" "1")
+			  (cons "utf8" "✓"))
 		    "&")))
-    (url-retrieve url 'diaspora-find-auth-token)))
+    (with-current-buffer (url-retrieve-synchronously url)
+      (diaspora-find-auth-token))))
 
 (defun diaspora-find-auth-token (&optional status)
   "Find the authenticity token."  
@@ -90,16 +92,20 @@ For example: C-u M-x diaspora-post-to."
 			  (cons "aspect_ids[]" "public"))
 		    "&")))
     (url-retrieve (diaspora-url diaspora-status-messages-url)
-		  (lambda (arg) 
-		    (kill-buffer (current-buffer))))))
+		  (lambda (arg) ))))
+		  ;;   (kill-buffer (current-buffer))))))
+		  
+		  
 
 (defun diaspora-post-this-buffer ()
   "Post the current buffer to diaspora."
   (interactive)
   (diaspora-ask)
-  (message (concat "Getting authenticity token..."))
-  (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
-  (message (concat "done: " diaspora-auth-token))
+  (when (null diaspora-auth-token)
+    (message (concat "Getting authenticity token..."))
+    (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
+    (message (concat "done: " diaspora-auth-token))
+    )
   (diaspora-post (buffer-string))
   (diaspora-save-post-to-file)
   (kill-buffer))
