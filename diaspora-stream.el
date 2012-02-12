@@ -63,15 +63,32 @@ This is used after getting a stream or any URL in JSON format."
    (search-forward "\n\n")      
    (delete-region (point-min) (match-beginning 0)))
 
-(defun diaspora-get-entry-stream ()
-  "Show the entry stream. 
-First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
-I expect to be already logged in. Use `diaspora' for log-in."
-  (interactive)  
+(defun diaspora-get-stream-by-name (stream-name)
+  "I try to get the stream given a name, and then show it parsed in a new buffer.
+ This means, I format the URL according to this rules:
+
+1) I add the pod URL.
+2) I add the stream-name 
+3) I add the extension \".json\".
+
+For example:
+if the `diaspora-pod' has the value: \"joindiaspora.com\", then
+  (diaspora-get-stream-by-name 'aspects')
+
+will get the https://joindiaspora.com/aspects.json URL, parse it, and show it in a new buffer."
+  (interactive "MName of the stream?")
+  (diaspora-get-stream 
+   (format "https://%s/%s.json" diaspora-pod stream-name))
+  )
+
+(defun diaspora-get-stream(stream-url)
+  "Get the stream given by the url, and then, show it in the diaspora buffer.
+I expect to be logged in, but if not, I download the authenticity token."  
   (diaspora-ask) ;; don't forget username and password!
-  (diaspora-authenticity-token diaspora-sign-in-url) ;; Get the authenticity token
+  (when (null diaspora-auth-token)
+    (diaspora-authenticity-token diaspora-sign-in-url)) ;; Get the authenticity token    
   ;; get the in JSON format all the data
-  (let ((buff (diaspora-get-url-entry-stream diaspora-entry-stream-url)))
+  (let ((buff (diaspora-get-url-entry-stream stream-url)))
     (with-current-buffer buff
       ;; Delete the HTTP header...
       (diaspora-delete-http-header)
@@ -91,6 +108,27 @@ I expect to be already logged in. Use `diaspora' for log-in."
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
     )))
+
+					; Streams!
+
+(defun diaspora-get-entry-stream ()
+  "Show the entry stream. 
+First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
+I expect to be already logged in. Use `diaspora' for log-in."
+  (interactive)  
+  (diaspora-get-stream diaspora-entry-stream-url)
+  )
+
+(defun diaspora-get-mentions-stream ()
+  "Show the mentions stream."
+  (interactive)
+  (diaspora-get-stream-by-name diaspora-mentions-stream-name))
+
+(defun diaspora-get-aspects-stream ()
+  "Show the aspects stream."
+  (interactive)
+  (diaspora-get-stream-by-name diaspora-aspects-stream-name))
+ 
 
 (defun diaspora-get-temp-path (filename)
   "Return the path of temporal files. 

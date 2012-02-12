@@ -48,6 +48,12 @@
   "A mode for diaspora* stream view and posting."
   :group 'applications)
 
+(defgroup diaspora-streams nil
+  "URL and names for the Streams used in diaspora.el."
+  :group 'diaspora
+  :version "23.0"
+  :tag "diaspora streams urls")
+
 ;;; User variable:
 
 (defcustom diaspora-pod 
@@ -108,21 +114,74 @@ If nil, you will be prompted."
 (defcustom diaspora-sign-in-url 
   "https://joindiaspora.com/users/sign_in"
   "URL used to signing in."
+  :type 'string
   :group 'diaspora)
 
 (defcustom diaspora-status-messages-url 
   "https://joindiaspora.com/status_messages"
   "URL used to update diaspora status messages."
+  :type 'string
   :group 'diaspora)
 
 (defcustom diaspora-single-message-url
   "https://joindiaspora.com/posts"
-  "URL used to get a single message.")
+  "URL used to get a single message."
+  :type 'string
+  :group 'diaspora)
 
 (defcustom diaspora-entry-stream-url 
   "https://joindiaspora.com/explore.json"
   "JSON version of the entry stream(the main stream)."
-  :group 'diaspora)
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-mentions-stream-name
+  "mentions"
+  "This is the name of the mentions stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-aspects-stream-name
+  "aspects"
+  "This is the name of the aspects stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-participate-stream-name
+  "participate"
+  "Name of the \"Participate\" stream. 
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-explore-stream-name
+  "explore"
+  "This is the name of the entry stream or explore stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
 
 (defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
   "This is the URL for JSON format notifications.")
