@@ -515,19 +515,11 @@ buffer or in the buffer specified."
 			 (diaspora-extract-json (car e) a)))
 	(a)))
 
-(defun diaspora-get-entry-stream-tag (tag)
-  ""
-  (interactive)  
-  (diaspora-ask)
-  (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
-  (save-excursion
-    (let ((buff (diaspora-get-url-entry-stream
-		 (concat "https://" diaspora-pod "/tags/" tag ".json"))))
-      (with-current-buffer buff
-	(diaspora-delete-http-header)
-	(switch-to-buffer buff)
-	(diaspora-parse-json)
-	(diaspora-mode)))))
+(defun diaspora-get-stream-by-tag (tag)
+  "Get a stream of the messages with the tag given by 'tag'.
+The tag must be a string without the starting \"#\"."
+  (interactive "MTag(without '#')?")
+  (diaspora-get-stream-by-name (format "/tags/%s" tag)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
