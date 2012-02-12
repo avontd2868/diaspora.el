@@ -48,6 +48,8 @@
   "Get notifications from diáspora and show them in a new buffer"
   (interactive)
   (diaspora-ask)
+  (when (null diaspora-auth-token) 
+      (diaspora-authenticity-token diaspora-sign-in-url))
   (let ((http-buff (diaspora-get-url-entry-stream diaspora-notifications-url))
 	(buff (get-buffer-create diaspora-notifications-buffer-name))
 	(inhibit-read-only t))    
@@ -58,8 +60,9 @@
     (with-current-buffer buff
       (let ((inhibit-read-only t))
 	(diaspora-mode)
-	)
-      (setq buffer-read-only t))))
+	)      
+      (setq buffer-read-only t)
+      (goto-char (point-min)))))
 
 
 (defun diaspora-parse-notifications-json (buffer buffer-to)
