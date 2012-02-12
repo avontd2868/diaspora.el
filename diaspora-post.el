@@ -74,9 +74,26 @@ For example: C-u M-x diaspora-post-to."
     (setq diaspora-auth-token (match-string-no-properties 1)))
   diaspora-auth-token)
 
+(defun diaspora-aspect-post-parameter (aspects_ids)
+  (if (null aspects_ids)
+      "public"    
+    (let ((salida ""))
+      (dolist (i aspects_ids)
+	(setq salida (concat salida 
+			     (if (numberp i)
+				 (number-to-string i)
+			       i)
+			     ","))
+	)  
+      (substring salida 0 -1)
+      )
+    )
+  )
 
-(defun diaspora-post (post &optional id)
+(defun diaspora-post (post &optional aspects_ids)
   "Post POST to diaspora."
+  (when (null aspects_ids)
+    (setq aspects_ids "public"))
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
@@ -89,7 +106,7 @@ For example: C-u M-x diaspora-post-to."
 			  (cons "user[remember_me]" "1")
 			  (cons "authenticity_token" diaspora-auth-token)
 			  (cons "commit" "Sign in")
-			  (cons "aspect_ids[]" "public"))
+			  (cons "aspect_ids[]" (diaspora-aspect-post-parameter aspects_ids)))
 		    "&")))
     (url-retrieve (diaspora-url diaspora-status-messages-url)
 		  (lambda (arg) ))))
