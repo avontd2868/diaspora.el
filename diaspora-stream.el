@@ -78,15 +78,14 @@ if the `diaspora-pod' has the value: \"joindiaspora.com\", then
 will get the https://joindiaspora.com/aspects.json URL, parse it, and show it in a new buffer."
   (interactive "MName of the stream?")
   (diaspora-get-stream 
-   (format "https://%s/%s.json" diaspora-pod stream-name))
-  )
+   (diaspora-url-json stream-name)))
 
 (defun diaspora-get-stream(stream-url)
   "Get the stream given by the url, and then, show it in the diaspora buffer.
 I expect to be logged in, but if not, I download the authenticity token."  
   (diaspora-ask) ;; don't forget username and password!
   (when (null diaspora-auth-token)
-    (diaspora-authenticity-token diaspora-sign-in-url)) ;; Get the authenticity token    
+    (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))) ;; Get the authenticity token    
   ;; get the in JSON format all the data
   (let ((buff (diaspora-get-url-entry-stream stream-url)))
     (with-current-buffer buff
@@ -116,7 +115,7 @@ I expect to be logged in, but if not, I download the authenticity token."
 First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
 I expect to be already logged in. Use `diaspora' for log-in."
   (interactive)  
-  (diaspora-get-stream diaspora-entry-stream-url)
+  (diaspora-get-stream-by-name diaspora-entry-stream-url)
   )
 
 (defun diaspora-get-mentions-stream ()
@@ -237,7 +236,7 @@ or a function like `diaspora-show-message-new-buffer'."
   (window-configuration-to-register diaspora-single-message-register)
   (let ((buff (get-buffer-create diaspora-single-message-buffer))
 	(buff-http (diaspora-get-url-entry-stream
-		    (format "%s/%s.json" diaspora-single-message-url id-message))))
+		    (format "%s/%s.json" (diaspora-url diaspora-single-message-url) id-message))))
     (with-current-buffer buff-http
       ;; Delete HTTP header!
       (diaspora-delete-http-header))
@@ -283,7 +282,7 @@ or a function like `diaspora-show-message-new-buffer'."
   "Get the comments for the given message, and insert it in the current 
 buffer or in the buffer specified."
   (let ((buff-http (diaspora-get-url-entry-stream 
-		    (format "%s/%s/comments.json" diaspora-single-message-url message-id)))
+		    (format "%s/%s/comments.json" (disapora-url diaspora-single-message-url) message-id)))
 	(buffer (if (null buffer)
 		    (current-buffer)
 		  buffer)))
@@ -494,7 +493,7 @@ buffer or in the buffer specified."
   ""
   (interactive)  
   (diaspora-ask)
-  (diaspora-authenticity-token diaspora-sign-in-url)
+  (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
   (save-excursion
     (let ((buff (diaspora-get-url-entry-stream
 		 (concat "https://" diaspora-pod "/tags/" tag ".json"))))

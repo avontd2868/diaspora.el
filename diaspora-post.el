@@ -89,7 +89,7 @@ For example: C-u M-x diaspora-post-to."
 			  (cons "commit" "Sign in")
 			  (cons "aspect_ids[]" "public"))
 		    "&")))
-    (url-retrieve diaspora-status-messages-url
+    (url-retrieve (diaspora-url diaspora-status-messages-url)
 		  (lambda (arg) 
 		    (kill-buffer (current-buffer))))))
 
@@ -98,7 +98,7 @@ For example: C-u M-x diaspora-post-to."
   (interactive)
   (diaspora-ask)
   (message (concat "Getting authenticity token..."))
-  (diaspora-authenticity-token diaspora-sign-in-url)
+  (diaspora-authenticity-token (disapora-url diaspora-sign-in-url))
   (message (concat "done: " diaspora-auth-token))
   (diaspora-post (buffer-string))
   (diaspora-save-post-to-file)

@@ -49,7 +49,7 @@
   (interactive)
   (diaspora-ask)
   (when (null diaspora-auth-token) 
-      (diaspora-authenticity-token diaspora-sign-in-url))
+      (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url)))
   (let ((http-buff (diaspora-get-url-entry-stream diaspora-notifications-url))
 	(buff (get-buffer-create diaspora-notifications-buffer-name))
 	(inhibit-read-only t))    

@@ -112,25 +112,25 @@ If nil, you will be prompted."
   :group 'diaspora)
 
 (defcustom diaspora-sign-in-url 
-  "https://joindiaspora.com/users/sign_in"
+  "/users/sign_in"
   "URL used to signing in."
   :type 'string
-  :group 'diaspora)
+  :group 'diaspora-streams)
 
 (defcustom diaspora-status-messages-url 
-  "https://joindiaspora.com/status_messages"
+  "/status_messages"
   "URL used to update diaspora status messages."
   :type 'string
-  :group 'diaspora)
+  :group 'diaspora-streams)
 
 (defcustom diaspora-single-message-url
-  "https://joindiaspora.com/posts"
+  "/posts"
   "URL used to get a single message."
   :type 'string
-  :group 'diaspora)
+  :group 'diaspora-streams)
 
 (defcustom diaspora-entry-stream-url 
-  "https://joindiaspora.com/explore.json"
+  "/explore.json"
   "JSON version of the entry stream(the main stream)."
   :type 'string
   :group 'diaspora-streams)
@@ -606,6 +606,16 @@ Note: this is not correct! Needs more thought to get all images right."
   (use-local-map diaspora-mode-map)
   (run-hooks 'diaspora-mode-hook))
 
+
+(defun diaspora-url (location)
+  "Make the URL according to the `diaspora-pod'(pod selected)."
+  (format "https://%s/%s" diaspora-pod location)
+  )
+
+(defun diaspora-url-json (location)
+  "Make the URL as in `diaspora-url' but for retrieving JSON formats pages, according to the `diaspora-pod' (pod selected)."
+  (format "https://%s/%s.json" diaspora-pod location)
+  )
 
 (provide 'diaspora)
 
