@@ -32,13 +32,16 @@
 ;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
 ;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
 
+(setq max-lisp-eval-depth 10000)
 (require 'url)
 (require 'url-http)
 (require 'json)
 (require 'font-lock)
 
+(require 'diaspora-new)
 (require 'diaspora-post)
 (require 'diaspora-stream)
+(require 'diaspora-notifications)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
@@ -113,9 +116,15 @@ If nil, you will be prompted."
   "URL used to get a single message.")
 
 (defcustom diaspora-entry-stream-url 
-  "https://joindiaspora.com/stream.json"
+  "https://joindiaspora.com/explore.json"
   "JSON version of the entry stream(the main stream)."
   :group 'diaspora)
+
+(defcustom diaspora-entry-likes-url 
+  "https://joindiaspora.com/participate.json"
+  "JSON version of the entry stream(the main stream)."
+  :group 'diaspora)
+
 
 (defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
   "This is the URL for JSON format notifications.")
@@ -180,14 +189,9 @@ If nil, you will be prompted."
 
 ;;; Internal Variables:
 
-(defvar  diaspora-webfinger-list nil
-  "")
 
 (defvar diaspora-auth-token nil
   "Authenticity token variable name.")
-
-(defvar  diaspora-resource-descriptor-webfinger-string nil
-  "")
 
 
 (defvar diaspora-stream-buffer "*diaspora stream*"
@@ -229,6 +233,10 @@ To be called interactively instead of `diaspora-ask'"
   (unless (file-exists-p diaspora-image-directory)
     (make-directory diaspora-image-directory)))
 
+(defun diaspora-clean-cache ()
+  (interactive)
+  (shell-command (concat "rm -f " diaspora-image-directory "*")))
+
 
 (defun diaspora-ask (&optional opt)
   "Ask for username and password if `diaspora-username' 
@@ -256,8 +264,16 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 ;;   :type 'regexp
 ;;   :group 'diaspora)
 
+
+;  "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}T[0-9]\\{2\\}:[0-9]\\{2\\}:[0-9]\\{2\\}Z"
+(defcustom diaspora-regexp-date
+  "[0-9-:T]+Z"
+  "Regular expression date in diaspora stream."
+  :type 'regexp
+  :group 'diaspora)
+
 (defcustom diaspora-regexp-youtube-link
-  "^\\(http.*://www.youtube.com/watch\\?v=\\)\\([^\)].*\\)"
+  "\\(http.*://www.youtube.com/watch\\?v=\\)\\([^\)].*\\)"
   "Regular expression for a youtube link"
   :type 'regexp
   :group 'diaspora)
@@ -275,8 +291,9 @@ Note: this is not correct! Needs more thought to get all images right."
   :type 'regexp
   :group 'diaspora)
 
+;;"^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
 (defcustom diaspora-regexp-user-entry 
-"^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
+"^.+ (.+)"
   "Regular expression for user entry."
   :type 'regexp
   :group 'diaspora)
@@ -430,11 +447,16 @@ Note: this is not correct! Needs more thought to get all images right."
   "Face for links."
   :group 'diaspora-faces)
 
+(defface diaspora-date-face
+  '((t :inherit font-lock-variable-name-face :italic t))
+  "Face for date."
+  :group 'diaspora-faces)
 
 
 (defvar diaspora-mode-font-lock-keywords
   (list
 ;   (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
+;   (cons diaspora-regexp-date 'diaspora-date-face)
    (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
    (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
    (cons diaspora-regexp-header-1 'diaspora-header-face-1)
@@ -454,77 +476,6 @@ Note: this is not correct! Needs more thought to get all images right."
 
 
 
-;; webfinger
-;; see: http://devblog.joindiaspora.com/2012/01/22/how-diaspora-connects-users/
-;; Probably this is not the simplest way to go...
-
-(defun diaspora-resource-descriptor-webfinger (pod)
-  "Get host resource descriptor webfinger."
-  (url-retrieve (concat "https://" pod "/.well-known/host-meta") 
-		(lambda (arg)
-		  (save-excursion
-		    (goto-char (point-min))
-		    (search-forward-regexp diaspora-regex-webfinger-query))
-		  (setq diaspora-resource-descriptor-webfinger-string (match-string-no-properties 1))))
-  diaspora-resource-descriptor-webfinger-string)
-
-(defun diaspora-webfinger (pod user)
-  "Returns a list with webfinger with the form PROFILE-PAGE GUID HCARD ATOM D*PUBLICKEY"
-  (diaspora-resource-descriptor-webfinger pod)
-  (url-retrieve (concat diaspora-resource-descriptor-webfinger-string user "@" pod)
-		(lambda (arg) 
-		  (setq diaspora-webfinger-list 
-			(mapcar (lambda (x)
-				  (save-excursion
-				    (goto-char (point-min))
-				    (search-forward-regexp x)
-				    (match-string-no-properties 1))) 
-				diaspora-regexp-webfinger-all)))))
-
-(defcustom diaspora-regexp-webfinger-query
-  "<Link rel=\'lrdd\'\n[\s-]*template=\'\\(.*\\)\{uri\}\'>"
-  "Regular expression for resource-descriptor-webfinger."
-  :type 'regexp
-  :group 'diaspora)
-
-(defcustom diaspora-regexp-webfinger-hcard
-  "<Link rel=\"http://microformats.org/profile/hcard\" type=\"text/html\" href=\"\\(.*\\)\"/>"
-  "regex-webfinger-hcard"
-  :type 'regexp
-  :group 'diaspora)
-
-
-(defcustom diaspora-regexp-webfinger-guid
-"<Link rel=\"http://joindiaspora.com/guid\" type = \'text/html\' href=\"\\(.*\\)\"/>"
-  "regexp-webfinger-guid"
-  :type 'regexp
-  :group 'diaspora)
-
-(defcustom diaspora-regexp-webfinger-profile-page
-"<Link rel=\'http://webfinger.net/rel/profile-page\' type=\'text/html\' href=\"\\(.*\\)\"/>"
-  ""
-  :type 'regexp
-  :group 'diaspora)
-
-(defcustom diaspora-regexp-webfinger-atom
-    "<Link rel=\"http://schemas.google.com/g/2010#updates-from\" type=\"application/atom\\+xml\" href=\"\\(.*\\)\"/>" 
-    "regex-webfinger-atom"
-  :type 'regexp
-  :group 'diaspora)
-
-(defcustom diaspora-regexp-webfinger-publickey
-  "<Link rel=\"diaspora-public-key\" type = \'RSA\' href=\"\\(.*\\)\"/>"
-  "webfinger-publickey"
-  :type 'regexp
-  :group 'diaspora)
-
-(defvar diaspora-regexp-webfinger-all
-  (list diaspora-regexp-webfinger-profile-page
-	diaspora-regexp-webfinger-guid
-	diaspora-regexp-webfinger-hcard
-	diaspora-regexp-webfinger-atom
-	diaspora-regexp-webfinger-publickey)
-  "List of all the regexp used to webfinger.")
 
 (defun diaspora-show-version ()
   "Show the version number in the minibuffer."
@@ -534,14 +485,18 @@ Note: this is not correct! Needs more thought to get all images right."
 ;;;###autoload
 (define-derived-mode diaspora-mode text-mode "diaspora"
   "Major mode for output from \\[diaspora*]."
-  (set (make-local-variable 'font-lock-defaults)
-       '(diaspora-mode-font-lock-keywords))
+;  (set (make-local-variable 'font-lock-defaults)
+;       '(diaspora-mode-font-lock-keywords))
   (set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
   (run-hooks 'diaspora-mode-hook))
 
-(add-hook 'diaspora-mode-hook 'diaspora-get-all-images 
- 	  'diaspora-show-images)
+
+
+(add-hook 'diaspora-mode-hook 'diaspora-get-all-images)
+(add-hook 'diaspora-mode-hook 'diaspora-show-images)
+(add-hook 'diaspora-mode-hook 'diaspora-see-regexp-markdow)
+(add-hook 'diaspora-mode-hook 'diaspora-show-videos)
 
 
 

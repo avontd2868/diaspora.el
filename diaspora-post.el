@@ -73,7 +73,11 @@ For example: C-u M-x diaspora-post-to."
   diaspora-auth-token)
 
 
-(defun diaspora-post (post &optional id)
+(defun diaspora-post-last-post-text ()
+  (interactive)
+  (diaspora-post diaspora-last-post-text))
+
+(defun diaspora-post (post)
   "Post POST to diaspora."
   (let ((url-request-method "POST")
 	(url-request-extra-headers
@@ -89,6 +93,7 @@ For example: C-u M-x diaspora-post-to."
 			  (cons "commit" "Sign in")
 			  (cons "aspect_ids[]" "public"))
 		    "&")))
+    url-request-data
     (url-retrieve diaspora-status-messages-url
 		  (lambda (arg) 
 		    (kill-buffer (current-buffer))))))
@@ -114,6 +119,7 @@ For example: C-u M-x diaspora-post-to."
   "Save post to backup file. Backup file is ymd, a new post is append."
   (with-temp-buffer
     (insert-buffer diaspora-post-buffer)
+    (setq diaspora-last-post-text (buffer-string))  ;this is temporary...
     (insert "\n" "---" "\n")
     (let ((file-name-for-saving-post (format-time-string "%y%m%d")))
       (if (find-buffer-visiting file-name-for-saving-post)
@@ -193,6 +199,8 @@ Most useful for posting things from any where."
     (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
     (define-key diaspora-mode-map "\C-c\C-cm" 'diaspora-markdown-mention-user)
     (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
+    (define-key diaspora-mode-map "\C-c\C-cp" 'diaspora-post-to)
+    (define-key diaspora-mode-map "\C-c\C-cc" 'diaspora-post-clipboard)
     (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
     (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-images) ; not implemented yet
     diaspora-mode-map)

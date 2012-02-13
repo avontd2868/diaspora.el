@@ -80,8 +80,6 @@ I expect to be already logged in. Use `diaspora' for log-in."
       ;;(diaspora-change-to-html)
       ;;Better using diaspora-mode already done by Tiago!      
       (diaspora-mode) 
-      (diaspora-get-all-images)
-      (diaspora-show-images)
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
     )))
@@ -202,9 +200,7 @@ If buffer is nil, then use the `current-buffer'."
   (with-current-buffer buff-from
     ;; Get the post message parsed from JSON
     (goto-char (point-min))
-    (let ((json-array-type 'list)
-	  (json-object-type 'alist)
-	  (lstparsed (cdr (assoc 'posts (json-read)))))
+    (let ((lstparsed (cdr (assoc 'posts (json-read)))))
       (with-current-buffer buff-to
 	;; Clean buffer buff-to and insert message
 	(delete-region (point-min) (point-max))
@@ -214,11 +210,9 @@ If buffer is nil, then use the `current-buffer'."
   "Parse de JSON entry stream."
   (goto-char (point-min))
     (window-configuration-to-register diaspora-stream-register)
-  ;; Create a new buffer called according `diaspora-buffer' say 
+  ;; Create a new buffer called according `diaspora-stream-buffer' say 
   ;; and parse the json code into lists.
-  (let ((json-array-type 'list)
-       (json-object-type 'alist)
-       (lstparsed (cdr (assoc 'posts (json-read))))
+  (let ((lstparsed (cdr (assoc 'posts (json-read))))
        (buff (get-buffer-create diaspora-stream-buffer)))
     ;; clean the new buffer
     (switch-to-buffer buff)
@@ -239,9 +233,7 @@ buffer or in the buffer specified."
 		  buffer)))
     (with-current-buffer buff-http
       (diaspora-delete-http-header)
-      (let ((json-array-type 'list)
-	    (json-object-type 'alist)
-	    (lstparsed (json-read)))
+      (let ((lstparsed (json-read)))
 	;; parse all comments one by one and insert it
 	(let ((le (length lstparsed))
 ;	      (inhibit-read-only t)
@@ -326,33 +318,19 @@ buffer or in the buffer specified."
 				  '(display)))
       (set-buffer-modified-p modified-p))))
 
+
 (defun diaspora-get-all-regexp-markdown-points (regexp &optional opt)
-  (cond ((search-forward-regexp regexp (point-max) t)
-	 (cons (cons (match-string-no-properties 
-		      (if (not opt) 2
-			opt))
-	       (cons (match-beginning 0) 
-		     (match-end 0)))
-	 (diaspora-get-all-regexp-markdown-points regexp
+  (save-excursion
+    (cond ((search-forward-regexp regexp (point-max) t)
+	   (cons (cons (match-string-no-properties 
+			(if (not opt) 2
+			  opt))
+		       (cons (match-beginning 0) 
+			     (match-end 0)))
+		 (diaspora-get-all-regexp-markdown-points regexp
 						  (if (not opt) 2
 						    opt))))
-	(t nil)))
-
-(defun diaspora-show-videos (&optional opt)
-  ""
-  (interactive)
-  (goto-char (point-min))
-  (save-excursion
-    (let ((images-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-youtube-link)))
-      (dolist (ipoint images-points)
-	(if (not opt)
-	    (add-text-properties (cadr ipoint) (cddr ipoint)
-				 (list 'display (create-image 
-						 (concat diaspora-user-image-dir "/" 
-							 "video.png"))))
-	  (remove-text-properties (cadr ipoint) (cddr ipoint)
-				  '(display)))))))
-
+	  (t nil))))
 
 
 (defun diaspora-get-all-image-links ()
@@ -437,12 +415,11 @@ buffer or in the buffer specified."
 (defun diaspora-extract-json-list (e a)
   (cond (e
 	 (diaspora-extract-json-list (cdr e) 
-			 (diaspora-extract-json (car e) a)))
+				     (diaspora-extract-json (car e) a)))
 	(a)))
 
 (defun diaspora-get-entry-stream-tag (tag)
   ""
-  (interactive)  
   (diaspora-ask)
   (diaspora-authenticity-token diaspora-sign-in-url)
   (save-excursion
@@ -455,38 +432,5 @@ buffer or in the buffer specified."
 	(diaspora-mode)))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun diaspora-get-url(url)
-  "Get a diaspora URL and leave it in a new buffer."
-  (let ((url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")
-	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "UTF-8"))))
-    (url-retrieve-synchronously url)))
-
-
-(defun diaspora-inspect-json (env)
-  (flet ((f-car (lst)
-		(cond ((listp lst)
-		       (if (listp (car lst))
-			   (mapcar 'f-car lst)
-			 (f-car (car lst))))
-		      (t 
-		       lst))))
-    (cond ((listp env)
-	   (mapcar 'f-car env))
-	  (t
-	   env))))
-
-(defun diaspora-json-read-url (url)
-  "Returns a JSON parsed string from URL."
-  (interactive)
-  (let ((json-array-type 'list)
-	(json-object-type 'alist)
-	(http-buffer (diaspora-get-url url)))
-    (with-current-buffer http-buffer
-      (diaspora-delete-http-header)
-      (let ((stream-parsed (json-read)))
-	 stream-parsed))))
 
 (provide 'diaspora-stream)
