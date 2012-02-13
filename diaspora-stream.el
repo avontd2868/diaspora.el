@@ -308,7 +308,7 @@ or a function like `diaspora-show-message-new-buffer'."
   "Get the comments for the given message, and insert it in the current 
 buffer or in the buffer specified."
   (let ((buff-http (diaspora-get-url-entry-stream 
-		    (format "%s/%s/comments.json" (disapora-url diaspora-single-message-url) message-id)))
+		    (format "%s/%s/comments.json" (diaspora-url diaspora-single-message-url) message-id)))
 	(buffer (if (null buffer)
 		    (current-buffer)
 		  buffer)))
