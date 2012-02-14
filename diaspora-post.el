@@ -107,6 +107,12 @@ This list is used as parameter for `diaspora-post'."
   diaspora-auth-token)
 
 (defun diaspora-aspect-post-parameter (aspects_ids)
+  "Concat the parameters in a string with commas. This is usefull to pass
+as parameters for a POST.
+
+If aspects_ids is nil, I return the string \"public\".
+
+It doesn't matter if aspects_id has a string or number values as elements(or mixed!) it will concat it as well. "
   (if (null aspects_ids)
       "public"    
     (let ((salida ""))
@@ -115,17 +121,11 @@ This list is used as parameter for `diaspora-post'."
 			     (if (numberp i)
 				 (number-to-string i)
 			       i)
-			     ","))
-	)  
-      (substring salida 0 -1)
-      )
-    )
-  )
+			     ",")))  
+      (substring salida 0 -1))))
 
 (defun diaspora-post (post &optional aspects_ids)
   "Post POST to diaspora."
-  (when (null aspects_ids)
-    (setq aspects_ids "public"))
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
