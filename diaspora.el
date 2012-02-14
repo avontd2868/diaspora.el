@@ -51,6 +51,12 @@
   :group 'applications)
 
 ;;; User variable:
+(defcustom diaspora-secure-pod
+  t
+  "If your diaspora pod use https, set this to true.
+If only use http, use false."
+  :type 'boolean
+  :group 'diaspora)
 
 (defcustom diaspora-pod 
   "joindiaspora.com"
