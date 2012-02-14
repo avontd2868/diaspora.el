@@ -720,7 +720,6 @@ Note: this is not correct! Needs more thought to get all images right."
 	   (if (numberp post-id)
 	       (number-to-string post-id)
 	     post-id)
-	   post-id
 	   diaspora-comment-name)))
 
 (provide 'diaspora)

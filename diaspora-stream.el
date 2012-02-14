@@ -171,7 +171,7 @@ Check if the temporal directory exists, if not create it."
 
 (defvar diaspora-show-message-map
   (let ((map (make-sparse-keymap)))
-    (define-key map [c] 'diaspora-comment-message-new-buffer)
+    (define-key map "C-c c" 'diaspora-comment-message-new-buffer)
     (define-key map [return] 'diaspora-show-message-new-buffer)
     (define-key map [mouse-2] 'diaspora-show-message-new-buffer)
     map)
