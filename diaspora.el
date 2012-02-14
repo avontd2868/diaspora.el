@@ -238,6 +238,12 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
   :type 'string
   :group 'diaspora-streams)
 
+(defcustom diaspora-post-comment-name 
+  "comments"
+  "This is the name of the comments for posting."
+  :type 'string
+  :group 'diaspora-streams)
+
 (defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
   "This is the URL for JSON format notifications.")
 
@@ -676,13 +682,22 @@ Note: this is not correct! Needs more thought to get all images right."
 
 (defun diaspora-url (location)
   "Make the URL according to the `diaspora-pod'(pod selected)."
-  (format "https://%s/%s" diaspora-pod location)
-  )
+  (format "https://%s/%s" diaspora-pod location))
 
 (defun diaspora-url-json (location)
   "Make the URL as in `diaspora-url' but for retrieving JSON formats pages, according to the `diaspora-pod' (pod selected)."
-  (format "https://%s/%s.json" diaspora-pod location)
-  )
+  (format "https://%s/%s.json" diaspora-pod location))
+
+
+(defun diaspora-post-comment-url (post-id)
+  "Return the URL for posting a comment for the post with id post-id"
+  (format "https://%s/%s/%s"
+	  diaspora-pod 
+	  (if (numberp post-id)
+	      (number-to-string post-id)
+	    post-id)
+	  diaspora-post-comment-name))
+	  
 
 (provide 'diaspora)
 

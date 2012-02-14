@@ -68,8 +68,7 @@ This list is used as parameter for `diaspora-post'."
 (defun diaspora-clear-selected-aspects ()
   "Clear all the selected aspect to use with the next post."
   (interactive)
-  (setq diaspora-aspects-for-post nil)
-  )
+  (setq diaspora-aspects-for-post nil))
 
 (defun diaspora-selected-aspects ()
   "Show the selected aspects to use with the newly post."
