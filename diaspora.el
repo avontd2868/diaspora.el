@@ -245,7 +245,7 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
   :type 'string
   :group 'diaspora-streams)
 
-(defcustom diaspora-post-comment-name 
+(defcustom diaspora-comment-name 
   "comments"
   "This is the name of the comments for posting."
   :type 'string
@@ -707,12 +707,21 @@ Note: this is not correct! Needs more thought to get all images right."
 (defun diaspora-post-comment-url (post-id)
   "Return the URL for posting a comment for the post with id post-id"
   (diaspora-url 
-   (format "%s/%s"
+   (format "%s/%s/%s"
+	   diaspora-single-message-url
 	   (if (numberp post-id)
 	       (number-to-string post-id)
 	     post-id)
-	   diaspora-post-comment-name)))
-	  
+	   diaspora-comment-name)))
+
+(defun diaspora-get-comment-url (post-id)
+  (diaspora-url
+   (format "%s/%s/%s.json" diaspora-single-message-url 
+	   (if (numberp post-id)
+	       (number-to-string post-id)
+	     post-id)
+	   post-id
+	   diaspora-comment-name)))
 
 (provide 'diaspora)
 

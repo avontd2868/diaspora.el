@@ -30,6 +30,8 @@
 
 ;; Streaming 
 
+(require 'diaspora-comments)
+
 (defun diaspora-show-stream (status &optional new-buffer-name)
   "Show what was recieved in a new buffer.
 If new-buffer-name is given then, the new buffer will have that name, 
@@ -169,6 +171,7 @@ Check if the temporal directory exists, if not create it."
 
 (defvar diaspora-show-message-map
   (let ((map (make-sparse-keymap)))
+    (define-key map [c] 'diaspora-comment-message-new-buffer)
     (define-key map [return] 'diaspora-show-message-new-buffer)
     (define-key map [mouse-2] 'diaspora-show-message-new-buffer)
     map)
@@ -241,13 +244,22 @@ or a function like `diaspora-show-message-new-buffer'."
    'help-echo "Click here to see this message in new buffer.")
   )
 
+(defun diaspora-get-id-message-near-point ()
+  "Get the diaspora-id-message property value searching from point.
+Use it for getting the nearest id post number when selecting a message."
+  (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-id-message))
+		     'diaspora-id-message))
+
+
 (defun diaspora-show-message-new-buffer (&rest r)
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
   (interactive)
-  (let ((id-message 
-	 (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-id-message))
-			    'diaspora-id-message)))
-    (diaspora-get-single-message id-message)))
+  (diaspora-get-single-message (diaspora-get-id-message-near-point)))
+
+(defun diaspora-comment-message-new-buffer (&rest r)
+  "Create a new buffer for commenting the current message."
+  (interactive)
+  (diaspora-new-comment-buffer (diaspora-get-id-message-near-point)))
 
 (defun diaspora-single-message-destroy ()
   "Destroy the current diaspora single message buffer."
@@ -303,35 +315,6 @@ or a function like `diaspora-show-message-new-buffer'."
     ;; Show all elements
       (dotimes (i le)
 	(diaspora-show-message (aref lstparsed i) buff)))))
-
-(defun diaspora-insert-comments-for-message (message-id &optional buffer)
-  "Get the comments for the given message, and insert it in the current 
-buffer or in the buffer specified."
-  (let ((buff-http (diaspora-get-url-entry-stream 
-		    (format "%s/%s/comments.json" (diaspora-url diaspora-single-message-url) message-id)))
-	(buffer (if (null buffer)
-		    (current-buffer)
-		  buffer)))
-    (with-current-buffer buff-http
-      (diaspora-delete-http-header)
-      (let ((json-array-type 'list)
-	    (json-object-type 'alist)
-	    (lstparsed (json-read)))
-	;; parse all comments one by one and insert it
-	(let ((le (length lstparsed))
-;	      (inhibit-read-only t)
-	      )
-	  (dotimes (i le)
-	    (diaspora-insert-comment (aref lstparsed i) buffer)))))))
-	    
-(defun diaspora-insert-comment (comment buffer)
-  "Insert a JSON parsed (with `json-read') into a specific buffer."
-  (let ((name (cdr (assoc 'name (cdr (assoc 'author comment)))))
-	(text (cdr (assoc 'text comment)))
-	(created_at (cdr (assoc 'created_at comment))))
-    (with-current-buffer buffer
-      (insert (format "\n---\n%s at %s:\n" name created_at))
-      (insert text))))
 
 ;; images: needs working
 
