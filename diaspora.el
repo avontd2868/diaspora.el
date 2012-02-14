@@ -50,7 +50,20 @@
   "A mode for diaspora* stream view and posting."
   :group 'applications)
 
+(defgroup diaspora-streams nil
+  "URL and names for the Streams used in diaspora.el."
+  :group 'diaspora
+  :version "23.0"
+  :tag "diaspora streams urls")
+
 ;;; User variable:
+(defcustom diaspora-secure-pod
+  t
+  "If your diaspora pod use https, set this to true.
+If only use http, use false."
+  :type 'boolean
+  :group 'diaspora)
+
 (defcustom diaspora-secure-pod
   t
   "If your diaspora pod use https, set this to true.
@@ -83,6 +96,12 @@ If only use http, use false."
   :type 'dir
   :group 'diaspora)
 
+(defcustom diaspora-show-images-by-default
+  t
+  "Loads images by default at start."
+  :type 'boolean
+  :group 'diaspora)
+
 
 (defcustom diaspora-show-user-avatar t
    "Show user images beside each users entry."
@@ -108,33 +127,168 @@ If nil, you will be prompted."
   :group 'diaspora)
 
 (defcustom diaspora-sign-in-url 
-  "https://joindiaspora.com/users/sign_in"
+  "/users/sign_in"
   "URL used to signing in."
-  :group 'diaspora)
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-bookmarklet-location
+  "/bookmarklet"
+  "Location of the bookmarklet. This is used in `diaspora-get-aspects' for searching for the aspects.
+A bit complicated but the only way known to get a list of aspects."
+  :type 'string
+  :group 'diaspora-streams)
 
 (defcustom diaspora-status-messages-url 
-  "https://joindiaspora.com/status_messages"
+  "/status_messages"
   "URL used to update diaspora status messages."
-  :group 'diaspora)
+  :type 'string
+  :group 'diaspora-streams)
 
 (defcustom diaspora-single-message-url
-  "https://joindiaspora.com/posts"
-  "URL used to get a single message.")
+  "/posts"
+  "URL used to get a single message."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-participate-stream-name
+  "participate"
+  "Name of the \"Participate\" stream. 
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-explore-stream-name
+  "explore"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the entry stream or explore stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
 
 (defcustom diaspora-entry-stream-url 
+<<<<<<< HEAD
   "https://joindiaspora.com/explore.json"
   "JSON version of the entry stream(the main stream)."
   :group 'diaspora)
 
 (defcustom diaspora-entry-likes-url 
   "https://joindiaspora.com/participate.json"
+=======
+  "/explore"
+>>>>>>> cnngimenez/test
   "JSON version of the entry stream(the main stream)."
-  :group 'diaspora)
+  :type 'string
+  :group 'diaspora-streams)
 
+<<<<<<< HEAD
 
 (defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
+=======
+(defcustom diaspora-public-stream-name
+  "public"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the public stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-followed-tags-stream-name
+  "followed_tags"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the followed tags stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-mentions-stream-name
+  "mentions"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the mentions stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-liked-stream-name
+  "liked"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the liked stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-commented-stream-name
+  "commented"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the commented stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+  
+(defcustom diaspora-aspects-stream-name
+  "aspects"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the aspects stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-comment-name 
+  "comments"
+  "This is the name of the comments for posting."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defvar diaspora-notifications-url
+  "notifications.json"
+>>>>>>> cnngimenez/test
   "This is the URL for JSON format notifications.")
 
+
+(defvar diaspora-aspect-alist nil
+  "This is an alist of a pair of aspects:
+ ((name of the aspect . id of the aspect) ... )
+
+This variable will get its values using the function `diaspora-get-aspects'.")
+
+(defvar diaspora-aspects-for-post nil
+  "This is a list of aspects ids. This list is used for posting, and as soon as the newly posted has been sended
+to the pod, the information is discarded for a new post!
+This variable is intended to be as parameter for `diaspora-post'. 
+You may would like to use `diaspora-add-aspect'.")
 
 (defcustom diaspora-entry-file-dir
   "~/public_html/diaspora.posts/"
@@ -497,14 +651,49 @@ Note: this is not correct! Needs more thought to get all images right."
   (use-local-map diaspora-mode-map)
   (run-hooks 'diaspora-mode-hook))
 
+<<<<<<< HEAD
 
 
 (add-hook 'diaspora-mode-hook 'diaspora-get-all-images)
 (add-hook 'diaspora-mode-hook 'diaspora-show-images)
 (add-hook 'diaspora-mode-hook 'diaspora-see-regexp-markdow)
 (add-hook 'diaspora-mode-hook 'diaspora-show-videos)
+=======
+>>>>>>> cnngimenez/test
 
 
+(defun diaspora-url (location)
+  "Make the URL according to the `diaspora-pod'(pod selected)."
+  (format "%s://%s/%s" 
+	  (if diaspora-secure-pod
+	      "https"
+	    "http")
+	  diaspora-pod 
+	  location))
+
+(defun diaspora-url-json (location)
+  "Make the URL as in `diaspora-url' but for retrieving JSON formats pages, according to the `diaspora-pod' (pod selected)."
+  (diaspora-url
+   (format "%s.json" location)))
+
+
+(defun diaspora-post-comment-url (post-id)
+  "Return the URL for posting a comment for the post with id post-id"
+  (diaspora-url 
+   (format "%s/%s/%s"
+	   diaspora-single-message-url
+	   (if (numberp post-id)
+	       (number-to-string post-id)
+	     post-id)
+	   diaspora-comment-name)))
+
+(defun diaspora-get-comment-url (post-id)
+  (diaspora-url
+   (format "%s/%s/%s.json" diaspora-single-message-url 
+	   (if (numberp post-id)
+	       (number-to-string post-id)
+	     post-id)
+	   diaspora-comment-name)))
 
 (provide 'diaspora)
 
