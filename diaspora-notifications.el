@@ -32,9 +32,6 @@
 ;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
 ;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
 
-(defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
-  "This is the URL where I can get in JSON format the notifications.")
-
 (defvar diaspora-notifications-buffer-name "*diaspora notifications*"
   "This is the name of the buffer that shows notifications from D*.")
 
@@ -50,7 +47,7 @@
   (diaspora-ask)
   (when (null diaspora-auth-token) 
       (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url)))
-  (let ((http-buff (diaspora-get-url-entry-stream diaspora-notifications-url))
+  (let ((http-buff (diaspora-get-url-entry-stream (diaspora-url diaspora-notifications-url)))
 	(buff (get-buffer-create diaspora-notifications-buffer-name))
 	(inhibit-read-only t))    
     (with-current-buffer http-buff
