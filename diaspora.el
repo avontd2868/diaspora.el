@@ -491,8 +491,8 @@ Note: this is not correct! Needs more thought to get all images right."
 ;;;###autoload
 (define-derived-mode diaspora-mode text-mode "diaspora"
   "Major mode for output from \\[diaspora*]."
-;  (set (make-local-variable 'font-lock-defaults)
-;       '(diaspora-mode-font-lock-keywords))
+  (set (make-local-variable 'font-lock-defaults)
+       '(diaspora-mode-font-lock-keywords))
   (set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
   (run-hooks 'diaspora-mode-hook))
