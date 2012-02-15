@@ -279,8 +279,8 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 ;;;###autoload
 (define-derived-mode diaspora-mode text-mode "diaspora"
   "Major mode for output from \\[diaspora*]."
-;  (set (make-local-variable 'font-lock-defaults)
-;       '(diaspora-mode-font-lock-keywords))
+  (set (make-local-variable 'font-lock-defaults)
+       '(diaspora-mode-font-lock-keywords))
   (set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
   (run-hooks 'diaspora-mode-hook))
