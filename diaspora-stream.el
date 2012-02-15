@@ -330,6 +330,14 @@ Use it for getting the nearest id post number when selecting a message."
 	(url-retrieve url 'diaspora-write-image
 		      (list url))))
 
+(defun diaspora-get-image-sync (url)
+  "Same as `diaspora-get-image' but synchronously."
+  (let ((url-request-method "GET")
+	(url-show-status nil))
+    (with-current-buffer (url-retrieve-synchronously url)
+      (diaspora-write-image nil url))))
+
+
 (defun diaspora-write-image (status url &optional user-id)
   (let ((image-file-name
 	 (concat diaspora-image-directory
@@ -422,6 +430,13 @@ Use it for getting the nearest id post number when selecting a message."
 				    (d-find-aux)))
 			     (t nil))))
       (remove-duplicates (d-find-aux) :test 'equal))))
+
+(defun diaspora-get-image-link-at-point ()
+  "Get the image near the point"
+  (save-excursion
+    (goto-char (point-at-bol))
+    (when (search-forward-regexp diaspora-regexp-image nil t)
+      (match-string-no-properties 2))))  
 
 (defun diaspora-see-regexp-markdow ()
   (interactive)
@@ -576,5 +591,27 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
 	(with-current-buffer (diaspora-get-url-entry-stream (diaspora-url diaspora-bookmarklet-location))
 	  (setq diaspora-aspect-alist (diaspora-look-for-aspects))))
     diaspora-aspect-alist))
+
+(defun diaspora-get-image-if-necessary (url)
+  "If it hasn'd downloaded, download the image and save it in the temp directory."
+  (let ((image-name (file-name-nondirectory url)))
+    (unless (file-exists-p (diaspora-image-path image-name))
+      (diaspora-get-image-sync url))
+    (diaspora-image-path image-name)))
+
+(defun diaspora-show-image-at-point ()
+  "Show only the image at the cursor."
+  (interactive)
+  (let ((image-url (diaspora-get-image-link-at-point)))
+    (diaspora-get-image-if-necessary image-url)
+    (diaspora-open-image-program (diaspora-image-path (file-name-nondirectory image-url)))))
+  
+
+(defun diaspora-open-image-program (image-path)
+  (let ((command-string (concat
+			 diaspora-image-external-program
+			 " "
+			 image-path)))
+    (async-shell-command command-string)))
 
 (provide 'diaspora-stream)

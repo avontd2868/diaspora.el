@@ -355,6 +355,12 @@ You may would like to use `diaspora-add-aspect'.")
     "The name of the diaspora notifications buffer.")
 
 
+(defcustom diaspora-image-external-program "eog"
+  "This is the program path and name. If you want to see an image in an external program this must be
+setted correctly."
+  :group 'diaspora
+  :type 'string)
+
 ;;; User Functions:
 
 (defun diaspora ()
@@ -721,6 +727,11 @@ Note: this is not correct! Needs more thought to get all images right."
 	       (number-to-string post-id)
 	     post-id)
 	   diaspora-comment-name)))
+
+(defun diaspora-image-path (image-name)
+  "Return the temporal image path."
+  (concat diaspora-image-directory image-name)
+  )
 
 (provide 'diaspora)
 
