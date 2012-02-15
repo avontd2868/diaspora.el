@@ -576,7 +576,7 @@ We look for the keyword \"data-aspect_id=\" and we are sure that the next line h
 	    (name (progn 
 		     (forward-line)
 		     (diaspora-string-trim 
-		      (buffer-substring-no-properties (point) (point-at-eol))))))
+		      (idna-to-unicode (buffer-substring-no-properties (point) (point-at-eol)))))))
 	(push (cons name value) lista)))
     lista))
 
@@ -589,8 +589,9 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
       (progn 
 	;; We haven't loaded the aspects yet. Load it!
 	(with-current-buffer (diaspora-get-url-entry-stream (diaspora-url diaspora-bookmarklet-location))
-	  (setq diaspora-aspect-alist (diaspora-look-for-aspects))))
-    diaspora-aspect-alist))
+	  (let ((buffer-file-coding-system 'utf-8))
+	    (setq diaspora-aspect-alist (diaspora-look-for-aspects)))))    
+    diaspora-aspect-alist));; We have already loaded it! return what is loaded
 
 (defun diaspora-get-image-if-necessary (url)
   "If it hasn'd downloaded, download the image and save it in the temp directory."
