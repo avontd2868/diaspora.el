@@ -580,6 +580,22 @@ We look for the keyword \"data-aspect_id=\" and we are sure that the next line h
 	(push (cons name value) lista)))
     lista))
 
+(defconst diaspora-aspect-list-buffer-name
+  "Buffer name for the list of aspects.")
+ 
+
+(defun diaspora-show-all-aspects ()
+  "Show all aspects in a new buffer."
+  (interactive)
+  (diaspora-get-aspects)
+  ;; Create (or get) and clear a new buffer
+  (with-current-buffer (get-buffer-create diaspora-aspect-list-buffer-name)
+    (delete-region (point-min) (point-max))
+    ;; for each element print the name...
+    (dolist (elt diaspora-aspect-alist)    
+      (insert (car elt) "\n")))
+  (switch-to-buffer diaspora-aspect-list-buffer-name))
+
 (defun diaspora-get-aspects (&optional reload)
   "If `diaspora-aspect-alist hasn't been generated, get an alist of aspects as key and id as values from the Diaspora pod and return the alist.
 After generate the alist, save it in `diaspora-aspect-alist'.
