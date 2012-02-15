@@ -53,8 +53,10 @@ For example: C-u M-x diaspora-post-to."
 (defun diaspora-add-aspect (aspect-name)
   "Add an aspect to the list of aspects `diaspora-aspects-for-post' for posting.
 This list is used as parameter for `diaspora-post'."
-  (interactive "MAspect name?")
-  (diaspora-get-aspects)
+  (interactive 
+   (let ((string (completing-read "Aspect name?" diaspora-aspect-alist)))
+     (diaspora-get-aspects)
+     (list string)))
   (let ((aspect-id (cdr (assoc aspect-name diaspora-aspect-alist))))
     (if (null aspect-id)
 	(message "Aspect not founded.")
