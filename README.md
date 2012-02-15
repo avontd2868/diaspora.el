@@ -1,8 +1,6 @@
 ## diaspora(dot)el --- Simple Emacs-based client for diaspora*
 
-You can find us: 
-https://joindiaspora.com/u/tca
-https://joindiaspora.com/u/cnngimenez
+You can find me: https://joindiaspora.com/u/tca
 
 *WARNING*
 

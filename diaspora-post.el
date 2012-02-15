@@ -50,37 +50,6 @@ For example: C-u M-x diaspora-post-to."
   (diaspora-mode)
   (message "Use C-cp to post to diaspora*."))
 
-(defun diaspora-add-aspect (aspect-name)
-  "Add an aspect to the list of aspects `diaspora-aspects-for-post' for posting.
-This list is used as parameter for `diaspora-post'."
-  (interactive "MAspect name?")
-  (diaspora-get-aspects)
-  (let ((aspect-id (cdr (assoc aspect-name diaspora-aspect-alist))))
-    (if (null aspect-id)
-	(message "Aspect not founded.")
-      (progn 
-	(setq diaspora-aspects-for-post (push aspect-id diaspora-aspects-for-post))
-	(message (concat "Aspect id Added: " 
-			 (if (numberp aspect-id)
-			     (number-to-string aspect-id)
-			   aspect-id)))))))
-
-(defun diaspora-clear-selected-aspects ()
-  "Clear all the selected aspect to use with the next post."
-  (interactive)
-  (setq diaspora-aspects-for-post nil))
-
-(defun diaspora-selected-aspects ()
-  "Show the selected aspects to use with the newly post."
-  (interactive)
- (let ((msg "Aspects: \n"))
-    (dolist (i diaspora-aspects-for-post)
-      (setq msg (concat msg 
-			"-> "
-			(car (rassoc i diaspora-aspect-alist)) 
-			"\n")))
-    (message msg)))
-
 (defun diaspora-authenticity-token (url)
   "Get the authenticity token."
   (let ((url-request-method "POST")
@@ -91,11 +60,9 @@ This list is used as parameter for `diaspora-post'."
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
 		    (list (cons "user[username]" diaspora-username)
 			  (cons "user[password]" diaspora-password)
-			  (cons "user[remember_me]" "1")
-			  (cons "utf8" "✓"))
+			  (cons "user[remember_me]" "1"))
 		    "&")))
-    (with-current-buffer (url-retrieve-synchronously url)
-      (diaspora-find-auth-token))))
+    (url-retrieve url 'diaspora-find-auth-token)))
 
 (defun diaspora-find-auth-token (&optional status)
   "Find the authenticity token."  
@@ -105,34 +72,12 @@ This list is used as parameter for `diaspora-post'."
     (setq diaspora-auth-token (match-string-no-properties 1)))
   diaspora-auth-token)
 
-<<<<<<< HEAD
 
 (defun diaspora-post-last-post-text ()
   (interactive)
   (diaspora-post diaspora-last-post-text))
 
 (defun diaspora-post (post)
-=======
-(defun diaspora-aspect-post-parameter (aspects_ids)
-  "Concat the parameters in a string with commas. This is usefull to pass
-as parameters for a POST.
-
-If aspects_ids is nil, I return the string \"public\".
-
-It doesn't matter if aspects_id has a string or number values as elements(or mixed!) it will concat it as well. "
-  (if (null aspects_ids)
-      "public"    
-    (let ((salida ""))
-      (dolist (i aspects_ids)
-	(setq salida (concat salida 
-			     (if (numberp i)
-				 (number-to-string i)
-			       i)
-			     ",")))  
-      (substring salida 0 -1))))
-
-(defun diaspora-post (post &optional aspects_ids)
->>>>>>> cnngimenez/test
   "Post POST to diaspora."
   (let ((url-request-method "POST")
 	(url-request-extra-headers
@@ -146,31 +91,21 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
 			  (cons "user[remember_me]" "1")
 			  (cons "authenticity_token" diaspora-auth-token)
 			  (cons "commit" "Sign in")
-			  (cons "aspect_ids[]" (diaspora-aspect-post-parameter aspects_ids)))
+			  (cons "aspect_ids[]" "public"))
 		    "&")))
-<<<<<<< HEAD
     url-request-data
     (url-retrieve diaspora-status-messages-url
 		  (lambda (arg) 
 		    (kill-buffer (current-buffer))))))
-=======
-    (url-retrieve (diaspora-url diaspora-status-messages-url)
-		  (lambda (arg) ))))
-		  ;;   (kill-buffer (current-buffer))))))
-		  
-		  
->>>>>>> cnngimenez/test
 
 (defun diaspora-post-this-buffer ()
   "Post the current buffer to diaspora."
   (interactive)
   (diaspora-ask)
-  (when (null diaspora-auth-token)
-    (message (concat "Getting authenticity token..."))
-    (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
-    (message (concat "done: " diaspora-auth-token))
-    )
-  (diaspora-post (buffer-string) diaspora-aspects-for-post)
+  (message (concat "Getting authenticity token..."))
+  (diaspora-authenticity-token diaspora-sign-in-url)
+  (message (concat "done: " diaspora-auth-token))
+  (diaspora-post (buffer-string))
   (diaspora-save-post-to-file)
   (kill-buffer))
 

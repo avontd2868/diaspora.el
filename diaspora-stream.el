@@ -30,8 +30,6 @@
 
 ;; Streaming 
 
-(require 'diaspora-comments)
-
 (defun diaspora-show-stream (status &optional new-buffer-name)
   "Show what was recieved in a new buffer.
 If new-buffer-name is given then, the new buffer will have that name, 
@@ -49,8 +47,7 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
     (kill-buffer buf-kill)))
 
 (defun diaspora-get-url-entry-stream (url)
-  "Get the Diáspora URL and leave it in a new buffer.
-Returns: A new buffer where is all the information retrieved from the URL."
+  "Get the Diáspora URL and leave it in a new buffer."
   (let ((url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
 	   ("Accept-Language" . "en")
@@ -65,31 +62,15 @@ This is used after getting a stream or any URL in JSON format."
    (search-forward "\n\n")      
    (delete-region (point-min) (match-beginning 0)))
 
-(defun diaspora-get-stream-by-name (stream-name)
-  "I try to get the stream given a name, and then show it parsed in a new buffer.
- This means, I format the URL according to this rules:
-
-1) I add the pod URL.
-2) I add the stream-name 
-3) I add the extension \".json\".
-
-For example:
-if the `diaspora-pod' has the value: \"joindiaspora.com\", then
-  (diaspora-get-stream-by-name 'aspects')
-
-will get the https://joindiaspora.com/aspects.json URL, parse it, and show it in a new buffer."
-  (interactive "MName of the stream?")
-  (diaspora-get-stream 
-   (diaspora-url-json stream-name)))
-
-(defun diaspora-get-stream(stream-url)
-  "Get the stream given by the url, and then, show it in the diaspora buffer.
-I expect to be logged in, but if not, I download the authenticity token."  
+(defun diaspora-get-entry-stream ()
+  "Show the entry stream. 
+First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
+I expect to be already logged in. Use `diaspora' for log-in."
+  (interactive)  
   (diaspora-ask) ;; don't forget username and password!
-  (when (null diaspora-auth-token)
-    (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))) ;; Get the authenticity token    
+  (diaspora-authenticity-token diaspora-sign-in-url) ;; Get the authenticity token
   ;; get the in JSON format all the data
-  (let ((buff (diaspora-get-url-entry-stream stream-url)))
+  (let ((buff (diaspora-get-url-entry-stream diaspora-entry-stream-url)))
     (with-current-buffer buff
       ;; Delete the HTTP header...
       (diaspora-delete-http-header)
@@ -99,66 +80,9 @@ I expect to be logged in, but if not, I download the authenticity token."
       ;;(diaspora-change-to-html)
       ;;Better using diaspora-mode already done by Tiago!      
       (diaspora-mode) 
-<<<<<<< HEAD
-=======
-      (if diaspora-show-images-by-default
-	  (progn
-	    (diaspora-get-all-images)
-	    (diaspora-show-images)
-	    )
-	(goto-char (point-min))
-	)
->>>>>>> cnngimenez/test
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
     )))
-
-					; Streams!
-
-(defun diaspora-get-participate-stream ()
-  "Show the participate stream."
-  (interactive)
-  (diaspora-get-stream-by-name diaspora-participate-stream-name))  
-
-(defun diaspora-get-entry-stream ()
-  "Show the entry stream. 
-First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
-I expect to be already logged in. Use `diaspora' for log-in."
-  (interactive)  
-  (diaspora-get-stream-by-name diaspora-entry-stream-url)
-  )
-
-(defun diaspora-get-public-stream ()
-  "Show the public stream."
-  (interactive)
-  (diaspora-get-stream-by-name diaspora-public-stream-name))
-
-(defun diaspora-get-followed-tags-stream ()
-  "Show the followed tags stream."
-  (interactive)
-  (diaspora-get-stream-by-name diaspora-followed-tags-stream-name))
-
-(defun diaspora-get-mentions-stream ()
-  "Show the mentions stream."
-  (interactive)
-  (diaspora-get-stream-by-name diaspora-mentions-stream-name))
-
-(defun diaspora-get-liked-stream ()
-  "Show the liked stream."
-  (interactive)
-  (diaspora-get-stream-by-name diaspora-liked-stream-name))
-
-(defun diaspora-get-commented-stream ()
-  "Show the commented stream."
-  (interactive)
-  (diaspora-get-stream-by-name diaspora-commented-stream-name)
-  )
-
-(defun diaspora-get-aspects-stream ()
-  "Show the aspects stream."
-  (interactive)
-  (diaspora-get-stream-by-name diaspora-aspects-stream-name))
- 
 
 (defun diaspora-get-temp-path (filename)
   "Return the path of temporal files. 
@@ -174,7 +98,6 @@ Check if the temporal directory exists, if not create it."
 
 (defvar diaspora-show-message-map
   (let ((map (make-sparse-keymap)))
-    (define-key map "C-c c" 'diaspora-comment-message-new-buffer)
     (define-key map [return] 'diaspora-show-message-new-buffer)
     (define-key map [mouse-2] 'diaspora-show-message-new-buffer)
     map)
@@ -224,9 +147,13 @@ If buffer is nil, then use the `current-buffer'."
 	
 	(insert  "---\n")
 	(insert "![" name "](" avatar ")\n")
-	(insert (diaspora-add-link-to-publication 
-		 (format "%s (%s):\n" name diaspora_id) 
-		 id))
+	(insert (propertize
+		 (format "%s (%s):\n" name diaspora_id)
+		 'mouse-face 'highlight
+		 'face "link"
+		 'keymap diaspora-show-message-map
+		 'diaspora-id-message id
+		 'help-echo "Click here to see this message in new buffer."))
 	(insert (format "%s\n" date))
 	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
 	(insert (format "%s\n\n" text))
@@ -235,34 +162,15 @@ If buffer is nil, then use the `current-buffer'."
 		  (cdr (assoc 'large (car (aref (cdr (assoc 'photos parsed-message))0))))
 		  ")\n"))))))
 
-(defun diaspora-add-link-to-publication (text id-message)
-  "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
-or a function like `diaspora-show-message-new-buffer'."
-  (propertize
-   text
-   'mouse-face 'highlight
-   'face "link"
-   'keymap diaspora-show-message-map
-   'diaspora-id-message id-message
-   'help-echo "Click here to see this message in new buffer.")
-  )
-
-(defun diaspora-get-id-message-near-point ()
-  "Get the diaspora-id-message property value searching from point.
-Use it for getting the nearest id post number when selecting a message."
-  (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-id-message))
-		     'diaspora-id-message))
 
 
 (defun diaspora-show-message-new-buffer (&rest r)
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
   (interactive)
-  (diaspora-get-single-message (diaspora-get-id-message-near-point)))
-
-(defun diaspora-comment-message-new-buffer (&rest r)
-  "Create a new buffer for commenting the current message."
-  (interactive)
-  (diaspora-new-comment-buffer (diaspora-get-id-message-near-point)))
+  (let ((id-message 
+	 (get-text-property (+ 1 (previous-single-property-change (point) 'diaspora-id-message))
+			    'diaspora-id-message)))
+    (diaspora-get-single-message id-message)))
 
 (defun diaspora-single-message-destroy ()
   "Destroy the current diaspora single message buffer."
@@ -277,7 +185,7 @@ Use it for getting the nearest id post number when selecting a message."
   (window-configuration-to-register diaspora-single-message-register)
   (let ((buff (get-buffer-create diaspora-single-message-buffer))
 	(buff-http (diaspora-get-url-entry-stream
-		    (format "%s/%s.json" (diaspora-url diaspora-single-message-url) id-message))))
+		    (format "%s/%s.json" diaspora-single-message-url id-message))))
     (with-current-buffer buff-http
       ;; Delete HTTP header!
       (diaspora-delete-http-header))
@@ -315,7 +223,6 @@ Use it for getting the nearest id post number when selecting a message."
       (dotimes (i le)
 	(diaspora-show-message (aref lstparsed i) buff)))))
 
-<<<<<<< HEAD
 (defun diaspora-insert-comments-for-message (message-id &optional buffer)
   "Get the comments for the given message, and insert it in the current 
 buffer or in the buffer specified."
@@ -343,8 +250,6 @@ buffer or in the buffer specified."
       (insert (format "\n---\n%s at %s:\n" name created_at))
       (insert text))))
 
-=======
->>>>>>> cnngimenez/test
 ;; images: needs working
 
 (defun diaspora-get-user-avatar (url &optional user-id)
@@ -513,7 +418,6 @@ buffer or in the buffer specified."
 				     (diaspora-extract-json (car e) a)))
 	(a)))
 
-<<<<<<< HEAD
 (defun diaspora-get-entry-stream-tag (tag)
   ""
   (diaspora-ask)
@@ -530,85 +434,3 @@ buffer or in the buffer specified."
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'diaspora-stream)
-=======
-(defun diaspora-get-stream-by-tag (tag)
-  "Get a stream of the messages with the tag given by 'tag'.
-The tag must be a string without the starting \"#\"."
-  (interactive "MTag(without '#')?")
-  (diaspora-get-stream-by-name (format "/tags/%s" tag)))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-
-(defun diaspora-get-url(url)
-  "Get a diaspora URL and leave it in a new buffer."
-  (let ((url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")
-	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "UTF-8"))))
-    (url-retrieve-synchronously url)))
-
-
-(defun diaspora-inspect-json (env)
-  (flet ((f-car (lst)
-		(cond ((listp lst)
-		       (if (listp (car lst))
-			   (mapcar 'f-car lst)
-			 (f-car (car lst))))
-		      (t 
-		       lst))))
-    (cond ((listp env)
-	   (mapcar 'f-car env))
-	  (t
-	   env))))
-
-(defun diaspora-json-read-url (url)
-  "Returns a JSON parsed string from URL."
-  (interactive)
-  (let ((json-array-type 'list)
-	(json-object-type 'alist)
-	(http-buffer (diaspora-get-url url)))
-    (with-current-buffer http-buffer
-      (diaspora-delete-http-header)
-      (let ((stream-parsed (json-read)))
-	 stream-parsed))))
-
-(defsubst diaspora-string-trim (string)
-  "Remove leading and trailing whitespace and all properties from STRING.
-If STRING is nil return an empty string."
-  (if (null string)
-      ""
-    (if (string-match "\\`[ \t\n]+" string)
-        (setq string (substring string (match-end 0))))
-    (if (string-match "[ \t\n]+\\'" string)
-        (setq string (substring string 0 (match-beginning 0))))
-    (substring-no-properties string)))
-
-(defun diaspora-look-for-aspects ()
-  "Search for each aspect name an id and return an alist with all the aspects founded.
-
-We look for the keyword \"data-aspect_id=\" and we are sure that the next line has the name with spaces."
-  (goto-char (point-min))
-  (let ((lista '()))
-    (while (search-forward-regexp "data-aspect_id='?\\([^'> ]*\\)'?" nil t)
-      (let ((value (match-string-no-properties 1))
-	    (name (progn 
-		     (forward-line)
-		     (diaspora-string-trim 
-		      (buffer-substring-no-properties (point) (point-at-eol))))))
-	(push (cons name value) lista)))
-    lista))
-
-(defun diaspora-get-aspects (&optional reload)
-  "If `diaspora-aspect-alist hasn't been generated, get an alist of aspects as key and id as values from the Diaspora pod and return the alist.
-After generate the alist, save it in `diaspora-aspect-alist'.
-If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, reload from the `diaspora-bookmarklet-location' URL."
-  (if (or reload
-	  (null diaspora-aspect-alist))
-      (progn 
-	;; We haven't loaded the aspects yet. Load it!
-	(with-current-buffer (diaspora-get-url-entry-stream (diaspora-url diaspora-bookmarklet-location))
-	  (setq diaspora-aspect-alist (diaspora-look-for-aspects))))
-    diaspora-aspect-alist))
-
-(provide 'diaspora-stream)
->>>>>>> cnngimenez/test
