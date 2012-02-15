@@ -1,4 +1,4 @@
-;;; diaspora.el --- Simple Emacs-based client for diaspora*
+;; diaspora.el --- Simple Emacs-based client for diaspora*
 
 ;; Author: Tiago Charters de Azevedo <tca@diale.org>
 ;; Maintainer: Tiago Charters de Azevedo <tca@diale.org>
@@ -26,7 +26,6 @@
 
 ;;; Commentary:
 
-;; A diaspora* client for emacs
 
 ;; Posting
 
@@ -125,6 +124,10 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
 			     ",")))  
       (substring salida 0 -1))))
 
+(defun diaspora-post-last-post-text ()
+  (interactive)
+  (diaspora-post diaspora-last-post-text))
+
 (defun diaspora-post (post &optional aspects_ids)
   "Post POST to diaspora."
   (let ((url-request-method "POST")
@@ -170,6 +173,7 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
   "Save post to backup file. Backup file is ymd, a new post is append."
   (with-temp-buffer
     (insert-buffer diaspora-post-buffer)
+    (setq diaspora-last-post-text (buffer-string))  ;this is temporary...
     (insert "\n" "---" "\n")
     (let ((file-name-for-saving-post (format-time-string "%y%m%d")))
       (if (find-buffer-visiting file-name-for-saving-post)
@@ -249,6 +253,8 @@ Most useful for posting things from any where."
     (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
     (define-key diaspora-mode-map "\C-c\C-cm" 'diaspora-markdown-mention-user)
     (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
+    (define-key diaspora-mode-map "\C-c\C-cp" 'diaspora-post-to)
+    (define-key diaspora-mode-map "\C-c\C-cc" 'diaspora-post-clipboard)
     (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
     (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-images) ; not implemented yet
     diaspora-mode-map)
