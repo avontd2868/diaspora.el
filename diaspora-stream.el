@@ -316,33 +316,6 @@ Use it for getting the nearest id post number when selecting a message."
       (dotimes (i le)
 	(diaspora-show-message (aref lstparsed i) buff)))))
 
-(defun diaspora-insert-comments-for-message (message-id &optional buffer)
-  "Get the comments for the given message, and insert it in the current 
-buffer or in the buffer specified."
-  (let ((buff-http (diaspora-get-url-entry-stream 
-		    (format "%s/%s/comments.json" diaspora-single-message-url message-id)))
-	(buffer (if (null buffer)
-		    (current-buffer)
-		  buffer)))
-    (with-current-buffer buff-http
-      (diaspora-delete-http-header)
-      (let ((lstparsed (json-read)))
-	;; parse all comments one by one and insert it
-	(let ((le (length lstparsed))
-;	      (inhibit-read-only t)
-	      )
-	  (dotimes (i le)
-	    (diaspora-insert-comment (aref lstparsed i) buffer)))))))
-	    
-(defun diaspora-insert-comment (comment buffer)
-  "Insert a JSON parsed (with `json-read') into a specific buffer."
-  (let ((name (cdr (assoc 'name (cdr (assoc 'author comment)))))
-	(text (cdr (assoc 'text comment)))
-	(created_at (cdr (assoc 'created_at comment))))
-    (with-current-buffer buffer
-      (insert (format "\n---\n%s at %s:\n" name created_at))
-      (insert text))))
-
 ;; images: needs working
 
 (defun diaspora-get-user-avatar (url &optional user-id)
@@ -447,6 +420,8 @@ buffer or in the buffer specified."
 							 "video.png"))))
 	  (remove-text-properties (cadr ipoint) (cddr ipoint)
 				  '(display)))))))
+
+
 
 (defun diaspora-get-all-image-links ()
   (goto-char (point-min))
@@ -659,6 +634,3 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
     (async-shell-command command-string)))
 
 (provide 'diaspora-stream)
-=======
-(provide 'diaspora-stream)
->>>>>>> upstream/test

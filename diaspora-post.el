@@ -26,6 +26,7 @@
 
 ;;; Commentary:
 
+;; A diaspora* client for emacs
 
 ;; Posting
 

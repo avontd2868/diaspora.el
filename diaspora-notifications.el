@@ -16,7 +16,7 @@
 ;;
 ;; This program is distributed in the hope that it will be useful,
 ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
-;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 ;; GNU General Public License for more details.
 ;;
 ;; You should have received a copy of the GNU General Public License
@@ -28,12 +28,9 @@
 
 ;; A diaspora* client for emacs
 
-;; Save all the files in a DIR and add that DIR to `load-path';
+;; Save all the files in a DIR and add that DIR to `load-path'; 
 ;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
-;; Files: diaspora.el, diaspora-post.el and diaspora-stream.el
-
-(defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
-  "This is the URL where I can get in JSON format the notifications.")
+;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
 
 (defvar diaspora-notifications-buffer-name "*diaspora notifications*"
   "This is the name of the buffer that shows notifications from D*.")
@@ -44,23 +41,23 @@
   (define-key w3m-link-map "\C-c\C-o" 'diaspora-notification-goto-link)
   )
 
-(defun diaspora-get-notifications ()
+(defun diaspora-get-notifications () 
   "Get notifications from diáspora and show them in a new buffer"
   (interactive)
   (diaspora-ask)
-  (when (null diaspora-auth-token)
+  (when (null diaspora-auth-token) 
       (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url)))
-  (let ((http-buff (diaspora-get-url-entry-stream diaspora-notifications-url))
-(buff (get-buffer-create diaspora-notifications-buffer-name))
-(inhibit-read-only t))
+  (let ((http-buff (diaspora-get-url-entry-stream (diaspora-url diaspora-notifications-url)))
+	(buff (get-buffer-create diaspora-notifications-buffer-name))
+	(inhibit-read-only t))    
     (with-current-buffer http-buff
       (diaspora-delete-http-header))
     (diaspora-parse-notifications-json http-buff buff)
     (switch-to-buffer buff)
     (with-current-buffer buff
       (let ((inhibit-read-only t))
-(diaspora-mode)
-)
+	(diaspora-mode)
+	)      
       (setq buffer-read-only t)
       (goto-char (point-min)))))
 
@@ -71,17 +68,17 @@
     (goto-char (point-min))
     (let ((lst-parsed (json-read))) ;;This returns an array of json notifications!
       (with-current-buffer buffer-to
-(delete-region (point-min) (point-max))
-(let ((le (length lst-parsed)))
-(dotimes (i le)
-(diaspora-show-notification (aref lst-parsed i) buffer-to)))))))
+	(delete-region (point-min) (point-max))
+	(let ((le (length lst-parsed)))
+	  (dotimes (i le)
+	    (diaspora-show-notification (aref lst-parsed i) buffer-to)))))))
 
 (defun diaspora-show-notification (notification buffer)
-  "Insert into buffer the JSON formated notification in a most human readable text."
-  (with-current-buffer buffer
+  "Insert into buffer the JSON formated notification in a most human readable text."  
+  (with-current-buffer buffer    
     (let ((type (car (car notification))))
       (diaspora-header-notifications notification buffer)
-      (cond
+      (cond 
        ((eq type 'liked) (diaspora-liked-notification notification buffer))
        ((eq type 'started_sharing) (diaspora-started-sharing-notification notification buffer))
        ((eq type 'comment_on_post) (diaspora-comment-on-post-notification notification buffer))
@@ -96,65 +93,65 @@
 "
   (with-current-buffer buffer-to
     (let ((date (cdr (assoc 'updated_at (cdr (car notification)))))
-(unread (cdr (assoc 'unread (cdr (car notification))))))
+	  (unread (cdr (assoc 'unread (cdr (car notification))))))
       (insert (format "\n---\nAt %s:" date))
       (if (eq unread :json-true)
-(insert "**Unread!**\n")
-(insert "Readed\n")))))
+	  (insert "**Unread!**\n")
+	(insert "Readed\n")))))
 
 (defun diaspora-unknown-notifications (notification buffer-to)
   "Write an unknown type of notification. That's mean, write every data in the notification."
   (with-current-buffer buffer-to
     (let ((date (cdr (assoc 'updated_at (cdr (car notification)))))
-(unread (cdr (assoc 'unread (cdr (car notification)))))
-(target (cdr (assoc 'target_type (cdr (car notification)))))
-(recipient (cdr (assoc 'recipient_id (cdr (car notification)))))
-(note (cdr (assoc 'note_html (cdr (car notification))))))
+	  (unread (cdr (assoc 'unread (cdr (car notification)))))
+	  (target (cdr (assoc 'target_type (cdr (car notification)))))
+	  (recipient (cdr (assoc 'recipient_id (cdr (car notification)))))
+	  (note (cdr (assoc 'note_html (cdr (car notification))))))
       (insert (format "\n<hr />\n%s:%s<br />" date note)))))
 
 (defun diaspora-notification-remove-image-tags (line)
   "Remove the tags and replace it with the apropiate markdown."
-  (replace-regexp-in-string "'>" ")"
-(replace-regexp-in-string "<img src='" "![Avatar](" line)))
+  (replace-regexp-in-string "'>" ")" 
+			    (replace-regexp-in-string "<img src='" "![Avatar](" line)))
 
 (defun diaspora-notification-remove-link-tags (line)
   "Remove the link tags."
   (replace-regexp-in-string "</a>" ""
-(replace-regexp-in-string "<a \[^>\]*>" "" line)))
+			    (replace-regexp-in-string "<a \[^>\]*>" "" line)))
 
 (defun diaspora-mentioned-notification (notification buffer-to)
   "Write a \"mentioned\" notification."
   (with-current-buffer buffer-to
     (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
-(note-html (cdr (assoc 'note_html (cdr (car notification))))))
+	  (note-html (cdr (assoc 'note_html (cdr (car notification))))))
       (let ((splited-html (split-string note-html "\n")))
-(insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
-(when (string-match "/posts/\\([[:digit:]]*\\)" (nth 2 splited-html))
-(insert (diaspora-add-link-to-publication "**Goto publication**"
-(string-to-number (match-string 1 (nth 2 splited-html)))) "\n"))))))
+	(insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
+	(when (string-match "/posts/\\([[:digit:]]*\\)" (nth 2 splited-html))
+	  (insert (diaspora-add-link-to-publication "**Goto publication**" 
+						    (string-to-number (match-string 1 (nth 2 splited-html)))) "\n"))))))
 
 (defun diaspora-comment-on-post-notification (notification buffer-to)
   "Write a \"comment-on-post\" notification."
   (with-current-buffer buffer-to
     (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
-(note-html (cdr (assoc 'note_html (cdr (car notification))))))
+	  (note-html (cdr (assoc 'note_html (cdr (car notification))))))
       (let ((splited-html (split-string note-html "\n")))
-(insert
-(diaspora-notification-remove-image-tags (nth 1 splited-html))
-"\n")
-
-(insert
-;; Remove the name link property
-(diaspora-notification-remove-link-tags (nth 2 splited-html))
-"\n")
-(insert (diaspora-add-link-to-publication "**Goto publication**" target-id)
-"\n")
-))))
+	(insert 
+	 (diaspora-notification-remove-image-tags (nth 1 splited-html))
+	 "\n")
+	
+	(insert 
+	 ;; Remove the name link property
+	 (diaspora-notification-remove-link-tags (nth 2 splited-html))
+	 "\n")
+	(insert (diaspora-add-link-to-publication "**Goto publication**" target-id)
+		"\n")
+	 ))))
 
 (defun diaspora-liked-notification (notification buffer-to)
   "Write a \"liked\" notification."
   (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
-(note-html (cdr (assoc 'note_html (cdr (car notification))))))
+	(note-html (cdr (assoc 'note_html (cdr (car notification))))))
     (let ((splited-html (split-string note-html "\n")))
       (insert (diaspora-notification-remove-image-tags (nth 1 splited-html)) "\n")
       (insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
@@ -165,16 +162,16 @@
   "Write a \"started sharing\" notification. in buffer 'buffer-to'."
   (with-current-buffer buffer-to
     (let ((target-id (cdr (assoc 'target_id (cdr (car notification))))) ;;Target is a person here!
-(note-html (cdr (assoc 'note_html (cdr (car notification))))))
+	  (note-html (cdr (assoc 'note_html (cdr (car notification))))))
       ;; Parse HTML!
       (let ((splited-html (split-string note-html "\n")))
-;; take off the <img src='... '> into ![Avatar](...).
-(insert
-(diaspora-notification-remove-image-tags (nth 1 splited-html))
-"\n")
-
-(insert
-(diaspora-notification-remove-link-tags (nth 2 splited-html))
-"\n")))))
+	;; take off the <img src='... '> into ![Avatar](...).
+	(insert 
+	 (diaspora-notification-remove-image-tags (nth 1 splited-html))
+	 "\n")
+	
+	(insert 
+	 (diaspora-notification-remove-link-tags (nth 2 splited-html))
+	 "\n")))))
 
 (provide 'diaspora-notifications)
