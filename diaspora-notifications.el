@@ -32,8 +32,20 @@
 ;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
 ;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
 
-(defvar diaspora-notifications-buffer-name "*diaspora notifications*"
+
+					; ********************
+					; Constants
+(defconst diaspora-notifications-buffer-name "*diaspora notifications*"
   "This is the name of the buffer that shows notifications from D*.")
+
+					; ********************
+					; Internal Variables
+(defvar diaspora-notifications-url
+  "notifications.json"
+  "This is the URL for JSON format notifications.")
+
+					; ********************
+					; Functions
 
 (defun diaspora-add-key-to-w3m-link-keymap ()
   "Add to the `w3m-link-map' the keys necesary to use only the keyboard."

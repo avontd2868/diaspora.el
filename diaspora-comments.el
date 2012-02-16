@@ -49,6 +49,18 @@
 ;; 
 ;;; Code:
 
+					; ********************
+					; Customization
+
+(defcustom diaspora-comment-name 
+  "comments"
+  "This is the name of the comments for posting."
+  :type 'string
+  :group 'diaspora-streams)
+
+
+					; ********************
+					; Functions
 
 (defun diaspora-insert-comments-for-message (message-id &optional buffer)
   "Get the comments for the given message, and insert it in the current 

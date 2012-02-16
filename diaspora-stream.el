@@ -32,6 +32,126 @@
 
 (require 'diaspora-comments)
 
+					; ********************
+					; Customization
+
+(defgroup diaspora-streams nil
+  "URL and names for the Streams used in diaspora.el."
+  :group 'diaspora
+  :version "23.0"
+  :tag "diaspora streams urls")
+
+(defcustom diaspora-participate-stream-name
+  "participate"
+  "Name of the \"Participate\" stream. 
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-explore-stream-name
+  "explore"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the entry stream or explore stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-entry-stream-url 
+  "/explore"
+  "JSON version of the entry stream(the main stream)."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-public-stream-name
+  "public"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the public stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-entry-likes-url 
+  "https://joindiaspora.com/participate.json"
+  "JSON version of the entry stream(the main stream)."
+  :group 'diaspora)
+
+
+(defcustom diaspora-followed-tags-stream-name
+  "followed_tags"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the followed tags stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-mentions-stream-name
+  "mentions"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the mentions stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-liked-stream-name
+  "liked"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the liked stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-commented-stream-name
+  "commented"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the commented stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-image-external-program "eog"
+  "This is the program path and name. If you want to see an image in an external program this must be
+setted correctly."
+  :group 'diaspora
+  :type 'string)
+
+					; ********************
+					; Constants  
+
+(defconst diaspora-stream-buffer "*diaspora stream*"
+  "The name of the diaspora stream buffer.")
+
+					; ********************
+					; Functions
+
 (defun diaspora-show-stream (status &optional new-buffer-name)
   "Show what was recieved in a new buffer.
 If new-buffer-name is given then, the new buffer will have that name, 
@@ -151,12 +271,6 @@ I expect to be already logged in. Use `diaspora' for log-in."
   (diaspora-get-stream-by-name diaspora-commented-stream-name)
   )
 
-(defun diaspora-get-aspects-stream ()
-  "Show the aspects stream."
-  (interactive)
-  (diaspora-get-stream-by-name diaspora-aspects-stream-name))
- 
-
 (defun diaspora-get-temp-path (filename)
   "Return the path of temporal files. 
 Check if the temporal directory exists, if not create it."
@@ -169,7 +283,7 @@ Check if the temporal directory exists, if not create it."
   (write-file (diaspora-get-temp-path "entry-stream.markdown"))
   (markdown-preview))
 
-(defvar diaspora-show-message-map
+(defvar diaspora-show-message-map-stream
   (let ((map (make-sparse-keymap)))
     (define-key map "C-c c" 'diaspora-comment-message-new-buffer)
     (define-key map [return] 'diaspora-show-message-new-buffer)
@@ -239,7 +353,7 @@ or a function like `diaspora-show-message-new-buffer'."
    text
    'mouse-face 'highlight
    'face "link"
-   'keymap diaspora-show-message-map
+   'keymap diaspora-show-message-map-stream
    'diaspora-id-message id-message
    'help-echo "Click here to see this message in new buffer.")
   )
@@ -566,50 +680,6 @@ If STRING is nil return an empty string."
     (if (string-match "[ \t\n]+\\'" string)
         (setq string (substring string 0 (match-beginning 0))))
     (substring-no-properties string)))
-
-(defun diaspora-look-for-aspects ()
-  "Search for each aspect name an id and return an alist with all the aspects founded.
-
-We look for the keyword \"data-aspect_id=\" and we are sure that the next line has the name with spaces."
-  (goto-char (point-min))
-  (let ((lista '()))
-    (while (search-forward-regexp "data-aspect_id='?\\([^'> ]*\\)'?" nil t)
-      (let ((value (match-string-no-properties 1))
-	    (name (progn 
-		     (forward-line)
-		     (diaspora-string-trim 
-		      (idna-to-unicode (buffer-substring-no-properties (point) (point-at-eol)))))))
-	(push (cons name value) lista)))
-    lista))
-
-(defconst diaspora-aspect-list-buffer-name
-  "Buffer name for the list of aspects.")
- 
-
-(defun diaspora-show-all-aspects ()
-  "Show all aspects in a new buffer."
-  (interactive)
-  (diaspora-get-aspects)
-  ;; Create (or get) and clear a new buffer
-  (with-current-buffer (get-buffer-create diaspora-aspect-list-buffer-name)
-    (delete-region (point-min) (point-max))
-    ;; for each element print the name...
-    (dolist (elt diaspora-aspect-alist)    
-      (insert (car elt) "\n")))
-  (switch-to-buffer diaspora-aspect-list-buffer-name))
-
-(defun diaspora-get-aspects (&optional reload)
-  "If `diaspora-aspect-alist hasn't been generated, get an alist of aspects as key and id as values from the Diaspora pod and return the alist.
-After generate the alist, save it in `diaspora-aspect-alist'.
-If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, reload from the `diaspora-bookmarklet-location' URL."
-  (if (or reload
-	  (null diaspora-aspect-alist))
-      (progn 
-	;; We haven't loaded the aspects yet. Load it!
-	(with-current-buffer (diaspora-get-url-entry-stream (diaspora-url diaspora-bookmarklet-location))
-	  (let ((buffer-file-coding-system 'utf-8))
-	    (setq diaspora-aspect-alist (diaspora-look-for-aspects)))))    
-    diaspora-aspect-alist));; We have already loaded it! return what is loaded
 
 (defun diaspora-get-image-if-necessary (url)
   "If it hasn'd downloaded, download the image and save it in the temp directory."

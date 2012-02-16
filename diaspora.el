@@ -48,6 +48,7 @@
 (require 'diaspora-stream)
 (require 'diaspora-colors)
 (require 'diaspora-notifications)
+(require 'diaspora-aspects)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
@@ -55,12 +56,6 @@
 (defgroup diaspora nil 
   "A mode for diaspora* stream view and posting."
   :group 'applications)
-
-(defgroup diaspora-streams nil
-  "URL and names for the Streams used in diaspora.el."
-  :group 'diaspora
-  :version "23.0"
-  :tag "diaspora streams urls")
 
 ;;; User variable:
 
@@ -108,7 +103,8 @@ If only use http, use false."
    :type 'boolean
    :group 'diaspora)
 
-(defcustom diaspora-mode-hook nil
+
+(defcustom diaspora-mode-hook '(diaspora-get-all-images diaspora-show-images diaspora-see-regexp-markdow diaspora-show-videos)
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
   :options '(flyspell-mode turn-on-auto-fill longlines-mode diaspora-get-all-images diaspora-show-images)
@@ -150,137 +146,6 @@ A bit complicated but the only way known to get a list of aspects."
   "URL used to get a single message."
   :type 'string
   :group 'diaspora-streams)
-
-(defcustom diaspora-participate-stream-name
-  "participate"
-  "Name of the \"Participate\" stream. 
-This is the name of the page, for example:
-If `diaspora-pod' has the value \"joindiaspora.com\", then,
-the JSON page is at the URL:
-  https://joindiaspora.com/participate.json
-
-And the `diaspora-participate-stream-name' must be at value \"participate\"."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defcustom diaspora-explore-stream-name
-  "explore"
-  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the entry stream or explore stream.
-This is the name of the page, for example:
-If `diaspora-pod' has the value \"joindiaspora.com\", then,
-the JSON page is at the URL:
-  https://joindiaspora.com/participate.json
-
-And the `diaspora-participate-stream-name' must be at value \"participate\"."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defcustom diaspora-entry-stream-url 
-  "/explore"
-  "JSON version of the entry stream(the main stream)."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defcustom diaspora-public-stream-name
-  "public"
-  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the public stream.
-This is the name of the page, for example:
-If `diaspora-pod' has the value \"joindiaspora.com\", then,
-the JSON page is at the URL:
-  https://joindiaspora.com/participate.json
-
-And the `diaspora-participate-stream-name' must be at value \"participate\"."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defcustom diaspora-entry-likes-url 
-  "https://joindiaspora.com/participate.json"
-  "JSON version of the entry stream(the main stream)."
-  :group 'diaspora)
-
-
-(defcustom diaspora-followed-tags-stream-name
-  "followed_tags"
-  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the followed tags stream.
-This is the name of the page, for example:
-If `diaspora-pod' has the value \"joindiaspora.com\", then,
-the JSON page is at the URL:
-  https://joindiaspora.com/participate.json
-
-And the `diaspora-participate-stream-name' must be at value \"participate\"."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defcustom diaspora-mentions-stream-name
-  "mentions"
-  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the mentions stream.
-This is the name of the page, for example:
-If `diaspora-pod' has the value \"joindiaspora.com\", then,
-the JSON page is at the URL:
-  https://joindiaspora.com/participate.json
-
-And the `diaspora-participate-stream-name' must be at value \"participate\"."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defcustom diaspora-liked-stream-name
-  "liked"
-  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the liked stream.
-This is the name of the page, for example:
-If `diaspora-pod' has the value \"joindiaspora.com\", then,
-the JSON page is at the URL:
-  https://joindiaspora.com/participate.json
-
-And the `diaspora-participate-stream-name' must be at value \"participate\"."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defcustom diaspora-commented-stream-name
-  "commented"
-  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the commented stream.
-This is the name of the page, for example:
-If `diaspora-pod' has the value \"joindiaspora.com\", then,
-the JSON page is at the URL:
-  https://joindiaspora.com/participate.json
-
-And the `diaspora-participate-stream-name' must be at value \"participate\"."
-  :type 'string
-  :group 'diaspora-streams)
-  
-(defcustom diaspora-aspects-stream-name
-  "aspects"
-  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the aspects stream.
-This is the name of the page, for example:
-If `diaspora-pod' has the value \"joindiaspora.com\", then,
-the JSON page is at the URL:
-  https://joindiaspora.com/participate.json
-
-And the `diaspora-participate-stream-name' must be at value \"participate\"."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defcustom diaspora-comment-name 
-  "comments"
-  "This is the name of the comments for posting."
-  :type 'string
-  :group 'diaspora-streams)
-
-(defvar diaspora-notifications-url
-  "notifications.json"
-  "This is the URL for JSON format notifications.")
-
-
-(defvar diaspora-aspect-alist nil
-  "This is an alist of a pair of aspects:
- ((name of the aspect . id of the aspect) ... )
-
-This variable will get its values using the function `diaspora-get-aspects'.")
-
-(defvar diaspora-aspects-for-post nil
-  "This is a list of aspects ids. This list is used for posting, and as soon as the newly posted has been sended
-to the pod, the information is discarded for a new post!
-This variable is intended to be as parameter for `diaspora-post'. 
-You may would like to use `diaspora-add-aspect'.")
 
 (defcustom diaspora-entry-file-dir
   "~/public_html/diaspora.posts/"
@@ -351,29 +216,8 @@ You may would like to use `diaspora-add-aspect'.")
   "")
 
 
-(defvar diaspora-stream-buffer "*diaspora stream*"
-  "The name of the diaspora stream buffer.")
-
 (defvar diaspora-post-buffer "*diaspora post*"
   "The name of the diaspora post buffer.")
-
-(defvar diaspora-single-message-buffer "*diaspora message*"
-  "The name of the diaspora single message buffer.")
-
-(defvar  diaspora-stream-tag-buffer
-  "*diaspora stream tag*"
-  "The name of the diaspora tag stream buffer.")
-
-(defvar diaspora-notifications-buffer
-  "*diaspora notifications*"
-    "The name of the diaspora notifications buffer.")
-
-
-(defcustom diaspora-image-external-program "eog"
-  "This is the program path and name. If you want to see an image in an external program this must be
-setted correctly."
-  :group 'diaspora
-  :type 'string)
 
 ;;; User Functions:
 
@@ -751,11 +595,6 @@ Note: this is not correct! Needs more thought to get all images right."
   "Return the temporal image path."
   (concat diaspora-image-directory image-name)
   )
-
-(add-hook 'diaspora-mode-hook 'diaspora-get-all-images)
-(add-hook 'diaspora-mode-hook 'diaspora-show-images)
-(add-hook 'diaspora-mode-hook 'diaspora-see-regexp-markdow)
-(add-hook 'diaspora-mode-hook 'diaspora-show-videos)
 
 (provide 'diaspora)
 
