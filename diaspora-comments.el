@@ -105,12 +105,16 @@ buffer or in the buffer specified."
   ;; create buffer
   (setq diaspora-comment-buffer (get-buffer-create diaspora-comment-buffer-name))
   (switch-to-buffer-other-window diaspora-comment-buffer)
-  ;; insert header and footer, modes... etc.
-  (diaspora-date)
-  (insert diaspora-footer-post)
-  (goto-char (point-min))
-  (insert diaspora-header-post)
-  (diaspora-mode)
+  (with-current-buffer diaspora-comment-buffer
+    (let ((inhibit-read-only t))
+      ;; insert header and footer, modes... etc.
+      (diaspora-date)
+      (insert diaspora-footer-post)
+      (goto-char (point-min))
+      (insert diaspora-header-post)
+      (diaspora-mode)
+      (set 'buffer-read-only nil)
+    ))
   (message "Use C-c C-c to comment to diaspora or use diaspora-send-comment-this-buffer."))
 
 (defvar diaspora-next-comment-to-post

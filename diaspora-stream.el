@@ -214,7 +214,9 @@ I expect to be logged in, but if not, I download the authenticity token."
       ;; Delete the HTTP header...
       (diaspora-delete-http-header)
       ;; Parse JSON...
-      (diaspora-parse-json)
+      (let ((inhibit-read-only t))
+	(diaspora-parse-json)
+	)
       ;;Change markdown to html... not so good.      
       ;;(diaspora-change-to-html)
       ;;Better using diaspora-mode already done by Tiago!      
@@ -285,7 +287,7 @@ Check if the temporal directory exists, if not create it."
 
 (defvar diaspora-show-message-map-stream
   (let ((map (make-sparse-keymap)))
-    (define-key map "C-c c" 'diaspora-comment-message-new-buffer)
+    (define-key map "\C-cc" 'diaspora-comment-message-new-buffer)
     (define-key map [return] 'diaspora-show-message-new-buffer)
     (define-key map [mouse-2] 'diaspora-show-message-new-buffer)
     map)
