@@ -1,3 +1,26 @@
+
+    ;; diaspora-new.el
+    ;; Copyright (C) 2012  Giménez, Christian N.
+
+    ;; This program is free software: you can redistribute it and/or modify
+    ;; it under the terms of the GNU General Public License as published by
+    ;; the Free Software Foundation, either version 3 of the License, or
+    ;; (at your option) any later version.
+
+    ;; This program is distributed in the hope that it will be useful,
+    ;; but WITHOUT ANY WARRANTY; without even the implied warranty of
+    ;; MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    ;; GNU General Public License for more details.
+
+    ;; You should have received a copy of the GNU General Public License
+    ;; along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    ;; Lunes 12 De Marzo Del 2012    
+
+
+(defvar diaspora-single-message-buffer "*diaspora single message*"
+  "Name of the buffer for a diaspora message")
+
 (defun diaspora-interlace-cars (lst1 lst2)
   (if lst1
       (cons (list (car lst1) 
@@ -214,7 +237,7 @@
   (diaspora-ask)
   (diaspora-authenticity-token diaspora-sign-in-url)
   (save-excursion
-    (let ((buffer-message diaspora-single-message-buffer))
+    (let ((buffer-message (get-buffer-create diaspora-single-message-buffer)))
       (switch-to-buffer buffer-message)
       (with-current-buffer buffer-message
 	(diaspora-show-json-parsed-message 

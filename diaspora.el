@@ -553,6 +553,7 @@ Note: this is not correct! Needs more thought to get all images right."
        '(diaspora-mode-font-lock-keywords))
   (set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
+  (set (make-local-variable 'buffer-read-only) t)
   (run-hooks 'diaspora-mode-hook))
 
 
