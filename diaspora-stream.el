@@ -406,12 +406,12 @@ Use it for getting the nearest id post number when selecting a message."
     ;; Get the post message parsed from JSON
     (goto-char (point-min))
     (let ((json-array-type 'list)
-	  (json-object-type 'alist)
-	  (lstparsed (cdr (assoc 'posts (json-read)))))
-      (with-current-buffer buff-to
-	;; Clean buffer buff-to and insert message
-	(delete-region (point-min) (point-max))
-	(diaspora-show-message lstparsed)))))
+	  (json-object-type 'alist))
+      (let ((lstparsed  (json-read)))
+	(with-current-buffer buff-to
+	  ;; Clean buffer buff-to and insert message
+	  (delete-region (point-min) (point-max))
+	  (diaspora-show-message lstparsed))))))
 
 (defun diaspora-parse-json (&optional status)
   "Parse de JSON entry stream."
