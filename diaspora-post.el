@@ -38,16 +38,21 @@ For example: C-u M-x diaspora-post-to."
    (list (when current-prefix-arg
            (buffer-substring (point) (mark)))))
   (window-configuration-to-register diaspora-post-register)
-  (get-buffer-create diaspora-post-buffer)
+  (get-buffer-create diaspora-post-buffer)  
   (switch-to-buffer-other-window diaspora-post-buffer)
-  (diaspora-date)
-  (insert diaspora-footer-post)
-  (goto-char (point-min))
-  (when initial 
-    (insert initial))
-  (goto-char (point-min))
-  (insert diaspora-header-post)
-  (diaspora-mode)
+  (with-current-buffer diaspora-post-buffer
+    (let ((inhibit-read-only t))
+      (diaspora-date)
+      (insert diaspora-footer-post)
+      (goto-char (point-min))
+      (when initial 
+	(insert initial))
+      (goto-char (point-min))
+      (insert diaspora-header-post)
+      (diaspora-mode)
+      (set 'buffer-read-only nil)
+      )
+    )
   (message "Use C-cp to post to diaspora*."))
 
 (defun diaspora-add-aspect (aspect-name)
