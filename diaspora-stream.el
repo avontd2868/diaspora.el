@@ -396,8 +396,10 @@ Use it for getting the nearest id post number when selecting a message."
     (with-current-buffer buff-http
       ;; Delete HTTP header!
       (diaspora-delete-http-header))
-    (diaspora-parse-single-message-json buff-http buff)
-    (diaspora-insert-comments-for-message id-message buff)
+    (let ((inhibit-read-only t))
+      (diaspora-parse-single-message-json buff-http buff)
+      (diaspora-insert-comments-for-message id-message buff)
+      )
     (switch-to-buffer-other-window buff)
 ;    (switch-to-buffer buff)
     (diaspora-mode)))

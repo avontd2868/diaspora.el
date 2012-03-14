@@ -77,7 +77,7 @@ buffer or in the buffer specified."
 	    (lstparsed (json-read)))
 	;; parse all comments one by one and insert it
 	(let ((le (length lstparsed))
-;	      (inhibit-read-only t)
+;;	      (inhibit-read-only t)
 	      )
 	  (dotimes (i le)
 	    (diaspora-insert-comment (aref lstparsed i) buffer)))))))
