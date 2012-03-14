@@ -135,11 +135,14 @@ If post-id parameter is not given, use the message id from `diaspora-next-commen
   nil
   "This is the post id where to send the comment in the next `diaspora-send-comment-this-buffer' function call.")
 
-(defun diaspora-send-comment-this-buffer ()
-  "Send this buffer as a comment to the post determined by the id `diaspora-next-comment-to-post'."
-  (interactive)
+(defun diaspora-send-comment-this-buffer (&optional new-auth-token)
+  "Send this buffer as a comment to the post determined by the id `diaspora-next-comment-to-post'.
+
+If new-auth-token is set to t, its get a new authenticity token. This is usefull when sometimes the comment doesn't work."
+  (interactive "P")
   (diaspora-ask)
-  (when (null diaspora-auth-token)
+  (when (or new-auth-token)
+	 (null diaspora-auth-token)
     (message (concat "Getting authenticity token..."))
     (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
     (message (concat "done: " diaspora-auth-token))
