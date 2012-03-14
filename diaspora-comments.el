@@ -98,12 +98,24 @@ buffer or in the buffer specified."
 (defvar diaspora-comment-buffer nil
   "This is the buffer (supposed to be only one or unique) for write a comment.")
 
+(defun diaspora-comment-message ()
+  "Find the post-id and create a buffer for the user so he can write a comment.
+
+This function set the `diaspora-next-comment-to-post' variable with the post-id."
+  (interactive)
+  (let ((post-id (diaspora-get-id-message-near-point)))
+    (if post-id
+	(diaspora-new-comment-buffer post-id)
+      (message "Unable to find the post-id (located in the text property `diaspora-id-message').")
+      )
+    )
+  )
+
 (defun diaspora-new-comment-buffer (post-id)
   "Create a new buffer for write a comment for the post with id given by post-id."
-  (interactive)
-  (setq diaspora-next-comment-to-post post-id)
+  (set 'diaspora-next-comment-to-post post-id)
   ;; create buffer
-  (setq diaspora-comment-buffer (get-buffer-create diaspora-comment-buffer-name))
+  (set 'diaspora-comment-buffer (get-buffer-create diaspora-comment-buffer-name))
   (switch-to-buffer-other-window diaspora-comment-buffer)
   (with-current-buffer diaspora-comment-buffer
     (let ((inhibit-read-only t))

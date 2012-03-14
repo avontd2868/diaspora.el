@@ -287,7 +287,7 @@ Check if the temporal directory exists, if not create it."
 
 (defvar diaspora-show-message-map-stream
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-cc" 'diaspora-comment-message-new-buffer)
+    (define-key map "\C-cc" 'diaspora-comment-message)
     (define-key map [return] 'diaspora-show-message-new-buffer)
     (define-key map [mouse-2] 'diaspora-show-message-new-buffer)
     map)
