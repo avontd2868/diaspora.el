@@ -216,21 +216,23 @@ I expect to be logged in, but if not, I download the authenticity token."
       ;; Parse JSON...
       (let ((inhibit-read-only t))
 	(diaspora-parse-json)
-	)
-      ;;Change markdown to html... not so good.      
-      ;;(diaspora-change-to-html)
-      ;;Better using diaspora-mode already done by Tiago!      
-      (diaspora-mode) 
-      (if diaspora-show-images-by-default
-	  (progn
-	    (diaspora-get-all-images)
-	    (diaspora-show-images)
-	    )
+	
+	;;Change markdown to html... not so good.      
+	;;(diaspora-change-to-html)
+	;;Better using diaspora-mode already done by Tiago!      
+	(diaspora-mode) 
+	(if diaspora-show-images-by-default
+	    (progn
+	      (diaspora-get-all-images)
+	      (diaspora-show-images)
+	      )
+	  )
 	(goto-char (point-min))
 	)
+      )
     ;; Delete HTTP Buffer
     ;;(kill-buffer buff)
-    )))
+    ))
 
 					; Streams!
 

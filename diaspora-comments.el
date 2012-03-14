@@ -103,17 +103,19 @@ buffer or in the buffer specified."
 
 This function set the `diaspora-next-comment-to-post' variable with the post-id."
   (interactive)
-  (let ((post-id (diaspora-get-id-message-near-point)))
-    (if post-id
-	(diaspora-new-comment-buffer post-id)
-      (message "Unable to find the post-id (located in the text property `diaspora-id-message').")
-      )
+  (set 'diaspora-next-comment-to-post (diaspora-get-id-message-near-point))
+  (if diaspora-next-comment-to-post
+      (diaspora-new-comment-buffer)    
+    (message "Unable to find the post-id (located in the text property `diaspora-id-message').")	
     )
   )
 
-(defun diaspora-new-comment-buffer (post-id)
-  "Create a new buffer for write a comment for the post with id given by post-id."
-  (set 'diaspora-next-comment-to-post post-id)
+(defun diaspora-new-comment-buffer (&optional post-id)
+  "Create a new buffer for write a comment for the post with id given by post-id.
+
+If post-id parameter is not given, use the message id from `diaspora-next-comment-to-post'."
+  (when post-id
+    (set 'diaspora-next-comment-to-post post-id))
   ;; create buffer
   (set 'diaspora-comment-buffer (get-buffer-create diaspora-comment-buffer-name))
   (switch-to-buffer-other-window diaspora-comment-buffer)
