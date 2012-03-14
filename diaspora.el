@@ -618,8 +618,29 @@ Note: this is not correct! Needs more thought to get all images right."
 
 (defun diaspora-image-path (image-name)
   "Return the temporal image path."
-  (concat diaspora-image-directory image-name)
+  (concat diaspora-image-directory 
+	  (diaspora-image-filter-out-bad-chars image-name))
   )
+
+(defun diaspora-image-filter-out-bad-chars (image-name)
+  (let ((name image-name))	
+    (while (string-match "[&\\?><|%]" name)
+      (setq name (replace-match "" nil t name))
+      )
+    name
+    )
+  )
+  
+
+(defun diaspora-image-path-from-url (image-url &optional user-id)
+  "Return the temporal image path from the url where it has been dowloaded."
+  (concat diaspora-image-directory
+	  (if user-id 
+	      (concat user-id "-"))
+	  (diaspora-image-filter-out-bad-chars (file-name-nondirectory image-url))
+	  )
+  )
+
 
 (provide 'diaspora)
 

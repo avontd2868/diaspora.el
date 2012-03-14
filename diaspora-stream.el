@@ -458,10 +458,7 @@ Use it for getting the nearest id post number when selecting a message."
 
 (defun diaspora-write-image (status url &optional user-id)
   (let ((image-file-name
-	 (concat diaspora-image-directory
-		 (if user-id 
-		     (concat user-id "-"))
-		 (file-name-nondirectory url))))
+	 (diaspora-image-path-from-url url user-id)))
     (setq buffer-file-coding-system 'no-conversion)
     (setq buffer-file-name image-file-name)
     (goto-char (point-min))
@@ -491,10 +488,10 @@ Use it for getting the nearest id post number when selecting a message."
 (defun diaspora-insert-image (beg end)
   "Create an image  and insert it place of an `diaspora-regexp-image' defined by BEG and END."
   (add-text-properties (cadr ipoint) (cddr ipoint)
-		       (list 'display (create-image 
-				       (concat diaspora-image-directory
-					       (file-name-nondirectory 
-						(car ipoint)))))))
+		       (list 'display (create-image (diaspora-image-path-from-url (car ipoint))))
+		       )
+  )
+
 (defun diaspora-unshow-images ()
   "Un shows images in buffer."
   (interactive)
@@ -693,7 +690,7 @@ If STRING is nil return an empty string."
     (diaspora-image-path image-name)))
 
 (defun diaspora-show-image-at-region ()
-  "Consider the region as an URL, download it(if necessary) and open an external program to see it."
+  "Consider the region as the image's URL, download it(if necessary) and open an external program to see it."
   (interactive)
   (let ((url (buffer-substring-no-properties (region-beginning) (region-end))))
     (diaspora-get-image-if-necessary url)
