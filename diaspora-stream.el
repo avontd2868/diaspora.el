@@ -692,6 +692,15 @@ If STRING is nil return an empty string."
       (diaspora-get-image-sync url))
     (diaspora-image-path image-name)))
 
+(defun diaspora-show-image-at-region ()
+  "Consider the region as an URL, download it(if necessary) and open an external program to see it."
+  (interactive)
+  (let ((url (buffer-substring-no-properties (region-beginning) (region-end))))
+    (diaspora-get-image-if-necessary url)
+    (diaspora-open-image-program (diaspora-image-path (file-name-nondirectory url)))
+    )
+  )
+
 (defun diaspora-show-image-at-point ()
   "Show only the image at the cursor."
   (interactive)
