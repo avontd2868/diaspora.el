@@ -65,6 +65,8 @@
 (defun diaspora-insert-comments-for-message (message-id &optional buffer)
   "Get the comments for the given message, and insert it in the current 
 buffer or in the buffer specified."
+  (diaspora-ask)
+  (diaspora-get-authenticity-token-if-necessary)
   (let ((buff-http (diaspora-get-url-entry-stream 
 		    (diaspora-get-comment-url message-id)))
 	(buffer (if (null buffer)
@@ -141,12 +143,7 @@ If post-id parameter is not given, use the message id from `diaspora-next-commen
 If new-auth-token is set to t, its get a new authenticity token. This is usefull when sometimes the comment doesn't work."
   (interactive "P")
   (diaspora-ask)
-  (when (or new-auth-token)
-	 (null diaspora-auth-token)
-    (message (concat "Getting authenticity token..."))
-    (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
-    (message (concat "done: " diaspora-auth-token))
-    )     
+  (diaspora-get-authenticity-token-if-necessary nil new-auth-token)   
   (diaspora-send-comment-post (buffer-string) diaspora-next-comment-to-post))
 
 

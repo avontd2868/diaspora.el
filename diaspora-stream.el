@@ -41,6 +41,16 @@
   :version "23.0"
   :tag "diaspora streams urls")
 
+(defcustom diaspora-get-always-authenticity-token t
+  "Always get the authenticity token when connecting to Diáspora. 
+You may would like to get only one authenticity token, but sometimes posting or getting info may fail.
+
+If you set this to true, then diaspora.el will always get the authenticity token, making it more slow but robust.
+
+Note: If you have a slow Internet, you may would like to set this into false(or nil)."
+  :group 'diaspora-streams
+  :type 'boolean)
+
 (defcustom diaspora-participate-stream-name
   "participate"
   "Name of the \"Participate\" stream. 
@@ -206,8 +216,7 @@ will get the https://joindiaspora.com/aspects.json URL, parse it, and show it in
   "Get the stream given by the url, and then, show it in the diaspora buffer.
 I expect to be logged in, but if not, I download the authenticity token."  
   (diaspora-ask) ;; don't forget username and password!
-  (when (null diaspora-auth-token)
-    (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))) ;; Get the authenticity token    
+  (diaspora-get-authenticity-token-if-necessary)
   ;; get the in JSON format all the data
   (let ((buff (diaspora-get-url-entry-stream stream-url)))
     (with-current-buffer buff
@@ -714,5 +723,26 @@ If STRING is nil return an empty string."
 			 " "
 			 image-path)))
     (async-shell-command command-string)))
+
+					; ********************
+					; Authenticity token functions
+
+(defun diaspora-get-authenticity-token-if-necessary (&optional url get-anyway)
+  "Check `diaspora-get-always-authenticity-token', and if it's true get the authenticity token. 
+If false, check if there is an authenticity token saved, if not get it.
+
+If URL is a string then get from this URL instead from (`diaspora-url' `diaspora-sign-in-url')(sing in URL).
+If GET-ANYWAY is t then get it from Internet despite everything.
+"
+  (when (or get-anyway
+	    diaspora-get-always-authenticity-token 
+	    (null diaspora-auth-token))
+    ;; Get the authenticity token    
+    (if url
+	(diaspora-authenticity-token url)
+      (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url)) 
+      )
+    (message "Diaspora: Authenticity token obtained")) 
+  )
 
 (provide 'diaspora-stream)
