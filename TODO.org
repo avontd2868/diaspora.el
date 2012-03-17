@@ -27,6 +27,8 @@
 * TODO Show how much people and who likes a message
   Like feature is working, diaspora.el only shows how many people likes something... but who are those people?
 
+* TODO Get the streams from an interval of dates
+  The stream we actually fetch are from the current date. But what about the other posts?   
 * Licence
 
     TODO.org

@@ -178,7 +178,7 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
     ;; kill the http buffer
     (kill-buffer buf-kill)))
 
-(defun diaspora-get-url-entry-stream (url)
+(defun diaspora-get-url-entry-stream (url &optional from-time max-time)
   "Get the Diáspora URL and leave it in a new buffer.
 Returns: A new buffer where is all the information retrieved from the URL."
   (let ((url-request-extra-headers
@@ -186,7 +186,21 @@ Returns: A new buffer where is all the information retrieved from the URL."
 	   ("Accept-Language" . "en")
 	   ("Accept-Charset" . "utf-8")))
 	(buffer-file-coding-system 'utf-8))
-    (url-retrieve-synchronously url)))
+    (if (and from-time max-time)
+	
+	(let ((url-request-data ;; the interval of time has been setted
+	       (mapconcat (lambda (arg)
+			    (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
+			  (list (cons "max-time" max-time)
+				(cons "_" from-time)
+				"&"))))
+	  (url-retrieve-synchronously url)) 
+      
+      (url-retrieve-synchronously url);; there is no interval of time
+      
+      )
+    )
+  )
 
 (defun diaspora-delete-http-header ()
   "Delete the first lines that is the HTTP header in the current buffer.
@@ -212,13 +226,15 @@ will get the https://joindiaspora.com/aspects.json URL, parse it, and show it in
   (diaspora-get-stream 
    (diaspora-url-json stream-name)))
 
-(defun diaspora-get-stream(stream-url)
+(defun diaspora-get-stream(stream-url from-time max-time)
   "Get the stream given by the url, and then, show it in the diaspora buffer.
-I expect to be logged in, but if not, I download the authenticity token."  
+I expect to be logged in, but if not, I download the authenticity token.
+
+Set FORM-TIME and MAX-TIME with a valid emacs timestamp to fetch information from and until that interval of time."  
   (diaspora-ask) ;; don't forget username and password!
   (diaspora-get-authenticity-token-if-necessary)
   ;; get the in JSON format all the data
-  (let ((buff (diaspora-get-url-entry-stream stream-url)))
+  (let ((buff (diaspora-get-url-entry-stream stream-url from-time max-time)))
     (with-current-buffer buff
       ;; Delete the HTTP header...
       (diaspora-delete-http-header)
