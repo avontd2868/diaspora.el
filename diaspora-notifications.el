@@ -57,8 +57,7 @@
   "Get notifications from diáspora and show them in a new buffer"
   (interactive)
   (diaspora-ask)
-  (when (null diaspora-auth-token) 
-      (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url)))
+  (diaspora-get-authenticity-token-if-necessary)
   (let ((http-buff (diaspora-get-url-entry-stream (diaspora-url diaspora-notifications-url)))
 	(buff (get-buffer-create diaspora-notifications-buffer-name))
 	(inhibit-read-only t))    

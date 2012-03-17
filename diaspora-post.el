@@ -160,11 +160,7 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
   "Post the current buffer to diaspora."
   (interactive)
   (diaspora-ask)
-  (when (null diaspora-auth-token)
-    (message (concat "Getting authenticity token..."))
-    (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url))
-    (message (concat "done: " diaspora-auth-token))
-    )
+  (diaspora-get-authenticity-token-if-necessary)
   (diaspora-post (buffer-string) diaspora-aspects-for-post)
   (diaspora-save-post-to-file)
   (kill-buffer))
