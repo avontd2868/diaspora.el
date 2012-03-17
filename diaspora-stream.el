@@ -355,9 +355,35 @@ If buffer is nil, then use the `current-buffer'."
 	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
-	  (insert "![photo](" 
-		  (cdr (assoc 'large (car (aref (cdr (assoc 'photos parsed-message))0))))
-		  ")\n"))))))
+	  (diaspora-insert-photos-markdown photos)))))
+  )
+
+(defun diaspora-insert-photos-markdown (photos &optional buffer)
+  "Insert photos in markdown format.
+
+PHOTOS may be an array or just an element of a JSON parsed message.
+
+For some reason Diaspora return two tipes of photos fields in the JSON message:
+ * One `json-read' returns it as an array.
+ * The other `json-read' returns it as a list.
+This parses the two options!"
+  (cond 
+   ((arrayp photos) ;; is a stream message JSON photo field!
+    (let ((le (length photos)) ;; is an array... is a different entry!
+	  (i 0))
+      (dotimes (i le)	  
+	(insert "![photo](" 
+		(cdr (assoc 'large (car (aref photos i))))
+		")\n")))
+    )
+   ((listp photos) ;; Is a single message JSON photo field!
+    (dolist (photo photos)
+      (insert "![photo](" 
+	      (cdr (assoc 'large (car photo)))
+	      ")\n"))
+    )
+   )
+  )
 
 (defun diaspora-add-link-to-publication (text id-message)
   "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
@@ -531,6 +557,10 @@ Use it for getting the nearest id post number when selecting a message."
 						  (if (not opt) 2
 						    opt))))
 	  (t nil))))
+
+(defvar diaspora-user-image-dir ""
+  ""
+  )
 
 (defun diaspora-show-videos (&optional opt)
   ""
