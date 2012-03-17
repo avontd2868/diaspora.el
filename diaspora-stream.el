@@ -209,7 +209,7 @@ This is used after getting a stream or any URL in JSON format."
    (search-forward "\n\n")      
    (delete-region (point-min) (match-beginning 0)))
 
-(defun diaspora-get-stream-by-name (stream-name)
+(defun diaspora-get-stream-by-name (stream-name &optional from-time max-time)
   "I try to get the stream given a name, and then show it parsed in a new buffer.
  This means, I format the URL according to this rules:
 
@@ -221,10 +221,17 @@ For example:
 if the `diaspora-pod' has the value: \"joindiaspora.com\", then
   (diaspora-get-stream-by-name 'aspects')
 
-will get the https://joindiaspora.com/aspects.json URL, parse it, and show it in a new buffer."
+will get the https://joindiaspora.com/aspects.json URL, parse it, and show it in a new buffer.
+
+FROM-TIME and MAX-TIME is a time interval where to fetch the post from those dates. It must be in the format as `current-time'(or `encode-time') returns: a list of three elements(where the third is totally ignored): 
+  (HIGH LOW MICROSECOND)
+Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
+MICROSECOND are ignored, even can be absent."
   (interactive "MName of the stream?")
   (diaspora-get-stream 
-   (diaspora-url-json stream-name)))
+   (diaspora-url-json stream-name)
+   from-time
+   max-time))
 
 (defun diaspora-get-stream(stream-url from-time max-time)
   "Get the stream given by the url, and then, show it in the diaspora buffer.
@@ -259,6 +266,50 @@ Set FORM-TIME and MAX-TIME with a valid emacs timestamp to fetch information fro
     ;;(kill-buffer buff)
     ))
 
+(defun diaspora-read-date ()
+  "Read a date from the minibuffer and return in the format as `current-time' or `encode-time' does."
+  (let ((day 0)
+	(month 0)
+	(year 0)
+	(max-year (nth 5 (decode-time)))
+	(mess "")
+	)
+    ;; DAY
+    (setq mess "Day:")
+    (while (or (< day 1)
+	       (> day 31))
+      (setq day (read-number mess))
+      (when (or (< day 1) 
+		(> day 31));; Incorrect day!
+	(setq mess "Please write a number between 1 up to 31. Day:")
+	)
+      )
+    ;; MONTH
+    (setq mess "Month:")
+    (while (or (< month 1)
+	       (> month 12))      
+      (setq month (read-number mess))
+      (when (or (< month 1)
+		(> month 12)) ;; Incorrect month!
+	(setq mess "Please write a number between 1 up to 12. Month:")
+	)
+      )
+    ;; YEAR
+    (setq mess "Year:")
+    (while (or (< year 2000)
+	       (> year max-year))
+      (setq year (read-number mess))
+      (when (or (< year 2000)
+		(> year max-year))
+	(setq mess (concat "Please write a number between 2000 and "
+			   (number-to-string max-year)
+			   ". Year:"))
+	)
+      )
+    (encode-time 0 0 0 day month year)
+    )
+  )
+
 					; Streams!
 
 (defun diaspora-get-participate-stream ()
@@ -266,12 +317,28 @@ Set FORM-TIME and MAX-TIME with a valid emacs timestamp to fetch information fro
   (interactive)
   (diaspora-get-stream-by-name diaspora-participate-stream-name))  
 
-(defun diaspora-get-entry-stream ()
+(defun diaspora-get-entry-stream (&optional from-date max-date)
   "Show the entry stream. 
 First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
-I expect to be already logged in. Use `diaspora' for log-in."
+I expect to be already logged in. Use `diaspora' for log-in.
+
+FROM-DATE and MAX-DATE are optional parameters that defines the date interval of the post you want to fetch. 
+This parameters has the same format as `current-time' but with the third parameter ignored(or absent): 
+  (HIGH LOW MICROSECOND)  
+Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
+MICROSECOND are ignored, even can be absent."
   (interactive)  
-  (diaspora-get-stream-by-name diaspora-entry-stream-url)
+  (diaspora-get-stream-by-name diaspora-entry-stream-url from-date max-date)
+  )
+
+(defun diaspora-get-entry-stream-from-dates ()
+  "Read the max date from the user and show the stream.
+
+In other words does the same as `diaspora-get-entry-stream' but first read dates."
+  (interactive)
+  (let ((max-date (diaspora-read-date)))
+    (diaspora-get-entry-stream (current-time) max-date)
+    )
   )
 
 (defun diaspora-get-public-stream ()
