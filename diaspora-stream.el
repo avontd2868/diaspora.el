@@ -160,6 +160,17 @@ setted correctly."
   "The name of the diaspora stream buffer.")
 
 					; ********************
+					; Internal Variables
+
+(defvar diaspora-stream-last-post-date nil
+  "A list with two (or more) elements in the format like `current-time'.
+
+  (HIGH LOW MICROSECOND)
+Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
+MICROSECOND are ignored, even can be absent."
+)
+
+					; ********************
 					; Functions
 
 (defun diaspora-show-stream (status &optional new-buffer-name)
@@ -191,8 +202,8 @@ Returns: A new buffer where is all the information retrieved from the URL."
 	(let ((url-request-data ;; the interval of time has been setted
 	       (mapconcat (lambda (arg)
 			    (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-			  (list (cons "max-time" max-time)
-				(cons "_" from-time)
+			  (list (cons "max-time" (float-time max-time))
+				(cons "_" (float-time from-time))
 				"&"))))
 	  (url-retrieve-synchronously url)) 
       
@@ -338,6 +349,31 @@ In other words does the same as `diaspora-get-entry-stream' but first read dates
   (interactive)
   (let ((max-date (diaspora-read-date)))
     (diaspora-get-entry-stream (current-time) max-date)
+    )
+  )
+
+(defun diaspora-one-day-more (from-date)
+  "Adds one day more at the FROM-DATE. 
+FROM-DATE must be in the format like `current-date' returns:
+  (HIGH LOW MICROSECOND)
+Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
+MICROSECOND are ignored, even can be absent.
+
+The return value is in the same format as the FROM-DATE parameter."
+  (seconds-to-time
+   (+ 86400 (float-time from-date))) ;; one day in seconds is 86400: add one day in seconds.   
+  )
+
+(defun diaspora-get-entry-stream-next-oldies ()
+  "Get the next olds post of the entry stream.
+
+I use the `diaspora-stream-last-post-date' variable."
+  (interactive)
+  (if diaspora-stream-last-post-date
+      (progn
+	(diaspora-get-entry-stream diaspora-stream-last-post-date (diaspora-one-day-more diaspora-stream-last-post-date))
+	)
+    (message "You need to get the a stream: there is no last post!")
     )
   )
 
@@ -536,15 +572,21 @@ Use it for getting the nearest id post number when selecting a message."
 	  (diaspora-show-message lstparsed))))))
 
 (defun diaspora-parse-json (&optional status)
-  "Parse de JSON entry stream."
+  "Parse de JSON entry stream.
+Take the JSON format, read it and write it in the `diaspora-stream-buffer' buffer.
+
+Also save the last post date for getting the next posts(older posts) in the stream using `diaspora-get-entry-stream-next-oldies'."
   (goto-char (point-min))
     (window-configuration-to-register diaspora-stream-register)
   ;; Create a new buffer called according `diaspora-buffer' say 
   ;; and parse the json code into lists.
-  (let ((json-array-type 'list)
-       (json-object-type 'alist)
-       (lstparsed (cdr (assoc 'posts (json-read))))
+  (let* ((json-array-type 'list)
+       (json-object-type 'alist)       
+       (parsed-json (json-read))
+       (lstparsed (cdr (assoc 'posts parsed-json)))
        (buff (get-buffer-create diaspora-stream-buffer)))
+    ;; Save the last post's date
+    (setq diaspora-stream-last-post-date (diaspora-get-last-post-time parsed-json))
     ;; clean the new buffer
     (switch-to-buffer buff)
     (let ((le (length lstparsed)))
@@ -856,6 +898,29 @@ If GET-ANYWAY is t then get it from Internet despite everything.
       (diaspora-authenticity-token (diaspora-url diaspora-sign-in-url)) 
       )
     (message "Diaspora: Authenticity token obtained")) 
+  )
+
+(defun diaspora-get-last-post-time (stream-json-parsed)
+  "Return the last post time so you can use it for fetching the next part of the streams with older posts.
+The return value is a list in the format like `current-time' or `encode-date'(in fact I use that function):
+  (HIGH LOW MICROSECOND)
+Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
+MICROSECOND are ignored, even can be absent.
+
+STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
+  (let* (
+	 (post-arr (cdr (assoc 'posts stream-json-parsed))) ;; return the posts array
+	 (last-post (aref post-arr (1- (length post-arr)))) ;; return the last post
+	 (interacted-date (cdr (assoc 'interacted_at last-post))) ;; return the string with the last interacted date
+	 (year (string-to-number (substring interacted-date 0 4)))
+	 (month (string-to-number (substring interacted-date 5 7)))
+	 (day (string-to-number (substring interacted-date 8 10)))
+	 (hour (string-to-number (substring interacted-date 11 13)))
+	 (min (string-to-number (substring interacted-date 14 16)))
+	 (sec (string-to-number (substring interacted-date 17 19)))
+	 )
+    (encode-time sec min hour day month year)
+    )
   )
 
 (provide 'diaspora-stream)
