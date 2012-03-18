@@ -41,6 +41,11 @@
   :version "23.0"
   :tag "diaspora streams urls")
 
+(defcustom diaspora-timezone -3
+  "Amount of hours as a timezone. If your timezone is -3UTC then use -3(three hours less to reach the UTC!)"
+  :group 'diaspora
+  :type 'integer)
+
 (defcustom diaspora-get-always-authenticity-token t
   "Always get the authenticity token when connecting to Diáspora. 
 You may would like to get only one authenticity token, but sometimes posting or getting info may fail.
@@ -189,7 +194,16 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
     ;; kill the http buffer
     (kill-buffer buf-kill)))
 
-(defun diaspora-get-url-entry-stream (url &optional from-time max-time)
+(defun diaspora-get-time-by-timezone (max-time)
+  "Return the time in seconds from the epoch modified according to the timezone specified by `diaspora-timezone' to represents the time
+in the UTC standard.
+
+This is usefull for giving this as a GET(or POST) \"max_time\" parameter for any stream."
+  (+ (float-time max-time) (* diaspora-timezone 3600)) ;; 3600 is one hour.
+  )
+
+
+(defun diaspora-get-url-entry-stream (url &optional max-time)
   "Get the Diáspora URL and leave it in a new buffer.
 Returns: A new buffer where is all the information retrieved from the URL."
   (let ((url-request-extra-headers
@@ -197,14 +211,14 @@ Returns: A new buffer where is all the information retrieved from the URL."
 	   ("Accept-Language" . "en")
 	   ("Accept-Charset" . "utf-8")))
 	(buffer-file-coding-system 'utf-8))
-    (if (and from-time max-time)
+    (if max-time
 	
 	(let ((url-request-data ;; the interval of time has been setted
 	       (mapconcat (lambda (arg)
 			    (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-			  (list (cons "max-time" (float-time max-time))
-				(cons "_" (float-time from-time))
-				"&"))))
+			  (list (cons "max_time" (number-to-string (diaspora-get-time-by-timezone max-time))))
+				"&"))
+	      )
 	  (url-retrieve-synchronously url)) 
       
       (url-retrieve-synchronously url);; there is no interval of time
@@ -220,7 +234,7 @@ This is used after getting a stream or any URL in JSON format."
    (search-forward "\n\n")      
    (delete-region (point-min) (match-beginning 0)))
 
-(defun diaspora-get-stream-by-name (stream-name &optional from-time max-time)
+(defun diaspora-get-stream-by-name (stream-name &optional max-time)
   "I try to get the stream given a name, and then show it parsed in a new buffer.
  This means, I format the URL according to this rules:
 
@@ -234,25 +248,24 @@ if the `diaspora-pod' has the value: \"joindiaspora.com\", then
 
 will get the https://joindiaspora.com/aspects.json URL, parse it, and show it in a new buffer.
 
-FROM-TIME and MAX-TIME is a time interval where to fetch the post from those dates. It must be in the format as `current-time'(or `encode-time') returns: a list of three elements(where the third is totally ignored): 
+MAX-TIME is a time where to fetch the post earlier up to that time . It must be in the format as `current-time'(or `encode-time') returns: a list of three elements(where the third is totally ignored): 
   (HIGH LOW MICROSECOND)
 Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
 MICROSECOND are ignored, even can be absent."
   (interactive "MName of the stream?")
   (diaspora-get-stream 
    (diaspora-url-json stream-name)
-   from-time
    max-time))
 
-(defun diaspora-get-stream(stream-url from-time max-time)
+(defun diaspora-get-stream(stream-url max-time)
   "Get the stream given by the url, and then, show it in the diaspora buffer.
 I expect to be logged in, but if not, I download the authenticity token.
 
-Set FORM-TIME and MAX-TIME with a valid emacs timestamp to fetch information from and until that interval of time."  
+Set MAX-TIME with a valid emacs timestamp to fetch information from and until that interval of time."  
   (diaspora-ask) ;; don't forget username and password!
   (diaspora-get-authenticity-token-if-necessary)
   ;; get the in JSON format all the data
-  (let ((buff (diaspora-get-url-entry-stream stream-url from-time max-time)))
+  (let ((buff (diaspora-get-url-entry-stream stream-url max-time )))
     (with-current-buffer buff
       ;; Delete the HTTP header...
       (diaspora-delete-http-header)
@@ -282,6 +295,9 @@ Set FORM-TIME and MAX-TIME with a valid emacs timestamp to fetch information fro
   (let ((day 0)
 	(month 0)
 	(year 0)
+	(hour 0)
+	(min -1)
+	(sec 0)
 	(max-year (nth 5 (decode-time)))
 	(mess "")
 	)
@@ -317,7 +333,31 @@ Set FORM-TIME and MAX-TIME with a valid emacs timestamp to fetch information fro
 			   ". Year:"))
 	)
       )
-    (encode-time 0 0 0 day month year)
+    
+    ;; HOUR
+    (setq mess "Hour:")
+    (while (or (< hour 1)
+	       (> hour 24))
+      (setq hour (read-number mess))
+      (when (or (< hour 1)
+		(> hour 24))
+	(setq mess (concat "Please write a number between 1 and 24. Hours:"))
+	)
+      )
+
+    ;; MIN
+    (setq mess "MIN:")
+    (while (or (< min 0)
+	       (> min 59))
+      (setq min (read-number mess))
+      (when (or (< min 0)
+		(> min 59))
+	(setq mess (concat "Please write a number between 0 and 59. Minutes:"))
+	)
+
+      )
+    
+    (encode-time sec min hour day month year)
     )
   )
 
@@ -328,18 +368,18 @@ Set FORM-TIME and MAX-TIME with a valid emacs timestamp to fetch information fro
   (interactive)
   (diaspora-get-stream-by-name diaspora-participate-stream-name))  
 
-(defun diaspora-get-entry-stream (&optional from-date max-date)
+(defun diaspora-get-entry-stream (&optional max-date)
   "Show the entry stream. 
 First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
 I expect to be already logged in. Use `diaspora' for log-in.
 
-FROM-DATE and MAX-DATE are optional parameters that defines the date interval of the post you want to fetch. 
+MAX-DATE is an optional parameter that defines the date interval of the post you want to fetch. 
 This parameters has the same format as `current-time' but with the third parameter ignored(or absent): 
   (HIGH LOW MICROSECOND)  
 Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
 MICROSECOND are ignored, even can be absent."
   (interactive)  
-  (diaspora-get-stream-by-name diaspora-entry-stream-url from-date max-date)
+  (diaspora-get-stream-by-name diaspora-entry-stream-url max-date)
   )
 
 (defun diaspora-get-entry-stream-from-dates ()
@@ -348,7 +388,7 @@ MICROSECOND are ignored, even can be absent."
 In other words does the same as `diaspora-get-entry-stream' but first read dates."
   (interactive)
   (let ((max-date (diaspora-read-date)))
-    (diaspora-get-entry-stream (current-time) max-date)
+    (diaspora-get-entry-stream max-date)
     )
   )
 
@@ -371,7 +411,7 @@ I use the `diaspora-stream-last-post-date' variable."
   (interactive)
   (if diaspora-stream-last-post-date
       (progn
-	(diaspora-get-entry-stream diaspora-stream-last-post-date (diaspora-one-day-more diaspora-stream-last-post-date))
+	(diaspora-get-entry-stream diaspora-stream-last-post-date)
 	)
     (message "You need to get the a stream: there is no last post!")
     )
@@ -911,7 +951,7 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
   (let* (
 	 (post-arr (cdr (assoc 'posts stream-json-parsed))) ;; return the posts array
 	 (last-post (aref post-arr (1- (length post-arr)))) ;; return the last post
-	 (interacted-date (cdr (assoc 'created_at last-post))) ;; return the string with the last interacted date
+	 (interacted-date (cdr (assoc 'created_at last-post))) ;; return the string with the last created_at date
 	 (year (string-to-number (substring interacted-date 0 4)))
 	 (month (string-to-number (substring interacted-date 5 7)))
 	 (day (string-to-number (substring interacted-date 8 10)))
