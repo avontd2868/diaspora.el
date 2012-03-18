@@ -175,6 +175,13 @@ Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits l
 MICROSECOND are ignored, even can be absent."
 )
 
+(defvar diaspora-last-stream-visited nil
+  "A list with two elements: the stream name and the max-time.
+
+If max-time is nil, then the max-time is the current-time.
+
+If this variable is nil then there was no last stream visited.")
+
 					; ********************
 					; Functions
 
@@ -234,6 +241,39 @@ This is used after getting a stream or any URL in JSON format."
    (search-forward "\n\n")      
    (delete-region (point-min) (match-beginning 0)))
 
+(defun diaspora-get-next-oldies ()
+  "Get the next olds post of the last visited stream.
+
+I use the `diaspora-stream-last-post-date' variable.
+
+This is the same as going up to the bottom of the page and let diaspora reload the older posts."
+  (interactive)
+  (if diaspora-stream-last-post-date
+      (progn
+	(diaspora-visit-last-stream diaspora-stream-last-post-date)
+	)
+    (message "You need to get a stream: there is no last stream visited!")
+    )
+  )
+
+(defun diaspora-visit-last-stream (&optional other-max-time)
+  "Visit the last stream, maybe with max-time changed.
+
+OTHER-MAX-TIME is a list with two elements:
+  (HIGH LOW)
+This is a timestamp as `current-time' returns.
+
+Is used for getting the posts created up to that time.
+
+I use `diaspora-last-stream-visited' variable for getting the name of the last stream visited."
+  (interactive)
+  (if diaspora-last-stream-visited     
+      (diaspora-get-stream-by-name (car diaspora-last-stream-visited) (or other-max-time ;; use other-max-time if setted
+									  (nth 1 diaspora-last-stream-visited)))
+    (message "There's no last stream visited."))
+  )
+  
+
 (defun diaspora-get-stream-by-name (stream-name &optional max-time)
   "I try to get the stream given a name, and then show it parsed in a new buffer.
  This means, I format the URL according to this rules:
@@ -253,6 +293,7 @@ MAX-TIME is a time where to fetch the post earlier up to that time . It must be 
 Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
 MICROSECOND are ignored, even can be absent."
   (interactive "MName of the stream?")
+  (setq diaspora-last-stream-visited (list stream-name max-time))
   (diaspora-get-stream 
    (diaspora-url-json stream-name)
    max-time))
