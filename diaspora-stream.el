@@ -382,10 +382,10 @@ MICROSECOND are ignored, even can be absent."
   (diaspora-get-stream-by-name diaspora-entry-stream-url max-date)
   )
 
-(defun diaspora-get-entry-stream-from-dates ()
+(defun diaspora-get-entry-stream-up-to-date ()
   "Read the max date from the user and show the stream.
 
-In other words does the same as `diaspora-get-entry-stream' but first read dates."
+In other words, look for posts up to that date."
   (interactive)
   (let ((max-date (diaspora-read-date)))
     (diaspora-get-entry-stream max-date)
@@ -407,7 +407,9 @@ The return value is in the same format as the FROM-DATE parameter."
 (defun diaspora-get-entry-stream-next-oldies ()
   "Get the next olds post of the entry stream.
 
-I use the `diaspora-stream-last-post-date' variable."
+I use the `diaspora-stream-last-post-date' variable.
+
+This is the same as going up to the bottom of the page and let diaspora reload the older posts."
   (interactive)
   (if diaspora-stream-last-post-date
       (progn
