@@ -18,7 +18,7 @@
 
   Maybe finding the way to get the amount of unreaded notifications and make it visible in the status line.
 
-* TODO Put the comments in the stream buffer
+* DONE Put the comments in the stream buffer
   It should be possible to read comments in the stream buffer, as seen on the diaspora web.
 
 * TODO Show how much people and who shares a message
@@ -30,7 +30,9 @@
 * DONE Get the streams from an interval of dates
   The stream we actually fetch are from the current date. But what about the other posts?   
 
-* TODO Organize Customization Group for Diaspora  
+* TODO Organize Customization Group for Diaspora
+* TODO Add the "amount of reshares" element apart from amount of like and amount of comments
+* TODO Add icons image to the likes, reshare, and comments
 * Licence
 
     TODO.org
