@@ -87,11 +87,12 @@ buffer or in the buffer specified."
 (defun diaspora-insert-comment (comment buffer)
   "Insert a JSON parsed (with `json-read') into a specific buffer."
   (let ((name (cdr (assoc 'name (cdr (assoc 'author comment)))))
+	(diaspora-id (cdr (assoc 'diaspora_id (cdr (assoc 'author comment)))))
 	(text (cdr (assoc 'text comment)))
 	(created_at (cdr (assoc 'created_at comment))))
     (with-current-buffer buffer
-      (insert (format "\n---\n%s at %s:\n" name created_at))
-      (insert text))))
+      (insert (format "\n%s (%s): at %s:\n" name diaspora-id created_at))
+      (insert text "\n"))))
 
 
 (defconst diaspora-comment-buffer-name "*diaspora comment*"
@@ -166,6 +167,21 @@ Comment should be a String and post-id the id number of the post."
     (url-retrieve-synchronously (diaspora-post-comment-url post-id))))
 
 ;; Add keymap for `diaspora-mode':
+
+
+
+(defun diaspora-comments-show-last-three (message-json-parsed)
+  "Insert in the current buffer the last three comments part of a JSON parsed message taken from a stream.
+
+This function is usefull when you are showing a stream with lots of posts."
+  (let* ((lst-msgs (cdr (assoc 'last_three_comments message-json-parsed)))
+	 (amount-comments (length lst-msgs))
+	 )
+    (dotimes (i amount-comments)
+      (diaspora-insert-comment (aref lst-msgs i) (current-buffer))
+      )
+    )  
+  )
 
 (provide 'diaspora-comments)
 

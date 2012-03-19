@@ -557,7 +557,13 @@ If buffer is nil, then use the `current-buffer'."
 	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
-	  (diaspora-insert-photos-markdown photos)))))
+	  (diaspora-insert-photos-markdown photos))	
+	(insert  "\n*Comments:*\n")
+	(diaspora-comments-show-last-three parsed-message)
+	(insert "\n")
+	)      
+      )    
+    )  
   )
 
 (defun diaspora-insert-photos-markdown (photos &optional buffer)
