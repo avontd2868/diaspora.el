@@ -87,10 +87,12 @@ buffer or in the buffer specified."
 (defun diaspora-insert-comment (comment buffer)
   "Insert a JSON parsed (with `json-read') into a specific buffer."
   (let ((name (cdr (assoc 'name (cdr (assoc 'author comment)))))
+	(avatar (cdr (assoc 'large (cdr (assoc 'avatar (cdr (assoc 'author comment)))))))
 	(diaspora-id (cdr (assoc 'diaspora_id (cdr (assoc 'author comment)))))
 	(text (cdr (assoc 'text comment)))
 	(created_at (cdr (assoc 'created_at comment))))
     (with-current-buffer buffer
+      (insert (format "\n![%s](%s)" name avatar))
       (insert (format "\n%s (%s): at %s:\n" name diaspora-id created_at))
       (insert text "\n"))))
 

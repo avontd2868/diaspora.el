@@ -521,7 +521,7 @@ Check if the temporal directory exists, if not create it."
 ;; of procedures that is used to insert images. Just a thought.
 
 
-(defun diaspora-show-message (parsed-message &optional buffer)
+(defun diaspora-show-message (parsed-message &optional buffer show-last-three-comments)
   "Show a parsed message in a given buffer.
 If buffer is nil, then use the `current-buffer'."
   ;; Ensure that buffer is not nil, in case is nil, buffer will be `current-buffer'.
@@ -555,12 +555,15 @@ If buffer is nil, then use the `current-buffer'."
 		 id))
 	(insert (format "%s\n" date))
 	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
+	(insert (diaspora-add-link-to-publication "Read in new buffer\n" id))
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	
-	(insert  "\n*Comments:*\n")
-	(diaspora-comments-show-last-three parsed-message)
-	(insert "\n")
+	(when show-last-three-comments
+	  (insert  "\n*Comments:*\n")
+	  (diaspora-comments-show-last-three parsed-message)
+	  (insert "\n")
+	  )
 	)      
       )    
     )  
@@ -640,14 +643,14 @@ Use it for getting the nearest id post number when selecting a message."
       ;; Delete HTTP header!
       (diaspora-delete-http-header))
     (let ((inhibit-read-only t))
-      (diaspora-parse-single-message-json buff-http buff)
+      (diaspora-parse-single-message-json buff-http buff nil)
       (diaspora-insert-comments-for-message id-message buff)
       )
     (switch-to-buffer-other-window buff)
 ;    (switch-to-buffer buff)
     (diaspora-mode)))
 
-(defun diaspora-parse-single-message-json (buff-from buff-to)
+(defun diaspora-parse-single-message-json (buff-from buff-to &optional show-last-three-comments)
   "Parse JSON format of a single message from buffer \"buff-from\" and return into \"buff-to\""
   (with-current-buffer buff-from
     ;; Get the post message parsed from JSON
@@ -658,7 +661,7 @@ Use it for getting the nearest id post number when selecting a message."
 	(with-current-buffer buff-to
 	  ;; Clean buffer buff-to and insert message
 	  (delete-region (point-min) (point-max))
-	  (diaspora-show-message lstparsed))))))
+	  (diaspora-show-message lstparsed nil show-last-three-comments))))))
 
 (defun diaspora-parse-json (&optional status)
   "Parse de JSON entry stream.
@@ -683,7 +686,7 @@ Also save the last post date for getting the next posts(older posts) in the stre
       (delete-region (point-min) (point-max))
     ;; Show all elements
       (dotimes (i le)
-	(diaspora-show-message (aref lstparsed i) buff)))))
+	(diaspora-show-message (aref lstparsed i) buff t)))))
 
 ;; images: needs working
 
