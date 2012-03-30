@@ -33,6 +33,8 @@
 * TODO Organize Customization Group for Diaspora
 * TODO Add the "amount of reshares" element apart from amount of like and amount of comments
 * TODO Add icons image to the likes, reshare, and comments
+* TODO What about a user stream? 
+  There is no function for retrieving all user posts.
 * Licence
 
     TODO.org

@@ -108,7 +108,8 @@ This list is used as parameter for `diaspora-post'."
   "Find the authenticity token."  
   (save-excursion
     (goto-char (point-min))
-    (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>")
+    (unless (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>" nil t)
+      (search-forward-regexp "<meta content=\"\\(.*\\)\" name=\"csrf-token\"[[:blank:]]*/>" nil t))
     (setq diaspora-auth-token (match-string-no-properties 1)))
   diaspora-auth-token)
 
