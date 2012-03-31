@@ -81,7 +81,7 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
   :group 'diaspora-streams)
 
 (defcustom diaspora-entry-stream-url 
-  "/explore"
+  "/stream"
   "JSON version of the entry stream(the main stream)."
   :type 'string
   :group 'diaspora-streams)
