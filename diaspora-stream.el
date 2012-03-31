@@ -30,6 +30,7 @@
 
 ;; Streaming 
 
+(require 'cl)
 (require 'diaspora-comments)
 
 					; ********************

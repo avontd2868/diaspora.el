@@ -17,6 +17,7 @@
 
     ;; Lunes 12 De Marzo Del 2012    
 
+(require 'cl)
 
 (defvar diaspora-single-message-buffer "*diaspora single message*"
   "Name of the buffer for a diaspora message")

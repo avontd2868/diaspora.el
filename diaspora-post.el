@@ -30,6 +30,8 @@
 
 ;; Posting
 
+(require 'cl)
+
 (defun diaspora-post-to (&optional initial)
   "Post to diaspora.
 With a prefix, uses the region as INITIAL.
