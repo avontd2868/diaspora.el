@@ -237,10 +237,12 @@ Returns: A new buffer where is all the information retrieved from the URL."
 
 (defun diaspora-delete-http-header ()
   "Delete the first lines that is the HTTP header in the current buffer.
-This is used after getting a stream or any URL in JSON format."
+This is used after getting a stream or any URL in JSON format.
+If there is no HTTP header, do nothing."
    (goto-char (point-min))
-   (search-forward "\n\n")      
-   (delete-region (point-min) (match-beginning 0)))
+   (when (search-forward "\n\n" nil t)
+     (delete-region (point-min) (match-beginning 0)))
+   )
 
 (defun diaspora-get-next-oldies ()
   "Get the next olds post of the last visited stream.
@@ -318,21 +320,25 @@ Set MAX-TIME with a valid emacs timestamp to fetch information from and until th
 	;; Apply diaspora-mode
 	(with-current-buffer stream-buff	  
 	  (diaspora-mode) 	
+	  
+	  (diaspora-parse-json buff stream-buff)
+
+	  (if diaspora-show-images-by-default
+	      (progn
+		(diaspora-get-all-images)
+		(diaspora-show-images)
+		)
+	    )
+
+	  (switch-to-buffer stream-buff)
+	  (goto-char (point-min))
 	  )
-	(diaspora-parse-json buff stream-buff)
-	(if diaspora-show-images-by-default
-	    (progn
-	      (diaspora-get-all-images)
-	      (diaspora-show-images)
-	      )
-	  )
-	(goto-char (point-min))
-	(switch-to-buffer stream-buff)
 	)
       )
     ;; Delete HTTP Buffer
-    ;;(kill-buffer buff)
-    ))
+    ;;(kill-buffer buff)   
+    )
+  )
 
 (defun diaspora-read-date ()
   "Read a date from the minibuffer and return in the format as `current-time' or `encode-time' does."
@@ -720,17 +726,22 @@ Also save the last post date for getting the next posts(older posts) in the stre
 
 (defun diaspora-write-image (status url &optional user-id)
   (let ((image-file-name
-	 (diaspora-image-path-from-url url user-id)))
+	 (diaspora-image-path-from-url url user-id))
+	(end-image (search-forward "\C-j\C-j" nil t))
+	)
     (setq buffer-file-coding-system 'no-conversion)
     (setq buffer-file-name image-file-name)
     (goto-char (point-min))
-    (delete-region (point-min) (search-forward "\C-j\C-j"))
+    (when end-image
+      (delete-region (point-min) (search-forward "\C-j\C-j" nil t))
+      )
     (save-buffer 0)
-    (kill-buffer (current-buffer))))
+    (kill-buffer (current-buffer)))
+  )
 
 (defun diaspora-get-all-images ()
   (interactive)
-  (mapcar 'diaspora-get-image (diaspora-get-all-image-links)))
+  (mapcar 'diaspora-get-image-sync (diaspora-get-all-image-links)))
 
 (defun diaspora-show-images ()
   "Shows images in buffer."
@@ -749,9 +760,11 @@ Also save the last post date for getting the next posts(older posts) in the stre
 
 (defun diaspora-insert-image (beg end)
   "Create an image  and insert it place of an `diaspora-regexp-image' defined by BEG and END."
-  (add-text-properties (cadr ipoint) (cddr ipoint)
-		       (list 'display (create-image (diaspora-image-path-from-url (car ipoint))))
-		       )
+  (condition-case nil
+      (add-text-properties (cadr ipoint) (cddr ipoint)
+			   (list 'display (create-image (diaspora-image-path-from-url (car ipoint))))
+			   )
+    (error nil)) ;; Don't throw errors... creating an image that emacs doesn't understand creates an error.
   )
 
 (defun diaspora-unshow-images ()
