@@ -352,6 +352,12 @@ Note: this is not correct! Needs more thought to get all images right."
   "^\\(\\*[ ]?\\*[ ]?\\*[ ]?[\\* ]*\\|-[ ]?-[ ]?-[--- ]*\\)$"
   "Regular expression for matching markdown horizontal rules.")
 
+(defconst diaspora-regexp-buttons-elements
+  "Read in new buffer"
+  "Regular expression for matching buttons like \"Read in new buffer\".
+This buttons are used by the user for clicking or pressing ENTER.")
+
+
 (defvar diaspora-header-face-1 'diaspora-header-face-1
   "Face name to use for level-1 headers.")
 
@@ -446,25 +452,52 @@ Note: this is not correct! Needs more thought to get all images right."
   :group 'diaspora-faces)
 
 
+(defface diaspora-buttons-elements-face
+  '((t :weight bold :overline t ))
+  "Face for buttons like \"Read in new buffer\"."
+  :group 'diaspora-faces
+  )
+
+(defun diaspora-check-is-link-to-pub (limit)  
+  "Return t if the text from the current point up to the limit has the property diaspora-is-link-to-public setted to t."
+  (if (get-text-property (point) 'diaspora-is-link-to-pub)
+      ;; Point is on a link-to-publication text!
+      (let ((beg-pos (point))
+	    (end-pos (next-single-property-change (point) 'diaspora-is-link-to-pub nil limit)) ;;find the last char where the property is false.	   
+	    )
+
+	(message "D*:: appling link-to-pub\n")
+	
+	;; Set match-data
+	(set-match-data (list beg-pos end-pos))
+	t
+	)
+    )
+  )
 
 (defvar diaspora-mode-font-lock-keywords
   (list
-;   (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
-   (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
-   (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
-   (cons diaspora-regexp-header-1 'diaspora-header-face-1)
-   (cons diaspora-regexp-header-2 'diaspora-header-face-2)
-   (cons diaspora-regexp-header-3 'diaspora-header-face-3)
-   (cons diaspora-regexp-header-4 'diaspora-header-face-4)
-   (cons diaspora-regexp-hr 'diaspora-header-face-1)
-   (cons diaspora-regexp-image
+    ;;   (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
+    (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
+    (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
+    (cons diaspora-regexp-header-1 'diaspora-header-face-1)
+    (cons diaspora-regexp-header-2 'diaspora-header-face-2)
+    (cons diaspora-regexp-header-3 'diaspora-header-face-3)
+    (cons diaspora-regexp-header-4 'diaspora-header-face-4)
+    (cons diaspora-regexp-hr 'diaspora-header-face-1)
+    (cons diaspora-regexp-image
          '((1 diaspora-link-face t)
            (2 diaspora-url-face t)))
-   (cons diaspora-regexp-bold '(2 diaspora-bold-face))
-   (cons diaspora-regexp-emph '(2 diaspora-emph-face))
-   (cons diaspora-regexp-code '(2 diaspora-inline-code-face))
-   (cons diaspora-regexp-email 'diaspora-link-face)
-   (cons diaspora-regexp-tag 'diaspora-url-face))
+    (cons diaspora-regexp-bold '(2 diaspora-bold-face))
+    (cons diaspora-regexp-emph '(2 diaspora-emph-face))
+    (cons diaspora-regexp-code '(2 diaspora-inline-code-face))
+    (cons diaspora-regexp-email 'diaspora-link-face)
+    (cons diaspora-regexp-tag 'diaspora-url-face)
+    (cons diaspora-regexp-buttons-elements '(3 diaspora-buttons-elements-face))
+    )
+  
+
+  
   "Syntax highlighting for diaspora files.")
 
 

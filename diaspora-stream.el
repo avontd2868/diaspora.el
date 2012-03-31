@@ -306,18 +306,19 @@ Set MAX-TIME with a valid emacs timestamp to fetch information from and until th
   (diaspora-ask) ;; don't forget username and password!
   (diaspora-get-authenticity-token-if-necessary)
   ;; get the in JSON format all the data
-  (let ((buff (diaspora-get-url-entry-stream stream-url max-time )))
+  (let (
+	(stream-buff (get-buffer-create diaspora-stream-buffer))
+	(buff (diaspora-get-url-entry-stream stream-url max-time )))
     (with-current-buffer buff
       ;; Delete the HTTP header...
       (diaspora-delete-http-header)
       ;; Parse JSON...
       (let ((inhibit-read-only t))
-	(diaspora-parse-json)
-	
-	;;Change markdown to html... not so good.      
-	;;(diaspora-change-to-html)
-	;;Better using diaspora-mode already done by Tiago!      
-	(diaspora-mode) 
+	;; Apply diaspora-mode
+	(with-current-buffer stream-buff	  
+	  (diaspora-mode) 	
+	  )
+	(diaspora-parse-json buff stream-buff)
 	(if diaspora-show-images-by-default
 	    (progn
 	      (diaspora-get-all-images)
@@ -325,6 +326,7 @@ Set MAX-TIME with a valid emacs timestamp to fetch information from and until th
 	      )
 	  )
 	(goto-char (point-min))
+	(switch-to-buffer stream-buff)
 	)
       )
     ;; Delete HTTP Buffer
@@ -605,6 +607,7 @@ or a function like `diaspora-show-message-new-buffer'."
    'face "link"
    'keymap diaspora-show-message-map-stream
    'diaspora-id-message id-message
+   'diaspora-is-link-to-pub t
    'help-echo "Click here to see this message in new buffer.")
   )
 
@@ -663,30 +666,34 @@ Use it for getting the nearest id post number when selecting a message."
 	  (delete-region (point-min) (point-max))
 	  (diaspora-show-message lstparsed nil show-last-three-comments))))))
 
-(defun diaspora-parse-json (&optional status)
+(defun diaspora-parse-json (buffer-from buffer-to &optional status)
   "Parse de JSON entry stream.
-Take the JSON format, read it and write it in the `diaspora-stream-buffer' buffer.
+Take the JSON format, read it from buffer-from and write into buffer-to buffer.
 
 Also save the last post date for getting the next posts(older posts) in the stream using `diaspora-get-entry-stream-next-oldies'."
-  (goto-char (point-min))
+  (with-current-buffer buffer-from
+    (goto-char (point-min))
     (window-configuration-to-register diaspora-stream-register)
-  ;; Create a new buffer called according `diaspora-buffer' say 
-  ;; and parse the json code into lists.
-  (let* (;;(json-array-type 'list)
-	 ;;(json-object-type 'alist)       
-       (parsed-json (json-read))
-       (lstparsed (cdr (assoc 'posts parsed-json)))
-       (buff (get-buffer-create diaspora-stream-buffer)))
-    ;; Save the last post's date
-    (setq diaspora-stream-last-post-date (diaspora-get-last-post-time parsed-json))
-    ;; clean the new buffer
-    (switch-to-buffer buff)
-    (let ((le (length lstparsed)))
-	  ;(inhibit-read-only t))
-      (delete-region (point-min) (point-max))
-    ;; Show all elements
-      (dotimes (i le)
-	(diaspora-show-message (aref lstparsed i) buff t)))))
+    ;; Create a new buffer called according `diaspora-buffer' say 
+    ;; and parse the json code into lists.
+    (let* (;;(json-array-type 'list)
+	   ;;(json-object-type 'alist)       
+	   (parsed-json (json-read))
+	   (lstparsed (cdr (assoc 'posts parsed-json)))
+	   )      
+      ;; Save the last post's date
+      (setq diaspora-stream-last-post-date (diaspora-get-last-post-time parsed-json))
+      ;; clean the new buffer
+      (with-current-buffer buffer-to
+	(let ((le (length lstparsed))
+	      (inhibit-read-only t))
+	  (delete-region (point-min) (point-max))
+	  ;; Show all elements
+	  (dotimes (i le)
+	    (diaspora-show-message (aref lstparsed i) buffer-to t))))
+      )
+    )
+  )
 
 ;; images: needs working
 
