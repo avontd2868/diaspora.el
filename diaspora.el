@@ -104,7 +104,7 @@ If only use http, use false."
    :group 'diaspora)
 
 
-(defcustom diaspora-mode-hook '(diaspora-get-all-images diaspora-show-images diaspora-see-regexp-markdow diaspora-show-videos)
+(defcustom diaspora-mode-hook '(diaspora-see-regexp-markdow diaspora-show-videos)
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
   :options '(flyspell-mode turn-on-auto-fill longlines-mode diaspora-get-all-images diaspora-show-images)
