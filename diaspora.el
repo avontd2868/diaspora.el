@@ -32,14 +32,23 @@
 ;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
 ;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
 
+; ah, ah...
+
+(setq max-lisp-eval-depth 10000)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (require 'url)
 (require 'url-http)
 (require 'json)
 (require 'font-lock)
 
+(require 'diaspora-new)
 (require 'diaspora-post)
 (require 'diaspora-stream)
+(require 'diaspora-colors)
 (require 'diaspora-notifications)
+(require 'diaspora-aspects)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
@@ -49,6 +58,13 @@
   :group 'applications)
 
 ;;; User variable:
+
+(defcustom diaspora-secure-pod
+  t
+  "If your diaspora pod use https, set this to true.
+If only use http, use false."
+  :type 'boolean
+  :group 'diaspora)
 
 (defcustom diaspora-pod 
   "joindiaspora.com"
@@ -87,7 +103,8 @@
    :type 'boolean
    :group 'diaspora)
 
-(defcustom diaspora-mode-hook nil
+
+(defcustom diaspora-mode-hook '(diaspora-see-regexp-markdow diaspora-show-videos)
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
   :options '(flyspell-mode turn-on-auto-fill longlines-mode diaspora-get-all-images diaspora-show-images)
@@ -106,27 +123,29 @@ If nil, you will be prompted."
   :group 'diaspora)
 
 (defcustom diaspora-sign-in-url 
-  "https://joindiaspora.com/users/sign_in"
+  "/users/sign_in"
   "URL used to signing in."
-  :group 'diaspora)
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-bookmarklet-location
+  "/bookmarklet"
+  "Location of the bookmarklet. This is used in `diaspora-get-aspects' for searching for the aspects.
+A bit complicated but the only way known to get a list of aspects."
+  :type 'string
+  :group 'diaspora-streams)
 
 (defcustom diaspora-status-messages-url 
-  "https://joindiaspora.com/status_messages"
+  "/status_messages"
   "URL used to update diaspora status messages."
-  :group 'diaspora)
+  :type 'string
+  :group 'diaspora-streams)
 
 (defcustom diaspora-single-message-url
-  "https://joindiaspora.com/posts"
-  "URL used to get a single message.")
-
-(defcustom diaspora-entry-stream-url 
-  "https://joindiaspora.com/explore.json"
-  "JSON version of the entry stream(the main stream)."
-  :group 'diaspora)
-
-(defvar diaspora-notifications-url "https://joindiaspora.com/notifications.json"
-  "This is the URL for JSON format notifications.")
-
+  "/posts"
+  "URL used to get a single message."
+  :type 'string
+  :group 'diaspora-streams)
 
 (defcustom diaspora-entry-file-dir
   "~/public_html/diaspora.posts/"
@@ -197,23 +216,8 @@ If nil, you will be prompted."
   "")
 
 
-(defvar diaspora-stream-buffer "*diaspora stream*"
-  "The name of the diaspora stream buffer.")
-
 (defvar diaspora-post-buffer "*diaspora post*"
   "The name of the diaspora post buffer.")
-
-(defvar diaspora-single-message-buffer "*diaspora message*"
-  "The name of the diaspora single message buffer.")
-
-(defvar  diaspora-stream-tag-buffer
-  "*diaspora stream tag*"
-  "The name of the diaspora tag stream buffer.")
-
-(defvar diaspora-notifications-buffer
-  "*diaspora notifications*"
-    "The name of the diaspora notifications buffer.")
-
 
 ;;; User Functions:
 
@@ -235,6 +239,10 @@ To be called interactively instead of `diaspora-ask'"
     (make-directory diaspora-posts-directory))
   (unless (file-exists-p diaspora-image-directory)
     (make-directory diaspora-image-directory)))
+
+(defun diaspora-clean-cache ()
+  (interactive)
+  (shell-command (concat "rm -f " diaspora-image-directory "*")))
 
 
 (defun diaspora-ask (&optional opt)
@@ -344,6 +352,12 @@ Note: this is not correct! Needs more thought to get all images right."
   "^\\(\\*[ ]?\\*[ ]?\\*[ ]?[\\* ]*\\|-[ ]?-[ ]?-[--- ]*\\)$"
   "Regular expression for matching markdown horizontal rules.")
 
+(defconst diaspora-regexp-buttons-elements
+  "Read in new buffer"
+  "Regular expression for matching buttons like \"Read in new buffer\".
+This buttons are used by the user for clicking or pressing ENTER.")
+
+
 (defvar diaspora-header-face-1 'diaspora-header-face-1
   "Face name to use for level-1 headers.")
 
@@ -438,25 +452,52 @@ Note: this is not correct! Needs more thought to get all images right."
   :group 'diaspora-faces)
 
 
+(defface diaspora-buttons-elements-face
+  '((t :weight bold :overline t ))
+  "Face for buttons like \"Read in new buffer\"."
+  :group 'diaspora-faces
+  )
+
+(defun diaspora-check-is-link-to-pub (limit)  
+  "Return t if the text from the current point up to the limit has the property diaspora-is-link-to-public setted to t."
+  (if (get-text-property (point) 'diaspora-is-link-to-pub)
+      ;; Point is on a link-to-publication text!
+      (let ((beg-pos (point))
+	    (end-pos (next-single-property-change (point) 'diaspora-is-link-to-pub nil limit)) ;;find the last char where the property is false.	   
+	    )
+
+	(message "D*:: appling link-to-pub\n")
+	
+	;; Set match-data
+	(set-match-data (list beg-pos end-pos))
+	t
+	)
+    )
+  )
 
 (defvar diaspora-mode-font-lock-keywords
   (list
-;   (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
-   (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
-   (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
-   (cons diaspora-regexp-header-1 'diaspora-header-face-1)
-   (cons diaspora-regexp-header-2 'diaspora-header-face-2)
-   (cons diaspora-regexp-header-3 'diaspora-header-face-3)
-   (cons diaspora-regexp-header-4 'diaspora-header-face-4)
-   (cons diaspora-regexp-hr 'diaspora-header-face-1)
-   (cons diaspora-regexp-image
+    ;;   (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
+    (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
+    (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
+    (cons diaspora-regexp-header-1 'diaspora-header-face-1)
+    (cons diaspora-regexp-header-2 'diaspora-header-face-2)
+    (cons diaspora-regexp-header-3 'diaspora-header-face-3)
+    (cons diaspora-regexp-header-4 'diaspora-header-face-4)
+    (cons diaspora-regexp-hr 'diaspora-header-face-1)
+    (cons diaspora-regexp-image
          '((1 diaspora-link-face t)
            (2 diaspora-url-face t)))
-   (cons diaspora-regexp-bold '(2 diaspora-bold-face))
-   (cons diaspora-regexp-emph '(2 diaspora-emph-face))
-   (cons diaspora-regexp-code '(2 diaspora-inline-code-face))
-   (cons diaspora-regexp-email 'diaspora-link-face)
-   (cons diaspora-regexp-tag 'diaspora-url-face))
+    (cons diaspora-regexp-bold '(2 diaspora-bold-face))
+    (cons diaspora-regexp-emph '(2 diaspora-emph-face))
+    (cons diaspora-regexp-code '(2 diaspora-inline-code-face))
+    (cons diaspora-regexp-email 'diaspora-link-face)
+    (cons diaspora-regexp-tag 'diaspora-url-face)
+    (cons diaspora-regexp-buttons-elements '(3 diaspora-buttons-elements-face))
+    )
+  
+
+  
   "Syntax highlighting for diaspora files.")
 
 
@@ -538,6 +579,30 @@ Note: this is not correct! Needs more thought to get all images right."
   (interactive)
   (message "diaspora.el, version %s" diaspora-el-version))
 
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defvar diaspora-mode-map 
+  (let ((diaspora-mode-map (make-sparse-keymap)))
+    (define-key diaspora-mode-map "\C-c4" 'diaspora-markdown-insert-headline-4)
+    (define-key diaspora-mode-map "\C-c3" 'diaspora-markdown-insert-headline-3)
+    (define-key diaspora-mode-map "\C-c2" 'diaspora-markdown-insert-headline-2)
+    (define-key diaspora-mode-map "\C-c1" 'diaspora-markdown-insert-headline-1)
+    (define-key diaspora-mode-map "\C-c\C-cl" 'diaspora-markdown-insert-unordered-list)
+    (define-key diaspora-mode-map "\C-c\C-ce" 'diaspora-markdown-insert-emph-text)
+    (define-key diaspora-mode-map "\C-c\C-cb" 'diaspora-markdown-insert-bold-text)
+    (define-key diaspora-mode-map "\C-c\C-c-" 'diaspora-markdown-insert-horizontal-rule)
+    (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
+    (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
+    (define-key diaspora-mode-map "\C-c\C-cm" 'diaspora-markdown-mention-user)
+    (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
+    (define-key diaspora-mode-map "\C-c\C-cp" 'diaspora-post-to)
+    (define-key diaspora-mode-map "\C-c\C-cc" 'diaspora-post-clipboard)
+    (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
+    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-images) ; not implemented yet
+    (define-key diaspora-mode-map "\C-cio" 'diaspora-show-image-at-point)
+    diaspora-mode-map)
+  "Keymap based on html-mode")
+
 ;;;###autoload
 (define-derived-mode diaspora-mode text-mode "diaspora"
   "Major mode for output from \\[diaspora*]."
@@ -545,7 +610,69 @@ Note: this is not correct! Needs more thought to get all images right."
        '(diaspora-mode-font-lock-keywords))
   (set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
+  (set (make-local-variable 'buffer-read-only) t)
   (run-hooks 'diaspora-mode-hook))
+
+
+
+(defun diaspora-url (location)
+  "Make the URL according to the `diaspora-pod'(pod selected)."
+  (format "%s://%s/%s" 
+	  (if diaspora-secure-pod
+	      "https"
+	    "http")
+	  diaspora-pod 
+	  location))
+
+
+(defun diaspora-url-json (location)
+  "Make the URL as in `diaspora-url' but for retrieving JSON formats pages, according to the `diaspora-pod' (pod selected)."
+  (diaspora-url
+   (format "%s.json" location)))
+
+
+(defun diaspora-post-comment-url (post-id)
+  "Return the URL for posting a comment for the post with id post-id"
+  (diaspora-url 
+   (format "%s/%s/%s"
+	   diaspora-single-message-url
+	   (if (numberp post-id)
+	       (number-to-string post-id)
+	     post-id)
+	   diaspora-comment-name)))
+
+(defun diaspora-get-comment-url (post-id)
+  (diaspora-url
+   (format "%s/%s/%s.json" diaspora-single-message-url 
+	   (if (numberp post-id)
+	       (number-to-string post-id)
+	     post-id)
+	   diaspora-comment-name)))
+
+(defun diaspora-image-path (image-name)
+  "Return the temporal image path."
+  (concat diaspora-image-directory 
+	  (diaspora-image-filter-out-bad-chars image-name))
+  )
+
+(defun diaspora-image-filter-out-bad-chars (image-name)
+  (let ((name image-name))	
+    (while (string-match "[&\\?><|%]" name)
+      (setq name (replace-match "" nil t name))
+      )
+    name
+    )
+  )
+  
+
+(defun diaspora-image-path-from-url (image-url &optional user-id)
+  "Return the temporal image path from the url where it has been dowloaded."
+  (concat diaspora-image-directory
+	  (if user-id 
+	      (concat user-id "-"))
+	  (diaspora-image-filter-out-bad-chars (file-name-nondirectory image-url))
+	  )
+  )
 
 
 (provide 'diaspora)

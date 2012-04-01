@@ -1,12 +1,16 @@
 ## diaspora(dot)el --- Simple Emacs-based client for diaspora*
 
-You can find me: https://joindiaspora.com/u/tca
+You can find us: 
+https://joindiaspora.com/u/tca
+https://joindiaspora.com/u/cnngimenez
 
 *WARNING*
 
 This version is not compatible with the master branch dir structure and the earlier test version. Sorry about that. Rename the old backup file .diaspora in order to make things work.
 
 This is in a very early stage of development...it will probably break some where. 
+
+
 
 ### Before anything else:
 
