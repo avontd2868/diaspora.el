@@ -32,6 +32,14 @@
 ;; for instance `(add-to-list 'load-path "~/emacs.el/disaspora.el/")' to your .emacs
 ;; Files: diaspora.el, diaspora-post.el  and diaspora-stream.el 
 
+;; ********************
+;; THANKS
+;; ------
+;;
+;; Tiago Charters de Azevedo (tca@joindiaspora.com - http://diale.org )for taking part of this! 
+;; Phil Hudson (philhudson@joindiaspora.com) for helping me testing and hunting some bugs!
+;; ********************
+
 ; ah, ah...
 
 (setq max-lisp-eval-depth 10000)
