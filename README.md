@@ -52,6 +52,8 @@ for posting from clipboard :)
 * **Tiago Charters de Azevedo** (tca@joindiaspora.com - http://diale.org )for taking part of this! 
 
 * **Phil Hudson** (philhudson@joindiaspora.com) for helping me testing and hunting some bugs!
+
+
 ---
 
 ... It still needs some work.
