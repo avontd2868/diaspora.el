@@ -100,7 +100,7 @@ If only use http, use false."
   :group 'diaspora)
 
 (defcustom diaspora-show-images-by-default
-  t
+  nil
   "Loads images by default at start."
   :type 'boolean
   :group 'diaspora)
