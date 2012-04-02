@@ -817,15 +817,23 @@ Also save the last post date for getting the next posts(older posts) in the stre
 
 
 
+(defun diaspora-find-image-links ()
+  "Search for all strings that matchs `diaspora-regexp-image' from point until the end, in other words: search for all links from here."  
+  (cond ((search-forward-regexp diaspora-regexp-image (point-max) t)
+	 (cons (match-string-no-properties 2)
+	       (diaspora-find-image-links)))
+	(t nil)
+	) 
+  )
+
 (defun diaspora-get-all-image-links ()
+  "Return all image links in the current buffer.
+Image links must match the regexp in `diaspora-regexp-image'."
   (goto-char (point-min))
   (save-excursion
-    (flet ((d-find-aux ()
-		       (cond ((search-forward-regexp diaspora-regexp-image (point-max) t)
-			      (cons (match-string-no-properties 2)
-				    (d-find-aux)))
-			     (t nil))))
-      (remove-duplicates (d-find-aux) :test 'equal))))
+    (remove-duplicates (diaspora-find-image-links) :test 'equal)
+    )
+  )
 
 (defun diaspora-get-image-link-at-point ()
   "Get the image near the point"
