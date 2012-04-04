@@ -32,6 +32,23 @@
 
 (require 'cl)
 
+(defcustom diaspora-header-post
+  "### "
+  "Header for each post:"
+  :type 'string
+  :group 'diaspora)
+
+(defcustom diaspora-footer-post
+  "#diaspora-el"
+  "Footer for each post."
+  :type 'string
+  :group 'diaspora)
+
+(defcustom diaspora-save-after-posting t
+  "*Non-nil means automatically save after posting."
+  :type 'boolean
+  :group 'diaspora)
+
 (defun diaspora-post-to (&optional initial)
   "Post to diaspora.
 With a prefix, uses the region as INITIAL.

@@ -56,7 +56,6 @@
 (require 'diaspora-new)
 (require 'diaspora-post)
 (require 'diaspora-stream)
-(require 'diaspora-colors)
 (require 'diaspora-notifications)
 (require 'diaspora-aspects)
 
@@ -131,24 +130,6 @@ If nil, you will be prompted."
   :group 'diaspora)
 
 
-(defcustom diaspora-header-post
-  "### "
-  "Header for each post:"
-  :type 'string
-  :group 'diaspora)
-
-(defcustom diaspora-footer-post
-  "#diaspora-el"
-  "Footer for each post."
-  :type 'string
-  :group 'diaspora)
-
-(defcustom diaspora-save-after-posting t
-  "*Non-nil means automatically save after posting."
-  :type 'boolean
-  :group 'diaspora)
-
-
 (defcustom diaspora-stream-register ?R
   "The register in which the window configuration is stored."
   :type 'character
@@ -163,11 +144,6 @@ If nil, you will be prompted."
 (defcustom diaspora-single-message-register ?R
   "The register in which the window configuration is stored."
   :type 'character
-  :group 'diaspora)
-
-(defcustom diaspora-save-after-posting t
-  "*Non-nil means automatically save after posting."
-  :type 'boolean
   :group 'diaspora)
 
 ;;; Internal Variables:

@@ -61,103 +61,143 @@
 
 ;; Font lock
 
-(defgroup diaspora-faces nil
-  "Faces used in diaspora Mode"
-  :group 'diaspora
-  :group 'faces)
+					; ********************
+					; Regexps
+
+(defgroup diaspora-regexps nil
+  "Regexp used to locate faces in `diaspora-mode'."
+  :group 'diaspora-mode
+  :version "23.0"
+  :tag "Diaspora Regexps")
+
+;  "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}T[0-9]\\{2\\}:[0-9]\\{2\\}:[0-9]\\{2\\}Z"
+(defcustom diaspora-regexp-date
+  "[0-9-:T]+Z"
+  "Regular expression date in diaspora stream."
+  :type 'regexp
+  :group 'diaspora)
 
 ;; (defcustom diaspora-regex-bare-link
 ;;   "http://[a-zA-Z0-9-_\./?=&]*"
 ;; or "^http://.*"
 ;;   "Regular expression for a `http://'"
 ;;   :type 'regexp
-;;   :group 'diaspora)
+;;   :group 'diaspora-mode)
 
 (defcustom diaspora-regexp-youtube-link
   "^\\(http.*://www.youtube.com/watch\\?v=\\)\\([^\)].*\\)"
   "Regular expression for a youtube link"
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-image-alist
   "\\(`?http.://\\|\\[\\[\\|<\\|`\\)?\\([-+./_0-9a-zA-Z]+\\.\\(GIF\\|JP\\(?:E?G\\)\\|P\\(?:BM\\|GM\\|N[GM]\\|PM\\)\\|SVG\\|TIFF?\\|X\\(?:[BP]M\\)\\|gif\\|jp\\(?:e?g\\)\\|p\\(?:bm\\|gm\\|n[gm]\\|pm\\)\\|svg\\|tiff?\\|x\\(?:[bp]m\\)\\)\\)\\(\\]\\]\\|>\\|'\\)?"
   "Taken from iimage-mode."
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-image
 "!\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
   "Regular expression for a [text](file) or an image link ![text](file).
 Note: this is not correct! Needs more thought to get all images right."
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-user-entry 
 "^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
   "Regular expression for user entry."
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-tag
   "#[a-zA-Z0-9_/\.-]+"
   "Regular expression for a tag."
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-header-1
   "^\\(# \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 1"
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-header-2
   "^\\(## \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 2"
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-header-3
   "^\\(### \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 3"
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
 
 (defcustom diaspora-regexp-header-4
   "^\\(#### \\)\\(.*?\\)\\($\\| #+$\\)"
   "Regular expression for level 4"
   :type 'regexp
-  :group 'diaspora)
+  :group 'diaspora-regexps)
 
-(defconst diaspora-regexp-code
+(defcustom diaspora-regexp-code
   "\\(^\\|[^\\]\\)\\(\\(`\\{1,2\\}\\)\\([^ \\]\\|[^ ]\\(.\\|\n[^\n]\\)*?[^ \\]\\)\\3\\)"
-  "Regular expression for matching inline code fragments.")
+  "Regular expression for matching inline code fragments."
+  :type 'regexp
+  :group 'diaspora-regexps)
 
 
-(defconst diaspora-regexp-bold
+(defcustom diaspora-regexp-bold
   "\\(^\\|[^\\]\\)\\(\\([*_]\\{2\\}\\)\\(.\\|\n[^\n]\\)*?[^\\ ]\\3\\)"
-  "Regular expression for matching bold text.")
+  "Regular expression for matching bold text."
+  :type 'regexp
+  :group 'diaspora-regexps)
 
-(defconst diaspora-regexp-emph
+
+(defcustom diaspora-regexp-emph
   "\\(^\\|[^\\]\\)\\(\\([*_]\\)\\([^ \\]\\3\\|[^ ]\\(.\\|\n[^\n]\\)*?[^\\ ]\\3\\)\\)"
-  "Regular expression for matching emph text.")
+  "Regular expression for matching emph text."
+  :type 'regexp
+  :group 'diaspora-regexps)
 
-(defconst diaspora-regexp-email
+
+(defcustom diaspora-regexp-email
   "<\\(\\sw\\|\\s_\\|\\s.\\)+@\\(\\sw\\|\\s_\\|\\s.\\)+>"
-  "Regular expression for matching inline email addresses.")
+  "Regular expression for matching inline email addresses."
+  :type 'regexp
+  :group 'diaspora-regexps)
 
-(defconst diaspora-regexp-blockquote
+
+(defcustom diaspora-regexp-blockquote
   "^>.*$"
-  "Regular expression for matching blockquote lines.")
+  "Regular expression for matching blockquote lines."
+  :type 'regexp
+  :group 'diaspora-regexps)
 
-(defconst diaspora-regexp-hr
+
+(defcustom diaspora-regexp-hr
   "^\\(\\*[ ]?\\*[ ]?\\*[ ]?[\\* ]*\\|-[ ]?-[ ]?-[--- ]*\\)$"
-  "Regular expression for matching markdown horizontal rules.")
+  "Regular expression for matching markdown horizontal rules."
+  :type 'regexp
+  :group 'diaspora-regexps)
 
-(defconst diaspora-regexp-buttons-elements
+
+(defcustom diaspora-regexp-buttons-elements
   "Read in new buffer"
   "Regular expression for matching buttons like \"Read in new buffer\".
-This buttons are used by the user for clicking or pressing ENTER.")
+This buttons are used by the user for clicking or pressing ENTER."
+  :type 'regexp
+  :group 'diaspora-regexps)
+
+					; ********************
+					; Faces
+
+(defgroup diaspora-faces nil
+  "Faces used in diaspora Mode."
+  :group 'diaspora-mode
+  :group 'faces
+  :tag "Diaspora Faces"
+  :version "23.0")
 
 
 (defvar diaspora-header-face-1 'diaspora-header-face-1
@@ -253,6 +293,11 @@ This buttons are used by the user for clicking or pressing ENTER.")
   "Face for links."
   :group 'diaspora-faces)
 
+(defface diaspora-date-face
+  '((t :inherit font-lock-variable-name-face :italic t))
+  "Face for date."
+  :group 'diaspora-faces)
+
 
 (defface diaspora-buttons-elements-face
   '((t :weight bold :overline t ))
@@ -282,11 +327,12 @@ This buttons are used by the user for clicking or pressing ENTER.")
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
   :options '(flyspell-mode turn-on-auto-fill longlines-mode diaspora-get-all-images diaspora-show-images)
-  :group 'diaspora)
+  :group 'diaspora-mode)
 
 (defvar diaspora-mode-font-lock-keywords
   (list
-    ;;   (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
+   ;; (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
+   ;; (cons diaspora-regexp-date 'diaspora-date-face)
     (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
     (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
     (cons diaspora-regexp-header-1 'diaspora-header-face-1)
@@ -303,10 +349,7 @@ This buttons are used by the user for clicking or pressing ENTER.")
     (cons diaspora-regexp-email 'diaspora-link-face)
     (cons diaspora-regexp-tag 'diaspora-url-face)
     (cons diaspora-regexp-buttons-elements '(3 diaspora-buttons-elements-face))
-    )
-  
-
-  
+    ) 
   "Syntax highlighting for diaspora files.")
 
 (defvar diaspora-mode-map 

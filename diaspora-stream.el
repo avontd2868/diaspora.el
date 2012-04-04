@@ -102,7 +102,7 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
 (defcustom diaspora-entry-likes-url 
   "https://joindiaspora.com/participate.json"
   "JSON version of the entry stream(the main stream)."
-  :group 'diaspora)
+  :group 'diaspora-streams)
 
 
 (defcustom diaspora-followed-tags-stream-name
