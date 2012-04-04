@@ -934,19 +934,6 @@ The tag must be a string without the starting \"#\"."
     (url-retrieve-synchronously url)))
 
 
-(defun diaspora-inspect-json (env)
-  (flet ((f-car (lst)
-		(cond ((listp lst)
-		       (if (listp (car lst))
-			   (mapcar 'f-car lst)
-			 (f-car (car lst))))
-		      (t 
-		       lst))))
-    (cond ((listp env)
-	   (mapcar 'f-car env))
-	  (t
-	   env))))
-
 (defun diaspora-json-read-url (url)
   "Returns a JSON parsed string from URL."
   (interactive)

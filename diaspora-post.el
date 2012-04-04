@@ -191,16 +191,27 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
 	      (when diaspora-save-after-posting (save-buffer))))
 	(append-to-file (point-min) (point-max) 
 			(concat diaspora-posts-directory file-name-for-saving-post))))))
+
+(defun diaspora-find-all-regexp (regexp &optional num)
+  "Try to find all the texts with match the given regexp.
+Return all of them in a list.
+NUM is the parenthesized expression in the regexp, like parameter NUM in `match-string-no-properties'."
+  (cond ((search-forward-regexp  regexp (point-max) t)
+	 (cons (match-string-no-properties (if (not num) 0 num))
+	       (search-forward-regexp regexp))
+	 )	 
+	
+	(t 
+	 nil)
+	)
+  )
+
 	
 (defun diaspora-find-all-markdown (regexp &optional opt)
   "Find all markdown strings given by REGEXP and return all of them in a list.
 Usage example: `(diaspora-find-all-markdown diaspora-regex-tag)'"
-  (flet ((d-find-aux (regexp)
-		       (cond ((search-forward-regexp  regexp (point-max) t)
-			      (cons (match-string-no-properties (if (not opt) 0 opt)) 
-				    (d-find-aux regexp)))
-			     (t nil))))
-    (remove-duplicates (d-find-aux regexp) :test 'equal)))
+  (remove-duplicates (diaspora-find-all-regexp regexp opt) :test 'equal)
+  )
 
 
 (defun diaspora-post-buffer-desc ()
