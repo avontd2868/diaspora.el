@@ -551,14 +551,20 @@ If buffer is nil, then use the `current-buffer'."
 	     (amount-likes (diaspora-extract-json-list
 			    '(likes_count) parsed-message)))
 	
-	(insert  "---\n")
+	(insert (concat
+		 (propertize 
+		  "===================="
+		  'diaspora-message-separator t) 
+		 "\n"))
 	(insert "![" name "](" avatar ")\n")
 	(insert (diaspora-add-link-to-publication 
-		 (format "%s (%s):\n" name diaspora_id) 
-		 id))
+		 (format "%s (%s):" name diaspora_id) 
+		 id)
+		"\n")
 	(insert (format "%s\n" date))
 	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
-	(insert (diaspora-add-link-to-publication "Read in new buffer\n" id))
+	(insert (concat (diaspora-add-link-to-publication "Read in new buffer" id)
+			"\n"))
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	

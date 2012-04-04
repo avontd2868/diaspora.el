@@ -309,23 +309,49 @@ This buttons are used by the user for clicking or pressing ENTER."
   :group 'diaspora-faces
   )
 
-(defun diaspora-check-is-link-to-pub (limit)  
-  "Return t if the text from the current point up to the limit has the property diaspora-is-link-to-public setted to t."
-  (if (get-text-property (point) 'diaspora-is-link-to-pub)
-      ;; Point is on a link-to-publication text!
-      (let ((beg-pos (point))
-	    (end-pos (next-single-property-change (point) 'diaspora-is-link-to-pub nil limit)) ;;find the last char where the property is false.	   
-	    )
+(defface diaspora-message-separator-face
+  '((t :weight bold
+       :foreground "green"
+       :background "grey10"
+       :box (:line-width 2 :color "grey10" :style pressed-button)
+       ))
+  "Face for buttons like \"Read in new buffer\"."
+  :group 'diaspora-faces
+  )
 
-	(message "D*:: appling link-to-pub\n")
-	
-	;; Set match-data
-	(set-match-data (list beg-pos end-pos))
-	t
+(defun diaspora-check-is-property (limit property)
+  "Return t if the symbol property given by PROPERTY is in any of the text's properties between current `point' up to LIMIT.
+Set `match-data' with the beginning and end position of the first text founded with that property.
+
+Create a new function like `diaspora-check-is-message-separator' so you can use this function with a font-lock property."
+  ;; Point is on a link-to-publication text!
+  (let ((beg-pos (text-property-any (point) limit property t))
+	(end-pos 0)
 	)
+    (if beg-pos	
+	(progn
+	  (goto-char beg-pos)
+	  (setq end-pos 
+		(next-single-property-change (point) property nil limit)) ;;find the last char where the property is false.    
+	    
+	  ;; Set match-data
+	  (set-match-data (list beg-pos end-pos))
+	  t
+	  )
+      nil
+      )
     )
   )
 
+(defun diaspora-check-is-link-to-pub (limit)  
+  "Return t if the text from the current point up to the limit has the property diaspora-is-link-to-public setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-link-to-pub)
+  )
+
+(defun diaspora-check-is-message-separator (limit)  
+  "Return t if the text from the current point up to the limit has the property diaspora-is-link-to-public setted to t."
+  (diaspora-check-is-property limit 'diaspora-message-separator)
+  )
 
 (defcustom diaspora-mode-hook '(diaspora-see-regexp-markdow diaspora-show-videos)
   "Functions run upon entering `diaspora-mode'."
@@ -345,14 +371,16 @@ This buttons are used by the user for clicking or pressing ENTER."
    (cons diaspora-regexp-header-4 ''diaspora-header-face-4)
    (cons diaspora-regexp-hr ''diaspora-header-face-1)
    (cons diaspora-regexp-image
-	 ''((1 diaspora-link-face t)
-	   (2 diaspora-url-face t)))
+   	 ''((1 diaspora-link-face t)
+   	   (2 diaspora-url-face t)))
    (cons diaspora-regexp-bold ''(2 diaspora-bold-face))
    (cons diaspora-regexp-emph ''(2 diaspora-emph-face))
    (cons diaspora-regexp-code ''(2 diaspora-inline-code-face))
    (cons diaspora-regexp-email ''diaspora-link-face)
    (cons diaspora-regexp-tag ''diaspora-url-face)
-   (cons diaspora-regexp-buttons-elements ''diaspora-buttons-elements-face)
+   ;;(cons diaspora-regexp-buttons-elements ''diaspora-buttons-elements-face)
+   (cons 'diaspora-check-is-link-to-pub ''diaspora-buttons-elements-face)
+   (cons 'diaspora-check-is-message-separator ''diaspora-message-separator-face)
    )   
   "Syntax highlighting for diaspora files.")
 
