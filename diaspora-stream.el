@@ -553,23 +553,29 @@ If buffer is nil, then use the `current-buffer'."
 	
 	(insert (concat
 		 (propertize 
-		  "===================="
-		  'diaspora-message-separator t) 
-		 "\n"))
+		  "          ====================          \n"
+		  'diaspora-message-separator t)))
 	(insert "![" name "](" avatar ")\n")
-	(insert (diaspora-add-link-to-publication 
-		 (format "%s (%s):" name diaspora_id) 
-		 id)
-		"\n")
+	(insert (propertize
+		 (format "%s (%s):" name diaspora_id)
+		 'diaspora-is-user-name t)
+		 "\n")
 	(insert (format "%s\n" date))
-	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
+	(insert (propertize
+		 (format "Has %s comments. %s likes." amount-comments amount-likes)
+		 'diaspora-is-amount-comments t)
+		"\n")
 	(insert (concat (diaspora-add-link-to-publication "Read in new buffer" id)
 			"\n"))
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	
 	(when show-last-three-comments
-	  (insert  "\n*Comments:*\n")
+	  (insert  "\n"
+		   (propertize 
+		    "Comments:"
+		    'diaspora-comments-start t)
+		   "\n")
 	  (diaspora-comments-show-last-three parsed-message)
 	  (insert "\n")
 	  )

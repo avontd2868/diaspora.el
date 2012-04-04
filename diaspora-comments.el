@@ -93,8 +93,20 @@ buffer or in the buffer specified."
 	(created_at (cdr (assoc 'created_at comment))))
     (with-current-buffer buffer
       (insert (format "\n![%s](%s)" name avatar))
-      (insert (format "\n%s (%s): at %s:\n" name diaspora-id created_at))
-      (insert text "\n"))))
+      (insert "\n"
+	      (propertize
+	       (format "%s (%s): at %s:" name diaspora-id created_at)
+	       'diaspora-is-comment-user-name t
+	       )
+	      "\n"
+	      )
+      (insert (propertize
+	       text
+	       'diaspora-is-comment-text t)
+	      "\n")
+      
+      ))
+  )
 
 
 (defconst diaspora-comment-buffer-name "*diaspora comment*"

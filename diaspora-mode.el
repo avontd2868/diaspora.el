@@ -310,11 +310,53 @@ This buttons are used by the user for clicking or pressing ENTER."
   )
 
 (defface diaspora-message-separator-face
+  '((t :foreground "black"
+       :background "black"
+       :box (:line-width 2 :style pressed-button :color "grey10")
+       ))
+  "Face for buttons like \"Read in new buffer\"."
+  :group 'diaspora-faces
+  )
+
+(defface diaspora-comments-start-face
   '((t :weight bold
        :foreground "green"
-       :background "grey10"
+       :background "gray20"
        :box (:line-width 2 :color "grey10" :style pressed-button)
        ))
+  "Face for buttons like \"Read in new buffer\"."
+  :group 'diaspora-faces
+  )
+
+(defface diaspora-user-name-face
+  '((t :underline t 
+       :weight bold 
+       :foreground "cyan2"
+;;       :box (:line-width 2 :color "grey10" :style pressed-button)
+       ))
+  "Face for buttons like \"Read in new buffer\"."
+  :group 'diaspora-faces
+  )
+
+(defface diaspora-comment-user-name-face
+  '((t :inherit diaspora-user-name-face 
+       :foreground "cyan4"
+       :height 0.8
+       ))
+  "Face for buttons like \"Read in new buffer\"."
+  :group 'diaspora-faces
+  )
+
+(defface diaspora-comment-text-face
+  '((t :foreground "grey50"
+       :family "freeserif"
+     ))
+  "Face for buttons like \"Read in new buffer\"."
+  :group 'diaspora-faces
+  )
+
+(defface diaspora-amount-comments-face
+  '((t :inherit diaspora-comments-start-face ))
   "Face for buttons like \"Read in new buffer\"."
   :group 'diaspora-faces
   )
@@ -349,9 +391,35 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
   )
 
 (defun diaspora-check-is-message-separator (limit)  
-  "Return t if the text from the current point up to the limit has the property diaspora-is-link-to-public setted to t."
+  "Return t if the text from the current point up to the limit has the property diaspora-message-separator setted to t."
   (diaspora-check-is-property limit 'diaspora-message-separator)
   )
+
+(defun diaspora-check-is-comments-start (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-comments-start setted to t."
+  (diaspora-check-is-property limit 'diaspora-comments-start)
+  )
+
+(defun diaspora-check-is-user-name (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-is-user-name setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-user-name)
+  )
+
+(defun diaspora-check-is-comment-user-name (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-is-user-name setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-comment-user-name)
+  )
+
+(defun diaspora-check-is-amount-comments (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-comments-start setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-amount-comments)
+  )
+
+(defun diaspora-check-is-comment-text (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-comments-start setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-comment-text)
+  )
+
 
 (defcustom diaspora-mode-hook '(diaspora-see-regexp-markdow diaspora-show-videos)
   "Functions run upon entering `diaspora-mode'."
@@ -364,7 +432,6 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    ;; (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
    ;; (cons diaspora-regexp-date 'diaspora-date-face)    
    (cons diaspora-regexp-blockquote ''diaspora-blockquote-face)
-   (cons diaspora-regexp-user-entry ''diaspora-header-face-1)
    (cons diaspora-regexp-header-1 ''diaspora-header-face-1)
    (cons diaspora-regexp-header-2 ''diaspora-header-face-2)
    (cons diaspora-regexp-header-3 ''diaspora-header-face-3)
@@ -381,6 +448,11 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    ;;(cons diaspora-regexp-buttons-elements ''diaspora-buttons-elements-face)
    (cons 'diaspora-check-is-link-to-pub ''diaspora-buttons-elements-face)
    (cons 'diaspora-check-is-message-separator ''diaspora-message-separator-face)
+   (cons 'diaspora-check-is-comments-start ''diaspora-comments-start-face)
+   (cons 'diaspora-check-is-user-name ''diaspora-user-name-face)
+   (cons 'diaspora-check-is-amount-comments ''diaspora-amount-comments-face)
+   (cons 'diaspora-check-is-comment-user-name ''diaspora-comment-user-name-face)
+   (cons 'diaspora-check-is-comment-text ''diaspora-comment-text-face)
    )   
   "Syntax highlighting for diaspora files.")
 
