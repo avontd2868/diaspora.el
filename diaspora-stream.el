@@ -81,8 +81,8 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
   :type 'string
   :group 'diaspora-streams)
 
-(defcustom diaspora-entry-stream-url 
-  "/stream"
+(defcustom diaspora-entry-stream-name 
+  "stream"
   "JSON version of the entry stream(the main stream)."
   :type 'string
   :group 'diaspora-streams)
@@ -420,7 +420,7 @@ Set MAX-TIME with a valid emacs timestamp to fetch information from and until th
 
 (defun diaspora-get-entry-stream (&optional max-date)
   "Show the entry stream. 
-First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
+First look for the JSON file at `diaspora-entry-stream-name' and then parse it.
 I expect to be already logged in. Use `diaspora' for log-in.
 
 MAX-DATE is an optional parameter that defines the date interval of the post you want to fetch. 
@@ -429,7 +429,7 @@ This parameters has the same format as `current-time' but with the third paramet
 Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
 MICROSECOND are ignored, even can be absent."
   (interactive)  
-  (diaspora-get-stream-by-name diaspora-entry-stream-url max-date)
+  (diaspora-get-stream-by-name diaspora-entry-stream-name max-date)
   )
 
 (defun diaspora-get-entry-stream-up-to-date ()
