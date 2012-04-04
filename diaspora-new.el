@@ -130,13 +130,6 @@
   (diaspora-mode))
 
 
-(defun diaspora-stream-likes ()
-  (interactive)
-  (diaspora-ask)
-  (diaspora-authenticity-token diaspora-sign-in-url) 
-  (diaspora-parse-json-read 'posts diaspora-entry-likes-url)
-  (diaspora-mode))
-
 (defun diaspora-see-regexp-markdow ()
   (interactive)
   (save-excursion

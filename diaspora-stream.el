@@ -38,7 +38,7 @@
 
 (defgroup diaspora-streams nil
   "URL and names for the Streams used in diaspora.el."
-  :group 'diaspora
+  :group 'diaspora-urls
   :version "23.0"
   :tag "diaspora streams urls")
 
@@ -98,12 +98,6 @@ the JSON page is at the URL:
 And the `diaspora-participate-stream-name' must be at value \"participate\"."
   :type 'string
   :group 'diaspora-streams)
-
-(defcustom diaspora-entry-likes-url 
-  "https://joindiaspora.com/participate.json"
-  "JSON version of the entry stream(the main stream)."
-  :group 'diaspora-streams)
-
 
 (defcustom diaspora-followed-tags-stream-name
   "followed_tags"

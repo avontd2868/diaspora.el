@@ -183,7 +183,7 @@ Note: this is not correct! Needs more thought to get all images right."
 
 
 (defcustom diaspora-regexp-buttons-elements
-  "Read in new buffer"
+  "\\(Read in new buffer\\)"
   "Regular expression for matching buttons like \"Read in new buffer\".
 This buttons are used by the user for clicking or pressing ENTER."
   :type 'regexp
@@ -300,7 +300,11 @@ This buttons are used by the user for clicking or pressing ENTER."
 
 
 (defface diaspora-buttons-elements-face
-  '((t :weight bold :overline t ))
+  '((t :weight bold
+       :foreground "green"
+       :background "grey20"
+       :box (:line-width 2 :color "grey20" :style released-button)
+       ))
   "Face for buttons like \"Read in new buffer\"."
   :group 'diaspora-faces
   )
@@ -332,24 +336,24 @@ This buttons are used by the user for clicking or pressing ENTER."
 (defvar diaspora-mode-font-lock-keywords
   (list
    ;; (cons diaspora-regexp-bare-link '(2 diaspora-url-face t))
-   ;; (cons diaspora-regexp-date 'diaspora-date-face)
-    (cons diaspora-regexp-blockquote 'diaspora-blockquote-face)
-    (cons diaspora-regexp-user-entry 'diaspora-header-face-1)
-    (cons diaspora-regexp-header-1 'diaspora-header-face-1)
-    (cons diaspora-regexp-header-2 'diaspora-header-face-2)
-    (cons diaspora-regexp-header-3 'diaspora-header-face-3)
-    (cons diaspora-regexp-header-4 'diaspora-header-face-4)
-    (cons diaspora-regexp-hr 'diaspora-header-face-1)
-    (cons diaspora-regexp-image
-         '((1 diaspora-link-face t)
-           (2 diaspora-url-face t)))
-    (cons diaspora-regexp-bold '(2 diaspora-bold-face))
-    (cons diaspora-regexp-emph '(2 diaspora-emph-face))
-    (cons diaspora-regexp-code '(2 diaspora-inline-code-face))
-    (cons diaspora-regexp-email 'diaspora-link-face)
-    (cons diaspora-regexp-tag 'diaspora-url-face)
-    (cons diaspora-regexp-buttons-elements '(3 diaspora-buttons-elements-face))
-    ) 
+   ;; (cons diaspora-regexp-date 'diaspora-date-face)    
+   (cons diaspora-regexp-blockquote ''diaspora-blockquote-face)
+   (cons diaspora-regexp-user-entry ''diaspora-header-face-1)
+   (cons diaspora-regexp-header-1 ''diaspora-header-face-1)
+   (cons diaspora-regexp-header-2 ''diaspora-header-face-2)
+   (cons diaspora-regexp-header-3 ''diaspora-header-face-3)
+   (cons diaspora-regexp-header-4 ''diaspora-header-face-4)
+   (cons diaspora-regexp-hr ''diaspora-header-face-1)
+   (cons diaspora-regexp-image
+	 ''((1 diaspora-link-face t)
+	   (2 diaspora-url-face t)))
+   (cons diaspora-regexp-bold ''(2 diaspora-bold-face))
+   (cons diaspora-regexp-emph ''(2 diaspora-emph-face))
+   (cons diaspora-regexp-code ''(2 diaspora-inline-code-face))
+   (cons diaspora-regexp-email ''diaspora-link-face)
+   (cons diaspora-regexp-tag ''diaspora-url-face)
+   (cons diaspora-regexp-buttons-elements ''diaspora-buttons-elements-face)
+   )   
   "Syntax highlighting for diaspora files.")
 
 (defvar diaspora-mode-map 
@@ -379,7 +383,7 @@ This buttons are used by the user for clicking or pressing ENTER."
   "Major mode for output from \\[diaspora*]."
   (set (make-local-variable 'font-lock-defaults)
        '(diaspora-mode-font-lock-keywords))
-  (set (make-local-variable 'font-lock-multiline) t)
+  ;;(set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
   (set (make-local-variable 'buffer-read-only) t)
   (run-hooks 'diaspora-mode-hook))
