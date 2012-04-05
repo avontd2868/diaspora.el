@@ -512,6 +512,14 @@ Check if the temporal directory exists, if not create it."
     map)
   "Keymap used when the user clics on a name link.")
 
+(defvar diaspora-like-message-map-stream
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-cc" 'diaspora-comment-message)
+    (define-key map [return] 'diaspora-like-message)
+    (define-key map [mouse-2] 'diaspora-like-message)
+    map)
+  "Keymap used when the user clics on a name link.")
+
 (defvar diaspora-stream-message-map
   (let ((map (make-sparse-keymap)))
     (define-key map [\C-q] 'diaspora-single-message-destroy)
@@ -568,8 +576,10 @@ If buffer is nil, then use the `current-buffer'."
 		 (format "Has %s comments. %s likes." amount-comments amount-likes)
 		 'diaspora-is-amount-comments t)
 		"\n")
-	(insert (concat (diaspora-add-link-to-publication "Read in new buffer" id)
-			"\n"))
+	(insert (diaspora-add-link-to-publication "Read in new buffer" id)
+		" | "
+		(diaspora-add-like-link "I like it!" id)
+		"\n")
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	
@@ -625,6 +635,17 @@ or a function like `diaspora-show-message-new-buffer'."
    'diaspora-id-message id-message
    'diaspora-is-link-to-pub t
    'help-echo "Click here to see this message in new buffer.")
+  )
+(defun diaspora-add-like-link (text id-message)
+  "Return a propertized text with a link for sending a \"like\". Ready to use with a map like `diaspora-like-message-map-stream'."
+  (propertize
+   text
+   'mouse-face 'highlight
+   'face "link"
+   'keymap diaspora-like-message-map-stream
+   'diaspora-id-message id-message
+   'diaspora-is-like-link t
+   'help-echo "Click here to declare that I like this post!")  
   )
 
 (defun diaspora-get-id-message-near-point ()
@@ -1037,6 +1058,35 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
 	 (sec (string-to-number (substring interacted-date 17 19)))
 	 )
     (encode-time sec min hour day month year)
+    )
+  )
+
+
+
+(defun diaspora-like-message (&rest r)
+  "Send a \"like\" for this message!"
+  (interactive)
+  (diaspora-send-likes (diaspora-get-id-message-near-point))
+  )
+
+(defun diaspora-send-likes (post-id)
+  "Send a like POST for the message with id given by POST-ID."
+  (when post-id
+    (let ((url-request-method "POST")
+	  (url-request-extra-headers
+	   '(("Content-Type" . "application/x-www-form-urlencoded")
+	     ("Accept-Language" . "en")
+	     ("Accept-Charset" . "utf-8")))
+	  (buffer-file-coding-system 'utf-8)
+	  (url-request-data  ;; there is no need of information
+	   (mapconcat (lambda (arg)
+			(concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
+		      (list (cons "user[username]" diaspora-username)
+			    (cons "user[password]" diaspora-password)
+			    (cons "user[remember_me]" "1")
+			    (cons "authenticity_token" diaspora-auth-token))
+		      "&")))
+      (url-retrieve-synchronously (diaspora-likes-url post-id)))    
     )
   )
 

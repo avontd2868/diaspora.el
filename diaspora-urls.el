@@ -102,6 +102,12 @@ A bit complicated but the only way known to get a list of aspects."
   :group 'diaspora-streams)
 
 
+(defcustom diaspora-likes-name
+  "likes"
+  "Name for sending likes POSTs."
+  :type 'string
+  :group 'diaspora-streams)
+
 (defun diaspora-url (location)
   "Make the URL according to the `diaspora-pod'(pod selected)."
   (format "%s://%s/%s" 
@@ -161,6 +167,17 @@ A bit complicated but the only way known to get a list of aspects."
 	  )
   )
 
+
+(defun diaspora-likes-url (post-id)
+  (diaspora-url
+   (format "%s/%s/%s"
+	   diaspora-single-message-url
+	   (if (numberp post-id)
+	       (number-to-string post-id)
+	     post-id)
+	   diaspora-likes-name)
+   )
+  )
 
 (provide 'diaspora-urls)
 

@@ -499,7 +499,7 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
        '(diaspora-mode-font-lock-keywords))
   ;;(set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
-  ;;(set (make-local-variable 'buffer-read-only) t)
+  (set (make-local-variable 'buffer-read-only) t)
   (run-hooks 'diaspora-mode-hook))
 
 
