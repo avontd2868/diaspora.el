@@ -210,10 +210,7 @@ From Markdown to Emacs faces."
 
 (defun markdown-trans-add-link-props (beg end)
   (add-text-properties beg end '(mouse-face highlight help-echo "mouse-2: Go to link." keymap markdown-trans-map))  
-  (if (string-equal (buffer-substring beg (+ beg 1)) "!")
-      (add-text-properties beg (+ beg 2) '(markdown-trans-hide t))
-    (add-text-properties beg (+ beg 1) '(markdown-trans-hide t))
-    )
+  (add-text-properties beg (+ beg 1) '(markdown-trans-hide t))
   (save-excursion 
     (goto-char beg)
     (when (search-forward-regexp markdown-regex-link-inline end t)
