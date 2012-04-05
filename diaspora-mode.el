@@ -433,6 +433,11 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
   (diaspora-check-is-property limit 'diaspora-is-comment-text)
   )
 
+(defun diaspora-check-is-like-link (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-is-like-link setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-like-link)
+  )
+
 
 (defcustom diaspora-mode-hook '(diaspora-see-regexp-markdow diaspora-show-videos)
   "Functions run upon entering `diaspora-mode'."
@@ -461,6 +466,7 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    (cons diaspora-regexp-tag ''diaspora-url-face)
    ;;(cons diaspora-regexp-buttons-elements ''diaspora-buttons-elements-face)
    (cons 'diaspora-check-is-link-to-pub ''diaspora-buttons-elements-face)
+   (cons 'diaspora-check-is-like-link ''diaspora-buttons-elements-face)
    (cons 'diaspora-check-is-message-separator ''diaspora-message-separator-face)
    (cons 'diaspora-check-is-comments-start ''diaspora-comments-start-face)
    (cons 'diaspora-check-is-user-name ''diaspora-user-name-face)
