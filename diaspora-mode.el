@@ -167,6 +167,13 @@ Note: this is not correct! Needs more thought to get all images right."
   :type 'regexp
   :group 'diaspora-regexps)
 
+(defcustom diaspora-regexp-user-name
+  "\\(\\(^\\|[[:space:]]+\\)\\(@[[:alnum:]_\.-]+\\|@{[^}]*}\\)\\)"
+;;+\\|@{[[:alnum:]]+\\([[:space:]]*;[[:space:]]*[[:alnum:]]+@[^}]+}\\)?\\)"
+  "Regular expression for matching the user citation in a post(like \"@myusername\")."
+  :type 'regexp
+  :group 'diaspora-regexps)
+
 
 (defcustom diaspora-regexp-blockquote
   "^>.*$"
@@ -361,6 +368,12 @@ This buttons are used by the user for clicking or pressing ENTER."
   :group 'diaspora-faces
   )
 
+(defface diaspora-user-name-citation-face
+  '((t :weight bold :foreground "light sea green"))
+  "Face for username's citation like \"@myname\"."
+  :group 'diaspora-faces
+  )
+
 (defun diaspora-check-is-property (limit property)
   "Return t if the symbol property given by PROPERTY is in any of the text's properties between current `point' up to LIMIT.
 Set `match-data' with the beginning and end position of the first text founded with that property.
@@ -440,6 +453,7 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    (cons diaspora-regexp-image
    	 ''((1 diaspora-link-face t)
    	   (2 diaspora-url-face t)))
+   (cons diaspora-regexp-user-name ''diaspora-user-name-citation-face)
    (cons diaspora-regexp-bold ''(2 diaspora-bold-face))
    (cons diaspora-regexp-emph ''(2 diaspora-emph-face))
    (cons diaspora-regexp-code ''(2 diaspora-inline-code-face))
@@ -485,7 +499,7 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
        '(diaspora-mode-font-lock-keywords))
   ;;(set (make-local-variable 'font-lock-multiline) t)
   (use-local-map diaspora-mode-map)
-  (set (make-local-variable 'buffer-read-only) t)
+  ;;(set (make-local-variable 'buffer-read-only) t)
   (run-hooks 'diaspora-mode-hook))
 
 
