@@ -50,6 +50,7 @@
 (require 'url-http)
 (require 'json)
 (require 'font-lock)
+(require 'markdown-translator)
 
 (require 'diaspora-mode)
 (require 'diaspora-urls)
@@ -277,6 +278,34 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
   (message "diaspora.el, version %s" diaspora-el-version))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun diaspora-hide-markdown ()
+  "Hide markdown codes leaving only markdown text with colors and face properties."
+  (interactive)
+  (let ((inhibit-read-only t))
+    (markdown-trans-apply)
+    (markdown-trans-hide)
+    )    
+  )
+
+(defun diaspora-show-markdown ()
+  "Show markdown codes."
+  (interactive)
+  (let ((inhibit-read-only t))
+    (markdown-trans-show)
+    )
+  )
+
+
+(defun diaspora-remove-bad-chars ()
+  "Remove characters that looks ugly."
+  (save-excursion
+    (goto-char (point-min))
+    (let ((inhibit-read-only t))
+      (replace-string "" "")
+      )
+    )
+  )
 
 (provide 'diaspora)
 

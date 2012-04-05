@@ -324,6 +324,9 @@ Set MAX-TIME with a valid emacs timestamp to fetch information from and until th
 		)
 	    )
 
+	  (diaspora-remove-bad-chars)
+	  (diaspora-hide-markdown)
+
 	  (switch-to-buffer stream-buff)
 	  (goto-char (point-min))
 	  )

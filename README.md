@@ -10,6 +10,12 @@ This version is not compatible with the master branch dir structure and the earl
 
 This is in a very early stage of development...it will probably break some where. 
 
+## Libraries Needed
+
+* [markdown-mode](http://jblevins.org/projects/markdown-mode/)
+* markdown-translator : I haven't submitted into GNA! yet... waiting for authorizations! :P
+
+The library markdown-translator comes with this version of diaspora.el! :)
 
 
 ### Before anything else:
