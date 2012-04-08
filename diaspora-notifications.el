@@ -105,10 +105,18 @@
   (with-current-buffer buffer-to
     (let ((date (cdr (assoc 'updated_at (cdr (car notification)))))
 	  (unread (cdr (assoc 'unread (cdr (car notification))))))
-      (insert (format "\n---\nAt %s:" date))
+      (insert "\n"
+	      (propertize 
+	       "          ====================          \n"
+	       'diaspora-message-separator t)
+	      (format  "At %s: " date))
       (if (eq unread :json-true)
-	  (insert "**Unread!**\n")
-	(insert "Readed\n")))))
+	  (insert (propertize "Unread!"
+			      'diaspora-is-unread-notification t)
+		  "\n")
+	(insert (propertize "Readed"
+			    'diaspora-is-readed-notification t)
+		"\n")))))
 
 (defun diaspora-unknown-notifications (notification buffer-to)
   "Write an unknown type of notification. That's mean, write every data in the notification."
@@ -138,7 +146,7 @@
       (let ((splited-html (split-string note-html "\n")))
 	(insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
 	(when (string-match "/posts/\\([[:digit:]]*\\)" (nth 2 splited-html))
-	  (insert (diaspora-add-link-to-publication "**Goto publication**" 
+	  (insert (diaspora-add-link-to-publication "Goto publication" 
 						    (string-to-number (match-string 1 (nth 2 splited-html)))) "\n"))))))
 
 (defun diaspora-comment-on-post-notification (notification buffer-to)
@@ -155,7 +163,7 @@
 	 ;; Remove the name link property
 	 (diaspora-notification-remove-link-tags (nth 2 splited-html))
 	 "\n")
-	(insert (diaspora-add-link-to-publication "**Goto publication**" target-id)
+	(insert (diaspora-add-link-to-publication "Goto publication" target-id)
 		"\n")
 	 ))))
 
@@ -166,7 +174,7 @@
     (let ((splited-html (split-string note-html "\n")))
       (insert (diaspora-notification-remove-image-tags (nth 1 splited-html)) "\n")
       (insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
-      (insert (diaspora-add-link-to-publication "**Goto publication**" target-id) "\n"))))
+      (insert (diaspora-add-link-to-publication "Goto publication" target-id) "\n"))))
    
 
 (defun diaspora-started-sharing-notification (notification buffer-to)

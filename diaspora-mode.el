@@ -374,6 +374,18 @@ This buttons are used by the user for clicking or pressing ENTER."
   :group 'diaspora-faces
   )
 
+(defface diaspora-unread-notification-face
+  '((t :weight bold :foreground "firebrick2"))
+  "Face for username's citation like \"@myname\"."
+  :group 'diaspora-faces
+  )
+
+(defface diaspora-readed-notification-face
+  '((t :weight bold :foreground "forest green"))
+  "Face for username's citation like \"@myname\"."
+  :group 'diaspora-faces
+  )
+
 (defun diaspora-check-is-property (limit property)
   "Return t if the symbol property given by PROPERTY is in any of the text's properties between current `point' up to LIMIT.
 Set `match-data' with the beginning and end position of the first text founded with that property.
@@ -438,6 +450,16 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
   (diaspora-check-is-property limit 'diaspora-is-like-link)
   )
 
+(defun diaspora-check-is-unread-notification (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-is-like-link setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-unread-notification)
+  )
+
+(defun diaspora-check-is-readed-notification (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-is-like-link setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-readed-notification)
+  )
+
 
 (defcustom diaspora-mode-hook '(diaspora-see-regexp-markdow diaspora-show-videos)
   "Functions run upon entering `diaspora-mode'."
@@ -473,6 +495,8 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    (cons 'diaspora-check-is-amount-comments ''diaspora-amount-comments-face)
    (cons 'diaspora-check-is-comment-user-name ''diaspora-comment-user-name-face)
    (cons 'diaspora-check-is-comment-text ''diaspora-comment-text-face)
+   (cons 'diaspora-check-is-unread-notification ''diaspora-unread-notification-face)
+   (cons 'diaspora-check-is-readed-notification ''diaspora-readed-notification-face)
    )   
   "Syntax highlighting for diaspora files.")
 
