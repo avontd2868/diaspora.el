@@ -30,11 +30,15 @@
 * DONE Get the streams from an interval of dates
   The stream we actually fetch are from the current date. But what about the other posts?   
 
-* TODO Organize Customization Group for Diaspora
+* DONE Organize Customization Group for Diaspora
 * TODO Add the "amount of reshares" element apart from amount of like and amount of comments
 * TODO Add icons image to the likes, reshare, and comments
 * TODO What about a user stream? 
-  There is no function for retrieving all user posts.
+  There is no function for retrieving all user posts apart from 
+  :diaspora-get-stream-by-name "u/username"
+* TODO And the stream for an aspect?
+  Get a stream only for a selected aspect.
+* TODO Add privates message support
 * Licence
 
     TODO.org

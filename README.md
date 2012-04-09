@@ -6,10 +6,16 @@ https://joindiaspora.com/u/cnngimenez
 
 *WARNING*
 
-This version is not compatible with the master branch dir structure and the earlier test version. Sorry about that. Rename the old backup file .diaspora in order to make things work.
+This version may not be compatible with the master branch dir structure and the earlier test version. Sorry about that. Rename the old backup file .diaspora in order to make things work.
 
-This is in a very early stage of development...it will probably break some where. 
+This is in a very early stage of development...it will probably break some where. If that is the case: **Contact us!**
 
+## Libraries Needed
+
+* [markdown-mode](http://jblevins.org/projects/markdown-mode/)
+* markdown-translator : I haven't submitted into GNA! yet... waiting for authorizations! :P
+
+The library markdown-translator comes with this version of diaspora.el! :)
 
 
 ### Before anything else:
@@ -22,30 +28,40 @@ this wil create a dir structure and ask for user name and password. Be sure to s
 
     M-x diaspora-get-entry-stream
 
-images are displayed by default
+Images **aren't** displayed by default.
 
-#### to remove images from buffer 
+If you like to always see images at startup customize `diaspora-show-images-by-default` and set it to t.
+
+#### To Get All Images
+
+	M-x diaspora-get-all-images
+	
+#### to Remove Images From Buffer 
 
     M-x diaspora-unshow-images
 
-#### to show images  again
+#### To Show Images Again
 
     M-x diaspora-show-images
 
-### Post to diaspora:
+### Post To Diaspora:
 
     M-x diaspora-post-to
 
-#### You also have 
+#### You Also Have 
 
     M-x diaspora-post-clipboard
 
-for posting from clipboard :)
+For posting from clipboard :)
 
-#### Check keybindings
+#### Check Keybindings
 
     C-c C-h
 
+
+#### Learning More
+
+For more explanation or see a list of available commands take a look at the [Wiki](https://github.com/cnngimenez/diaspora.el/wiki).
 
 ## Thanks!
 
@@ -56,10 +72,12 @@ for posting from clipboard :)
 
 ---
 
-... It still needs some work.
+This project still needs some work.
 
 Comments/suggestions are welcome.
 
-Cheers.
+
+*Cheers!*
+
 
 

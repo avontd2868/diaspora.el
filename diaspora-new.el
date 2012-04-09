@@ -39,19 +39,6 @@
     (url-retrieve-synchronously url)))
 
 
-(defun diaspora-inspect-json (env)
-  (flet ((f-car (lst)
-		(cond ((listp lst)
-		       (if (listp (car lst))
-			   (mapcar 'f-car lst)
-			 (f-car (car lst))))
-		      (t 
-		       lst))))
-    (cond ((listp env)
-	   (mapcar 'f-car env))
-	  (t
-	   env))))
-
 (defun diaspora-json-read-url (url)
   "Returns a JSON parsed string from URL."
   (interactive)
@@ -142,13 +129,6 @@
   (diaspora-parse-json-read 'posts)
   (diaspora-mode))
 
-
-(defun diaspora-stream-likes ()
-  (interactive)
-  (diaspora-ask)
-  (diaspora-authenticity-token diaspora-sign-in-url) 
-  (diaspora-parse-json-read 'posts diaspora-entry-likes-url)
-  (diaspora-mode))
 
 (defun diaspora-see-regexp-markdow ()
   (interactive)

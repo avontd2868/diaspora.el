@@ -38,7 +38,7 @@
 
 (defgroup diaspora-streams nil
   "URL and names for the Streams used in diaspora.el."
-  :group 'diaspora
+  :group 'diaspora-urls
   :version "23.0"
   :tag "diaspora streams urls")
 
@@ -81,8 +81,8 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
   :type 'string
   :group 'diaspora-streams)
 
-(defcustom diaspora-entry-stream-url 
-  "/stream"
+(defcustom diaspora-entry-stream-name 
+  "stream"
   "JSON version of the entry stream(the main stream)."
   :type 'string
   :group 'diaspora-streams)
@@ -98,12 +98,6 @@ the JSON page is at the URL:
 And the `diaspora-participate-stream-name' must be at value \"participate\"."
   :type 'string
   :group 'diaspora-streams)
-
-(defcustom diaspora-entry-likes-url 
-  "https://joindiaspora.com/participate.json"
-  "JSON version of the entry stream(the main stream)."
-  :group 'diaspora)
-
 
 (defcustom diaspora-followed-tags-stream-name
   "followed_tags"
@@ -330,6 +324,9 @@ Set MAX-TIME with a valid emacs timestamp to fetch information from and until th
 		)
 	    )
 
+	  (diaspora-remove-bad-chars)
+	  (diaspora-hide-markdown)
+
 	  (switch-to-buffer stream-buff)
 	  (goto-char (point-min))
 	  )
@@ -420,7 +417,7 @@ Set MAX-TIME with a valid emacs timestamp to fetch information from and until th
 
 (defun diaspora-get-entry-stream (&optional max-date)
   "Show the entry stream. 
-First look for the JSON file at `diaspora-entry-stream-url' and then parse it.
+First look for the JSON file at `diaspora-entry-stream-name' and then parse it.
 I expect to be already logged in. Use `diaspora' for log-in.
 
 MAX-DATE is an optional parameter that defines the date interval of the post you want to fetch. 
@@ -429,7 +426,7 @@ This parameters has the same format as `current-time' but with the third paramet
 Where HIGH are the 16 bits most significant bit values and LOW are the 16 bits least significant bit values. 
 MICROSECOND are ignored, even can be absent."
   (interactive)  
-  (diaspora-get-stream-by-name diaspora-entry-stream-url max-date)
+  (diaspora-get-stream-by-name diaspora-entry-stream-name max-date)
   )
 
 (defun diaspora-get-entry-stream-up-to-date ()
@@ -515,6 +512,14 @@ Check if the temporal directory exists, if not create it."
     map)
   "Keymap used when the user clics on a name link.")
 
+(defvar diaspora-like-message-map-stream
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-cc" 'diaspora-comment-message)
+    (define-key map [return] 'diaspora-like-message)
+    (define-key map [mouse-2] 'diaspora-like-message)
+    map)
+  "Keymap used when the user clics on a name link.")
+
 (defvar diaspora-stream-message-map
   (let ((map (make-sparse-keymap)))
     (define-key map [\C-q] 'diaspora-single-message-destroy)
@@ -557,19 +562,33 @@ If buffer is nil, then use the `current-buffer'."
 	     (amount-likes (diaspora-extract-json-list
 			    '(likes_count) parsed-message)))
 	
-	(insert  "---\n")
+	(insert (concat
+		 (propertize 
+		  "          ====================          \n"
+		  'diaspora-message-separator t)))
 	(insert "![" name "](" avatar ")\n")
-	(insert (diaspora-add-link-to-publication 
-		 (format "%s (%s):\n" name diaspora_id) 
-		 id))
+	(insert (propertize
+		 (format "%s (%s):" name diaspora_id)
+		 'diaspora-is-user-name t)
+		 "\n")
 	(insert (format "%s\n" date))
-	(insert (format "Has %s comments. %s likes.\n" amount-comments amount-likes))
-	(insert (diaspora-add-link-to-publication "Read in new buffer\n" id))
+	(insert (propertize
+		 (format "Has %s comments. %s likes." amount-comments amount-likes)
+		 'diaspora-is-amount-comments t)
+		"\n")
+	(insert (diaspora-add-link-to-publication "Read in new buffer" id)
+		" | "
+		(diaspora-add-like-link "I like it!" id)
+		"\n")
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	
 	(when show-last-three-comments
-	  (insert  "\n*Comments:*\n")
+	  (insert  "\n"
+		   (propertize 
+		    "Comments:"
+		    'diaspora-comments-start t)
+		   "\n")
 	  (diaspora-comments-show-last-three parsed-message)
 	  (insert "\n")
 	  )
@@ -616,6 +635,17 @@ or a function like `diaspora-show-message-new-buffer'."
    'diaspora-id-message id-message
    'diaspora-is-link-to-pub t
    'help-echo "Click here to see this message in new buffer.")
+  )
+(defun diaspora-add-like-link (text id-message)
+  "Return a propertized text with a link for sending a \"like\". Ready to use with a map like `diaspora-like-message-map-stream'."
+  (propertize
+   text
+   'mouse-face 'highlight
+   'face "link"
+   'keymap diaspora-like-message-map-stream
+   'diaspora-id-message id-message
+   'diaspora-is-like-link t
+   'help-echo "Click here to declare that I like this post!")  
   )
 
 (defun diaspora-get-id-message-near-point ()
@@ -817,15 +847,23 @@ Also save the last post date for getting the next posts(older posts) in the stre
 
 
 
+(defun diaspora-find-image-links ()
+  "Search for all strings that matchs `diaspora-regexp-image' from point until the end, in other words: search for all links from here."  
+  (cond ((search-forward-regexp diaspora-regexp-image (point-max) t)
+	 (cons (match-string-no-properties 2)
+	       (diaspora-find-image-links)))
+	(t nil)
+	) 
+  )
+
 (defun diaspora-get-all-image-links ()
+  "Return all image links in the current buffer.
+Image links must match the regexp in `diaspora-regexp-image'."
   (goto-char (point-min))
   (save-excursion
-    (flet ((d-find-aux ()
-		       (cond ((search-forward-regexp diaspora-regexp-image (point-max) t)
-			      (cons (match-string-no-properties 2)
-				    (d-find-aux)))
-			     (t nil))))
-      (remove-duplicates (d-find-aux) :test 'equal))))
+    (remove-duplicates (diaspora-find-image-links) :test 'equal)
+    )
+  )
 
 (defun diaspora-get-image-link-at-point ()
   "Get the image near the point"
@@ -926,19 +964,6 @@ The tag must be a string without the starting \"#\"."
     (url-retrieve-synchronously url)))
 
 
-(defun diaspora-inspect-json (env)
-  (flet ((f-car (lst)
-		(cond ((listp lst)
-		       (if (listp (car lst))
-			   (mapcar 'f-car lst)
-			 (f-car (car lst))))
-		      (t 
-		       lst))))
-    (cond ((listp env)
-	   (mapcar 'f-car env))
-	  (t
-	   env))))
-
 (defun diaspora-json-read-url (url)
   "Returns a JSON parsed string from URL."
   (interactive)
@@ -1033,6 +1058,35 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
 	 (sec (string-to-number (substring interacted-date 17 19)))
 	 )
     (encode-time sec min hour day month year)
+    )
+  )
+
+
+
+(defun diaspora-like-message (&rest r)
+  "Send a \"like\" for this message!"
+  (interactive)
+  (diaspora-send-likes (diaspora-get-id-message-near-point))
+  )
+
+(defun diaspora-send-likes (post-id)
+  "Send a like POST for the message with id given by POST-ID."
+  (when post-id
+    (let ((url-request-method "POST")
+	  (url-request-extra-headers
+	   '(("Content-Type" . "application/x-www-form-urlencoded")
+	     ("Accept-Language" . "en")
+	     ("Accept-Charset" . "utf-8")))
+	  (buffer-file-coding-system 'utf-8)
+	  (url-request-data  ;; there is no need of information
+	   (mapconcat (lambda (arg)
+			(concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
+		      (list (cons "user[username]" diaspora-username)
+			    (cons "user[password]" diaspora-password)
+			    (cons "user[remember_me]" "1")
+			    (cons "authenticity_token" diaspora-auth-token))
+		      "&")))
+      (url-retrieve-synchronously (diaspora-likes-url post-id)))    
     )
   )
 
