@@ -113,6 +113,7 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
   (if (or reload
 	  (null diaspora-aspect-alist))
       (progn 
+	(diaspora-ask)
 	;; We haven't loaded the aspects yet. Load it!
 	(diaspora-get-authenticity-token-if-necessary)
 	(with-current-buffer (diaspora-get-url-entry-stream (diaspora-url diaspora-bookmarklet-location))
@@ -134,7 +135,7 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
    (let ((string (completing-read "Aspect name?" (diaspora-get-aspects)))
 	 )
      (list string))
-   )  
+   )
   (let ((aspect-id (assoc aspect-name diaspora-aspect-alist))
 	)
     (if aspect-id
