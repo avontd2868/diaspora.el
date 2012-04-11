@@ -218,13 +218,19 @@ Returns: A new buffer where is all the information retrieved from the URL."
 	(let ((url-request-data ;; the interval of time has been setted
 	       (mapconcat (lambda (arg)
 			    (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-			  (list (cons "max_time" (number-to-string (diaspora-get-time-by-timezone max-time))))
-				"&"))
+			  (append (list (cons "max_time" (number-to-string (diaspora-get-time-by-timezone max-time))))
+				  lst-get-parameters
+				  lst-post-parameters)
+			  "&"))
 	      )
 	  (url-retrieve-synchronously url)) 
-      
-      (url-retrieve-synchronously url);; there is no interval of time
-      
+      (let ((url-request-data ;; there is no interval of time
+	     (mapconcat (lambda (arg)
+			  (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
+			(append lst-get-parameters lst-post-parameters)
+			"&"))
+	    )
+	(url-retrieve-synchronously url))      
       )
     )
   )

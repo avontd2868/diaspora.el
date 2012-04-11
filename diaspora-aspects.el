@@ -130,12 +130,18 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
  
 (defun diaspora-get-stream-by-aspect (aspect-name)
   "Get all the message from an aspect stream called as ASPECT-NAME says."
-  (interactive)
-  (diaspora-get-aspects)
+  (interactive 
+   (let ((string (completing-read "Aspect name?" (diaspora-get-aspects)))
+	 )
+     (list string))
+   )  
   (let ((aspect-id (assoc aspect-name diaspora-aspect-alist))
 	)
     (if aspect-id
-	(diaspora-get-stream diaspora-aspects-stream-name nil (list aspect-id))
+	(diaspora-get-stream (diaspora-url-json diaspora-aspects-stream-name) ;;url
+			     nil ;; MAX-TIME...
+			     (list (cons "a_ids[]" (cdr aspect-id))) ;;GET parameters
+			     )
       (message "Aspect not founded: maybe you tiped a wrong name?")
       )
     )
