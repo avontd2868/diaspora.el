@@ -205,7 +205,7 @@ This is usefull for giving this as a GET(or POST) \"max_time\" parameter for any
   )
 
 
-(defun diaspora-get-url-entry-stream (url &optional max-time)
+(defun diaspora-get-url-entry-stream (url &optional max-time lst-get-parameters lst-post-parameters)
   "Get the Diáspora URL and leave it in a new buffer.
 Returns: A new buffer where is all the information retrieved from the URL."
   (let ((url-request-extra-headers
@@ -295,17 +295,20 @@ MICROSECOND are ignored, even can be absent."
    (diaspora-url-json stream-name)
    max-time))
 
-(defun diaspora-get-stream(stream-url max-time)
+(defun diaspora-get-stream(stream-url max-time &optional lst-get-parameters lst-post-parameters)
   "Get the stream given by the url, and then, show it in the diaspora buffer.
 I expect to be logged in, but if not, I download the authenticity token.
 
-Set MAX-TIME with a valid emacs timestamp to fetch information from and until that interval of time."  
+Set MAX-TIME with a valid emacs timestamp to fetch information from and until that interval of time.
+
+Use LST-GET-PARAMETERS to give special GET parameters to the STREAM-URL.
+Same as LST-POST-PARAMETERS."
   (diaspora-ask) ;; don't forget username and password!
   (diaspora-get-authenticity-token-if-necessary)
   ;; get the in JSON format all the data
   (let (
 	(stream-buff (get-buffer-create diaspora-stream-buffer))
-	(buff (diaspora-get-url-entry-stream stream-url max-time )))
+	(buff (diaspora-get-url-entry-stream stream-url max-time lst-get-parameters lst-post-parameters )))
     (with-current-buffer buff
       ;; Delete the HTTP header...
       (diaspora-delete-http-header)

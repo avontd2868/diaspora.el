@@ -96,13 +96,14 @@ We look for the keyword \"data-aspect_id=\" and we are sure that the next line h
 (defun diaspora-show-all-aspects ()
   "Show all aspects in a new buffer."
   (interactive)
+  (diaspora-ask)
   (diaspora-get-aspects)
   ;; Create (or get) and clear a new buffer
   (with-current-buffer (get-buffer-create diaspora-aspect-list-buffer-name)
     (delete-region (point-min) (point-max))
     ;; for each element print the name...
     (dolist (elt diaspora-aspect-alist)    
-      (insert (car elt) "\n")))
+      (insert (car elt) " - id: " (cdr elt) "\n")))
   (switch-to-buffer diaspora-aspect-list-buffer-name))
 
 (defun diaspora-get-aspects (&optional reload)
@@ -113,6 +114,7 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
 	  (null diaspora-aspect-alist))
       (progn 
 	;; We haven't loaded the aspects yet. Load it!
+	(diaspora-get-authenticity-token-if-necessary)
 	(with-current-buffer (diaspora-get-url-entry-stream (diaspora-url diaspora-bookmarklet-location))
 	  (let ((buffer-file-coding-system 'utf-8))
 	    (setq diaspora-aspect-alist (diaspora-look-for-aspects)))))    
@@ -126,6 +128,18 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
   (interactive)
   (diaspora-get-stream-by-name diaspora-aspects-stream-name))
  
+(defun diaspora-get-stream-by-aspect (aspect-name)
+  "Get all the message from an aspect stream called as ASPECT-NAME says."
+  (interactive)
+  (diaspora-get-aspects)
+  (let ((aspect-id (assoc aspect-name diaspora-aspect-alist))
+	)
+    (if aspect-id
+	(diaspora-get-stream diaspora-aspects-stream-name nil (list aspect-id))
+      (message "Aspect not founded: maybe you tiped a wrong name?")
+      )
+    )
+  )
 
 (provide 'diaspora-aspects)
 
