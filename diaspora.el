@@ -59,6 +59,7 @@
 (require 'diaspora-stream)
 (require 'diaspora-notifications)
 (require 'diaspora-aspects)
+(require 'diaspora-contacts)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
