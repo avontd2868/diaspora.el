@@ -108,6 +108,19 @@ JSON-PARSED-CONTACT is a parsed part of the JSON readed by `json-read' that corr
     )
   )
 
+(defun diaspora-contacts-insert-finale (contacts-amount)
+  "Insert at the end more information regarded to the contacts list."
+    (insert (concat
+	     (propertize 
+	      "          ====================          \n"
+	      'diaspora-message-separator t)))
+    (insert (concat
+	     (propertize 
+	      "          ====================          \n"
+	      'diaspora-message-separator t)))
+    (insert (format "Amount of Contacts Listed: %s" contacts-amount))
+    )
+	    
 (defun diaspora-contacts-parse-json-and-insert (buffer-from buffer-to)
   "Parse a JSON text in a buffer(BUFFER-FROM) and print the result contacts in another buffer(BUFFER-TO)
 
@@ -124,6 +137,7 @@ BUFFER-TO is the buffer where to print the contacts."
 	(dotimes (i le)	  	  
 	  (diaspora-contacts-show (aref json-elts i))
 	  )
+	(diaspora-contacts-insert-finale le)
 	)
       )
     )
@@ -141,6 +155,14 @@ Get any information necessary as well(like username, password and authenticity t
     (diaspora-delete-http-header)
     (diaspora-contacts-parse-json-and-insert (current-buffer) buffer-to)
     )
+  )
+
+(defun diaspora-get-stream-by-username (username)
+  "Get the stream using the username. Username is the name used for login of the contact.
+
+The `diaspora-username-url' functions help me finding the apropiate URL."
+  
+  (diaspora-get-stream-by-name (diaspora-username-name username))
   )
 
 (provide 'diaspora-contacts)

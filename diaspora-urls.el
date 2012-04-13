@@ -108,6 +108,15 @@ A bit complicated but the only way known to get a list of aspects."
   :type 'string
   :group 'diaspora-streams)
 
+(defcustom diaspora-userstream-url
+  "/u"
+  "This is the rest of the URL for getting a user stream. The first part is usually taken from `diaspora-pod' variable.
+
+See `diaspora-url' and `diaspora-url-json'."
+  :type 'string
+  :group 'diaspora-url
+  )
+
 (defun diaspora-url (location)
   "Make the URL according to the `diaspora-pod'(pod selected)."
   (format "%s://%s/%s" 
@@ -122,6 +131,12 @@ A bit complicated but the only way known to get a list of aspects."
   "Make the URL as in `diaspora-url' but for retrieving JSON formats pages, according to the `diaspora-pod' (pod selected)."
   (diaspora-url
    (format "%s.json" location)))
+
+
+(defun diaspora-username-name (username)
+  "Return the last part of the URL necessary to complete the URL with `diaspora-url' or `diaspora-url-json'."
+  (format "%s/%s" diaspora-userstream-url username)
+  )
 
 
 (defun diaspora-post-comment-url (post-id)
