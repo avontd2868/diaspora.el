@@ -157,6 +157,63 @@ Get any information necessary as well(like username, password and authenticity t
     )
   )
 
+(defvar diaspora-contacts-all-contacts nil
+  "An alist of contacts names and its usernames@pods.
+
+Use `diaspora-contacts-get-all-contacts' to set this variable accordingly."
+  )
+
+(defun diaspora-contacts-get-json-info (json-parsed-contact)
+  "Return the necessary info founded in a contact JSON element. 
+This is usually a cons made by the name and the username@pod.
+
+You can change this so you can have more information on each element in the `diaspora-contacts-all-contacts' variable."
+  (let ((handle (cdr (assoc 'handle json-parsed-contact))) ;; Usually is the diaspora address (name@joindiaspora.com for example)
+;;	(url (diaspora-url (cdr (assoc 'url json-parsed-contact))))
+;;	(avatar (cdr (assoc 'avatar json-parsed-contact)))
+	(name (cdr (assoc 'name json-parsed-contact)))
+;;	(guid (cdr (assoc 'guid json-parsed-contact)))
+;;	(id (cdr (assoc 'id json-parsed-contact)))
+	)
+    (cons name handle)
+    )
+  )
+
+(defun diaspora-contacts-parse-json-for-contacts ()
+  "Look in the JSON text for contacts and return an alist of contacts with its own complete username@pod."
+  (goto-char (point-min))
+  (let* ((lstout nil)
+	 (json-elts (json-read))
+	 (le (length json-elts))
+	 )
+    (dotimes (i le)
+      (push (diaspora-contacts-get-json-info (aref json-elts i)) lstout)
+      )
+    lstout
+    )	    
+  )
+
+(defun diaspora-contacts-get-all-contacts (&optional reload)
+  "Set `diaspora-contacts-all-contacts' if necessary looking for contacts from D*.
+Return the contents of `diapsora-contacts-all-contacts'.
+
+If RELOAD is t, then get the contacts from D* despite the variable is already setted."
+  (if (or reload
+	  (null diaspora-contacts-all-contacts)
+	  )
+      (progn ;; Look for contacts and set the variable!
+	(diaspora-ask)
+	(diaspora-get-authenticity-token-if-necessary)
+	(with-current-buffer (diaspora-get-url (diaspora-url-json diaspora-contact-url))
+	  (diaspora-delete-http-header)
+	  (setq diaspora-contacts-all-contacts (diaspora-contacts-parse-json-for-contacts))
+	  )
+	)
+    diaspora-contacts-all-contacts ;; the variable already has contents...
+    )   
+  )
+  
+
 (defun diaspora-get-stream-by-username (username)
   "Get the stream using the username. Username is the name used for login of the contact.
 
