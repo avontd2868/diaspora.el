@@ -213,11 +213,25 @@ If RELOAD is t, then get the contacts from D* despite the variable is already se
     )   
   )
   
+(defun diaspora-get-stream-by-contact (name)
+  "Look for the contact stream only by its name. "
+  (interactive
+   (let ((string (completing-read "Contact name?" (diaspora-contacts-get-all-contacts)))
+	 )
+     (list string))
+   )
+  
+  (let ((username (cdr (assoc name diaspora-contacts-all-contacts)))
+	)
+    (diaspora-get-stream-by-username  (diaspora-get-username username))
+    )
+  )
 
 (defun diaspora-get-stream-by-username (username)
   "Get the stream using the username. Username is the name used for login of the contact.
 
 The `diaspora-username-url' functions help me finding the apropiate URL."
+  (interactive "MUsername?")
   
   (diaspora-get-stream-by-name (diaspora-username-name username))
   )

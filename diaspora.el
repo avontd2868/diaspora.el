@@ -308,6 +308,17 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
     )
   )
 
+(defun diaspora-get-username (username-at-pod)
+  "Get only the username from the string \"username@pod\"."
+  (car (split-string username-at-pod "@" t))
+  )
+
+(defun diaspora-get-pod (username-at-pod)
+  "Get only the username from the string \"username@pod\"."
+  (cadr (split-string username-at-pod "@" t))
+  )
+
+
 (provide 'diaspora)
 
 ;;; diaspora.el ends here.
