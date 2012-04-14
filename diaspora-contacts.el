@@ -105,8 +105,44 @@ JSON-PARSED-CONTACT is a parsed part of the JSON readed by `json-read' that corr
     (insert (format "[%s](%s)" url url) "\n")
     (insert (format "GUID: %s" guid) "\n")
     (insert (format "ID: %s" id) "\n")    
+    (insert (diaspora-add-link-to-userstream "See his/her stream" (diaspora-get-username handle))
+	    "\n"
+	    )
     )
   )
+
+(defvar diaspora-show-userstream-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] 'diaspora-contacts-show-userstream-key)
+    (define-key map [mouse-2] 'diaspora-contacts-show-userstream-key)
+    map)
+  "Keymap used for getting a userstream."
+  )
+
+(defun diaspora-add-link-to-userstream (text username)
+  "Return a propertized text with a link to a user-stream."
+  (propertize
+   text
+   'mouse-face 'highlight
+   'face "link"
+   'keymap diaspora-show-userstream-map
+   'diaspora-username username
+   'diaspora-is-link-to-pub t
+   'help-echo "Click here to see her/his stream.")
+  )
+
+(defun diaspora-contacts-show-userstream-key (&rest r)
+  "Find the neareset 'diaspora-username property and get the user-stream by its username value."
+  (interactive)
+  (diaspora-get-stream-by-username (diaspora-contacts-get-username-near-point))
+  )
+
+(defun diaspora-contacts-get-username-near-point ()
+  "Get the 'diaspora-username property's username value that are near the current-point."
+  (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-username))
+		     'diaspora-username)
+  )
+  
 
 (defun diaspora-contacts-insert-finale (contacts-amount)
   "Insert at the end more information regarded to the contacts list."
