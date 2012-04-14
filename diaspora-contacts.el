@@ -120,7 +120,8 @@ JSON-PARSED-CONTACT is a parsed part of the JSON readed by `json-read' that corr
   )
 
 (defun diaspora-add-link-to-userstream (text username)
-  "Return a propertized text with a link to a user-stream."
+  "Return a propertized text with a link to a user-stream.
+USERNAME must be only the username(foo) not all the complete diaspora-id(foo@joindiaspora.com)."
   (propertize
    text
    'mouse-face 'highlight

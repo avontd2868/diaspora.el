@@ -543,6 +543,31 @@ Check if the temporal directory exists, if not create it."
 ;; I think it is preferable to add the properties latter on; using the same type
 ;; of procedures that is used to insert images. Just a thought.
 
+(defun diaspora-show-like (parsed-like)
+  "Write only one likes.
+
+PARSED-LIKE is a JSON part of the likes array.
+
+Modify this function if you want to show more information or show it in other way."
+  (let ((author (cdr (assoc 'name (assoc 'author parsed-like))))
+	(username (cdr (assoc 'diaspora_id (assoc 'author parsed-like))))
+	)
+    (insert (diaspora-add-link-to-userstream author (diaspora-get-username username)) "|")
+    )
+  )
+
+(defun diaspora-show-all-likes (all-parsed-likes)
+  "Write in the current buffer the people who likes this post."
+  ;; (let ((le (length all-parsed-likes))
+  ;; 	)
+  ;;   (dotimes (i le)
+  ;;     (diaspora-show-like (aref all-parsed-likes i))
+  ;;     )
+  ;;   )
+  (dolist (elt all-parsed-likes)
+    (diaspora-show-like elt)
+    )
+  )
 
 (defun diaspora-show-message (parsed-message &optional buffer show-last-three-comments)
   "Show a parsed message in a given buffer.
@@ -569,7 +594,9 @@ If buffer is nil, then use the `current-buffer'."
 	     (amount-comments (diaspora-extract-json-list
 			       '(comments_count) parsed-message))
 	     (amount-likes (diaspora-extract-json-list
-			    '(likes_count) parsed-message)))
+			    '(likes_count) parsed-message))
+	     (likes (cdr (assoc 'likes parsed-message)))
+	     )
 	
 	(insert (concat
 		 (propertize 
@@ -585,6 +612,11 @@ If buffer is nil, then use the `current-buffer'."
 		 (format "Has %s comments. %s likes." amount-comments amount-likes)
 		 'diaspora-is-amount-comments t)
 		"\n")
+	(when likes 
+	  (insert "Who likes this:\n")
+	  (diaspora-show-all-likes likes)
+	  (insert "\n")
+	  )
 	(insert (diaspora-add-link-to-publication "Read in new buffer" id)
 		" | "
 		(diaspora-add-like-link "I like it!" id)
