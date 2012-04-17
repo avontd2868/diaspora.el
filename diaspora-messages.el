@@ -154,6 +154,13 @@ Then return a temporary buffer with the messages in JSON format."
   
   )
   
+(defun diaspora-messages-parse-json-msg (buffer-from buffer-to)
+  "Parse a JSON message from buffer-from and write it in a more comprehensive way into buffer-to.
+
+Use function `diaspora-messages-show-message' to write it in BUFFER-TO."
+  
+  )
+
 
 (provide 'diaspora-messages)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -256,17 +256,17 @@ This buttons are used by the user for clicking or pressing ENTER."
   :group 'diaspora-faces)
 
 (defface diaspora-header-face-1
-  '((t :inherit diaspora-header-face))
+  '((t :inherit diaspora-header-face :height 2.0 :underline t))
   "Face for level-1 headers."
   :group 'diaspora-faces)
 
 (defface diaspora-header-face-2
-  '((t :inherit diaspora-header-face))
+  '((t :inherit diaspora-header-face :height 1.4))
   "Face for level-2 headers."
   :group 'diaspora-faces)
 
 (defface diaspora-header-face-3
-  '((t :inherit diaspora-header-face))
+  '((t :inherit diaspora-header-face :slant italic))
   "Face for level-3 headers."
   :group 'diaspora-faces)
 
