@@ -117,6 +117,12 @@ See `diaspora-url' and `diaspora-url-json'."
   :group 'diaspora-url
   )
 
+(defcustom diaspora-messages-url "/conversations"
+  "This is the URL part that corresponds to the conversation stream."
+  :group 'diaspora-url
+  :type 'string
+  )
+
 (defun diaspora-url (location)
   "Make the URL according to the `diaspora-pod'(pod selected)."
   (format "%s://%s/%s" 
@@ -193,6 +199,18 @@ See `diaspora-url' and `diaspora-url-json'."
 	   diaspora-likes-name)
    )
   )
+
+(defun diaspora-messages-url (message-id)
+  (diaspora-url
+   (format "%s/%s"
+	   diaspora-messages-url
+	   (if (numberp message-id)
+	       (number-to-string message-id)
+	     message-id)
+	   )
+   )
+  )
+	   
 
 (provide 'diaspora-urls)
 

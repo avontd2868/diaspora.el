@@ -50,13 +50,13 @@
 ;;; Code:
 
 (require 'diaspora)
-
-(defcustom diaspora-messages-url "/conversations"
-  "This is the URL part that corresponds to the conversation stream."
-  )
+(require 'diaspora-urls)
 
 (defconst diaspora-messages-buffer-name "*Diaspora Messages*"
   "This is the buffer-name of the diaspora messages list.")
+(defconst diaspora-message-buffer-name "*Diaspora One Message*"
+  "This is the buffer-name for showing a diaspora message."
+  )
 
 (defun diaspora-messages ()
   "List the messages that are in the convesations-url."
@@ -67,10 +67,11 @@
     (with-current-buffer buffer-to
       (delete-region (point-min) (point-max))
       (diaspora-mode)
-      )	  
-    (with-current-buffer (diaspora-messages-get-list)
-      (diaspora-messages-parse-json-msg-list (current-buffer) buffer-to)
-      )    
+      (with-current-buffer (diaspora-messages-get-list)
+	(diaspora-messages-parse-json-msg-list (current-buffer) buffer-to)
+	) 
+      (goto-char (point-min))
+      )
     (switch-to-buffer buffer-to)
     )
   )
@@ -147,18 +148,51 @@ Then return a temporary buffer with the messages in JSON format."
 (defun diaspora-message-at-point-show (&rest r)
   "Look the message id near point and show it using `diaspora-message-show'."
   (interactive)
+  (diaspora-message-show (diaspora-get-conversation-id-near-point))
   )
+
+(defun diaspora-get-conversation-id-near-point ()
+  "Get the diaspora-conversation-id property value searching from point.
+Use it for getting the nearest id post number when selecting a message."
+  (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-conversation-id))
+		     'diaspora-conversation-id)
+  )
+
+
 
 (defun diaspora-message-show (msg-id)
   "Show a conversation message in a new buffer."
-  
+  (diaspora-ask)
+  (diaspora-get-authenticity-token-if-necessary)
+  (let ((buffer-to (get-buffer-create diaspora-message-buffer-name))
+	(text nil)
+	)
+    (with-current-buffer (diaspora-get-url (diaspora-messages-url msg-id))
+      (diaspora-delete-http-header)
+      (diaspora-message-delete-unnecessary)
+      (setq text (buffer-string))
+      )
+    (with-current-buffer buffer-to
+      (let ((inhibit-read-only t))
+	(delete-region (point-min) (point-max))
+	(insert text)
+	(goto-char (point-min))
+	(htmlr-render)
+	(goto-char (point-min))
+	(switch-to-buffer buffer-to)
+	)
+      )    
+    )  
   )
   
-(defun diaspora-messages-parse-json-msg (buffer-from buffer-to)
-  "Parse a JSON message from buffer-from and write it in a more comprehensive way into buffer-to.
-
-Use function `diaspora-messages-show-message' to write it in BUFFER-TO."
-  
+(defun diaspora-message-delete-unnecessary ()
+  "Remove whatever is unneded for displaying a message."
+  (when (search-forward "<h3 class='ltr'>" nil t)
+    (delete-region (point-min) (match-beginning 0))
+    )  
+  (when (search-forward "<textarea cols=" nil t) 
+    (delete-region (match-beginning 0) (point-max))
+    )
   )
 
 

@@ -14,6 +14,7 @@ This is in a very early stage of development...it will probably break some where
 
 * [markdown-mode](http://jblevins.org/projects/markdown-mode/)
 * markdown-translator : I haven't submitted into GNA! yet... waiting for authorizations! :P
+* [htmlr](https://github.com/emacsmirror/htmlr/tree/)
 
 The library markdown-translator comes with this version of diaspora.el! :)
 
