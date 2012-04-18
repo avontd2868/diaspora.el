@@ -49,8 +49,8 @@
 ;; 
 ;;; Code:
 
-(require 'diaspora)
 (require 'diaspora-urls)
+(require 'htmlr)
 
 (defconst diaspora-messages-buffer-name "*Diaspora Messages*"
   "This is the buffer-name of the diaspora messages list.")
@@ -168,16 +168,19 @@ Use it for getting the nearest id post number when selecting a message."
 	(text nil)
 	)
     (with-current-buffer (diaspora-get-url (diaspora-messages-url msg-id))
-      (diaspora-delete-http-header)
-      (diaspora-message-delete-unnecessary)
-      (setq text (buffer-string))
+      (let ((buffer-file-coding-system 'utf-8))
+	(diaspora-delete-http-header)
+	(diaspora-message-delete-unnecessary)
+	(diaspora-message-replace-necessary)
+	(setq text (buffer-string))
+	)
       )
     (with-current-buffer buffer-to
       (let ((inhibit-read-only t)
 	    (buffer-file-coding-system 'utf-8)
 	    )
 	(delete-region (point-min) (point-max))
-	(insert text)
+	(insert (string-as-multibyte text))
 	(goto-char (point-min))
 	(htmlr-render)
 	(goto-char (point-min))
@@ -194,6 +197,17 @@ Use it for getting the nearest id post number when selecting a message."
     )  
   (when (search-forward "<textarea cols=" nil t) 
     (delete-region (match-beginning 0) (point-max))
+    )
+  )
+
+(defun diaspora-message-replace-necessary ()
+  "Replace text so you can see the message in a better way."
+  (save-excursion 
+    (goto-char (point-min))
+    (while (search-forward "<div class='ltr'>" nil t)      
+      (goto-char (match-end 0))
+      (insert "\n<hr />\n")
+      )
     )
   )
 
