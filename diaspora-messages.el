@@ -173,7 +173,9 @@ Use it for getting the nearest id post number when selecting a message."
       (setq text (buffer-string))
       )
     (with-current-buffer buffer-to
-      (let ((inhibit-read-only t))
+      (let ((inhibit-read-only t)
+	    (buffer-file-coding-system 'utf-8)
+	    )
 	(delete-region (point-min) (point-max))
 	(insert text)
 	(goto-char (point-min))

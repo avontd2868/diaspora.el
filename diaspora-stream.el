@@ -1001,7 +1001,9 @@ The tag must be a string without the starting \"#\"."
   (let ((url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
 	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "UTF-8"))))
+	   ("Accept-Charset" . "UTF-8")))
+	(buffer-file-coding-system 'utf-8)
+	)
     (url-retrieve-synchronously url)))
 
 

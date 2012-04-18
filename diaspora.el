@@ -60,6 +60,7 @@
 (require 'diaspora-notifications)
 (require 'diaspora-aspects)
 (require 'diaspora-contacts)
+(require 'diaspora-messages)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
