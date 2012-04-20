@@ -729,7 +729,12 @@ Use it for getting the nearest id post number when selecting a message."
       )
     (switch-to-buffer-other-window buff)
 ;    (switch-to-buffer buff)
-    (diaspora-mode)))
+    (with-current-buffer buff
+      (diaspora-hide-markdown)
+      (diaspora-mode)      
+      )
+    )
+  )
 
 (defun diaspora-parse-single-message-json (buff-from buff-to &optional show-last-three-comments)
   "Parse JSON format of a single message from buffer \"buff-from\" and return into \"buff-to\""
