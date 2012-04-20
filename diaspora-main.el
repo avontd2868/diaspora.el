@@ -120,6 +120,31 @@ Is a list of cons with the name of the option and the function to call."
     )
   )
 
+(defun diaspora-main-next-option (&rest r)
+  "Go to next option... if there is no more, goto the first one."
+  (interactive)
+  (goto-char (point-at-eol))
+  (unless (diaspora-main-next-option-1)
+    ;; End of buffer! 
+    (goto-char (point-min))
+    (diaspora-main-next-option-1)
+    )
+  )
+
+(defun diaspora-main-next-option-1 ()
+  "Go to next change in the property `diaspora-main-option'. 
+If a change in the property is not founded(i.e. the property remains constant and unchanged until end of buffer), return nil.
+If a change in the property is founded return t."
+  (let ((next-option (next-single-property-change (point) 'diaspora-main-option)))
+    (if next-option
+	(progn 
+	  (goto-char next-option)
+	  t)
+      nil
+      )
+    )
+  )
+
 (defun diaspora-main-execute-option (&rest r)
   "Execute the selected option."
   (interactive)
@@ -146,6 +171,7 @@ Is a list of cons with the name of the option and the function to call."
   (let ((diaspora-main-mode-map (make-sparse-keymap)))
     (define-key diaspora-main-mode-map [return] 'diaspora-main-execute-option)
     (define-key diaspora-main-mode-map [mouse-2] 'diaspora-main-execute-option)
+    (define-key diaspora-main-mode-map [tab] 'diaspora-main-next-option)
     diaspora-main-mode-map
     )
   )
