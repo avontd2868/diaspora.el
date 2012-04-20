@@ -82,12 +82,27 @@ Is a list of cons with the name of the option and the function to call."
   (interactive)
 
   (with-current-buffer (get-buffer-create diaspora-main-buffer-name)
-    (delete-region (point-min) (point-max))
-    (diaspora-main-insert-list-of-options)
-    (goto-char (point-min))
-    (diaspora-main-mode)
+    (let ((inhibit-read-only t))
+      (delete-region (point-min) (point-max))
+      (diaspora-main-insert-title)
+      (diaspora-main-insert-list-of-options)
+      (goto-char (point-min))
+      (diaspora-main-mode)
+      )
     )  
   (switch-to-buffer diaspora-main-buffer-name)
+  )
+
+(defface diaspora-main-title-face 
+  '((t :weight bold :height 2.0 :foreground "spring green" ))
+  "This is the MAIN TITLE face."
+  )
+
+(defun diaspora-main-insert-title ()
+  "Insert a title in the current buffer."  
+  (insert "Welcome to D*.el!") 
+  (center-line)
+  (insert "\n\n")
   )
 
 (defun diaspora-main-insert-list-of-options ()
@@ -121,9 +136,9 @@ Is a list of cons with the name of the option and the function to call."
   :group 'diaspora-faces
   )
 
-(defface diaspora-main-mode-title-face
+(defface diaspora-main-mode-subtitle-face
   '((t :inherit 'diaspora-header-face-2 :weight bold))  
-  "Face for each of the titles in Main buffer."
+  "Face for each of the sub-titles in Main buffer."
   :group 'diaspora-faces
   )
 
@@ -137,8 +152,9 @@ Is a list of cons with the name of the option and the function to call."
 
 (defvar diaspora-main-mode-font-lock-keywords
   '((
-     ("^\*.*\*$" . 'diaspora-main-mode-title-face)
-     ("^[^\*]+?$" . 'diaspora-main-mode-option-face)
+     ("[[:space:]]*Welcome.*$" . 'diaspora-main-title-face)
+     ("^\*.*\*$" . 'diaspora-main-mode-subtitle-face)
+     ("^[^\*[:space:]].+?$" . 'diaspora-main-mode-option-face)
      ))
   "Syntax highlighting for D*")
 
