@@ -61,6 +61,7 @@
 (require 'diaspora-aspects)
 (require 'diaspora-contacts)
 (require 'diaspora-messages)
+(require 'diaspora-main)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
@@ -172,7 +173,9 @@ and  `diaspora-password' no matter what.
 To be called interactively instead of `diaspora-ask'"
   (interactive)
   (diaspora-make-dirs)
-  (diaspora-ask t))
+  (diaspora-ask t)
+  (diaspora-main)
+  )
   
 (defun diaspora-make-dirs ()
   "Make all dirs if they don' exist."

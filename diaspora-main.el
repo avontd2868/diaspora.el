@@ -84,6 +84,7 @@ Is a list of cons with the name of the option and the function to call."
   (with-current-buffer (get-buffer-create diaspora-main-buffer-name)
     (delete-region (point-min) (point-max))
     (diaspora-main-insert-list-of-options)
+    (goto-char (point-min))
     (diaspora-main-mode)
     )  
   (switch-to-buffer diaspora-main-buffer-name)
