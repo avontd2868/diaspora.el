@@ -999,6 +999,12 @@ The tag must be a string without the starting \"#\"."
   (interactive "MTag(without '#')?")
   (diaspora-get-stream-by-name (format "/tags/%s" tag)))
 
+(defun diaspora-tag-stream ()
+  "Get the stream by the tag #diaspora-el so you can see the latest news of diaspora.el!"
+  (interactive)
+  (diaspora-get-stream-by-tag diaspora-tag)
+  )
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun diaspora-get-url(url)

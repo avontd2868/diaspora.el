@@ -66,6 +66,10 @@
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
 
+(defconst diaspora-tag "diaspora-el"
+  "This is the tag (without \"#\") where you can see the latest news of diaspora-el!"
+  )
+
 (defgroup diaspora nil 
   "A mode for diaspora* stream view and posting."
   :group 'applications)
