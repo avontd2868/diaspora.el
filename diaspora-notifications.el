@@ -110,7 +110,8 @@
 	       "          ====================          \n"
 	       'diaspora-message-separator t)
 	      (format  "At %s: " date))
-      (if (eq unread :json-true)
+      (if (or (eq unread :json-true)
+	      (eq unread t))
 	  (insert (propertize "Unread!"
 			      'diaspora-is-unread-notification t)
 		  "\n")

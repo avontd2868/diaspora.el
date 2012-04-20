@@ -12,33 +12,54 @@
 #+EXPORT_EXCLUDE_TAGS: noexport
 #+LINK_UP:   
 #+LINK_HOME: 
+#+SEQ_TODO:  TODO PARTIALLY-DONE | DONE 
 
-* TODO Makes notifications visible by the user
-  Notifications are importants in some way, make them visible as soon as the user calls the =diaspora= function.
+* Interface Features [1/3]
+** DONE Main menu
+   There is a Main menu now! :)
 
-  Maybe finding the way to get the amount of unreaded notifications and make it visible in the status line.
+** PARTIALLY-DONE Organize Customization Group for Diaspora
+** TODO Add icons image to the likes, reshare, and comments
 
-* DONE Put the comments in the stream buffer
-  It should be possible to read comments in the stream buffer, as seen on the diaspora web.
+* Notification Features [0/2]
+** TODO Makes notifications "very" visible by the user
+   Notifications are importants in some way, make them visible as soon as the user calls the =diaspora= function.
 
-* TODO Show how much people and who shares a message
-  The share feature is working, but diaspora.el doesn't have it yet :-( 
+   Maybe finding the way to get the amount of unreaded notifications and make it visible in the status line.
 
-* TODO Show how much people and who likes a message
-  Like feature is working, diaspora.el only shows how many people likes something... but who are those people?
+** TODO Let the user change a notification state
+   Unreaded notifications doesn't change its states, never will change to "readed"!
 
-* DONE Get the streams from an interval of dates
-  The stream we actually fetch are from the current date. But what about the other posts?   
+   There must be a button that change it state.
 
-* DONE Organize Customization Group for Diaspora
-* TODO Add the "amount of reshares" element apart from amount of like and amount of comments
-* TODO Add icons image to the likes, reshare, and comments
-* TODO What about a user stream? 
-  There is no function for retrieving all user posts apart from 
-  :diaspora-get-stream-by-name "u/username"
-* TODO And the stream for an aspect?
-  Get a stream only for a selected aspect.
-* TODO Add privates message support
+* Stream, Comments and Posting Features [5/7]
+** DONE Put the comments in the stream buffer
+   It should be possible to read comments in the stream buffer, as seen on the diaspora web.
+** DONE Show how much people and who likes a message
+   Like feature is working, diaspora.el only shows how many people likes something... but who are those people?
+
+** TODO Show how much people and who shares a message
+   The share feature is working, but diaspora.el doesn't have it yet :-( 
+
+** DONE Get the streams from an interval of dates
+   The stream we actually fetch are from the current date. But what about the other posts?   
+
+** TODO Add the "amount of reshares" element apart from amount of like and amount of comments
+
+** DONE What about a user stream? 
+   There is no function for retrieving all user posts apart from 
+   :diaspora-get-stream-by-name "u/username"
+** DONE And the stream for an aspect?
+   Get a stream only for a selected aspect.
+
+* Privates Message Features [2/3]
+  For:
+  - [X] See the list of messages
+  - [X] See a message thread
+  - [ ] Post a messagee
+
+
+
 * Licence
 
     TODO.org
