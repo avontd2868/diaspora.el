@@ -207,22 +207,24 @@
 
 (defun diaspora-notifications-mark-as-unread (notification-id)
   "Send a POST indicating that a notification must be marked as unread."
-  (let ((url-request-method "POST")
+  (let ((url-request-method "PUT")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
-	   ("Accept-Language" . "en")
+	   ("Accept-Language" . "en")	   
 	   ("Accept-Charset" . "utf-8")))
 	(buffer-file-coding-system 'utf-8)
 	(url-request-data 
 	 (mapconcat (lambda (arg)
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" diaspora-username)
-			  (cons "user[password]" diaspora-password)
-			  (cons "user[remember_me]" "1")
-			  (cons "authenticity_token" diaspora-auth-token)
-			  (cons "set_unread" "false")
+		    (list 
+		     (cons "user[username]" diaspora-username)
+		     (cons "user[password]" diaspora-password)
+		     (cons "user[remember_me]" "1")
+		     (cons "authenticity_token" diaspora-auth-token)
+		     (cons "set_unread" "true")
 			  )
 		    "&")))
+    (push (cons "X-CSRF-Token" diaspora-auth-token) url-request-extra-headers)
     (url-retrieve-synchronously (diaspora-notif-url notification-id))
     )
   )

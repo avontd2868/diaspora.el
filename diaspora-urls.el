@@ -123,7 +123,7 @@ See `diaspora-url' and `diaspora-url-json'."
   :type 'string
   )
 
-(defcustom diaspora-notifi-url "/notifications"
+(defcustom diaspora-notifi-url "notifications"
   "This is the URL part that corresponds to the notifications."
   :group 'diaspora-url
   :type 'string
