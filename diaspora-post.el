@@ -154,8 +154,10 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
   (interactive)
   (diaspora-post diaspora-last-post-text))
 
-(defun diaspora-post (post &optional aspects_ids)
-  "Post POST to diaspora."
+(defun diaspora-post (post &optional aspects_ids photos-ids)
+  "Post POST to diaspora.
+ASPECTS_IDS is a list of strings or numbers of aspects ids.
+PHOTOS-IDS is a list of strings or numbers of photos ids."
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
@@ -168,7 +170,9 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
 			  (cons "user[remember_me]" "1")
 			  (cons "authenticity_token" diaspora-auth-token)
 			  (cons "commit" "Sign in")
-			  (cons "aspect_ids[]" (diaspora-aspect-post-parameter aspects_ids)))
+			  (when aspects_ids (cons "aspect_ids[]" (diaspora-aspect-post-parameter aspects_ids)))
+			  (when photos-ids (cons "photos[]" (diaspora-aspect-post-parameter photos-ids)))
+			  )		    
 		    "&")))
     (url-retrieve (diaspora-url diaspora-status-messages-url)
 		  (lambda (arg) ))))
@@ -319,6 +323,26 @@ Most useful for posting things from any where."
   "Mention user."
   "User: "
   "@{" str ";" _ (concat "@" diaspora-pod "}"))
+
+
+(defun diaspora-post-send-image (image-path url)
+  "Send an image file given by IMAGE-PATH to the given URL."
+  (with-current-buffer (find-file-literally image-path)
+    (let ((url-request-method "POST")
+	  (url-request-extra-headers
+	   (list (cons "Content-Type" "application/octet-stream")
+		 (cons "X-File-Name" (file-name-nondirectory image-path))
+		 (cons "X-CSRF-Token" diaspora-auth-token)
+		 )	   
+	   )
+	  (url-request-data (buffer-string))	  
+	  )
+      (url-retrieve-synchronously url)
+      (kill-buffer (current-buffer))
+      )
+    )
+  )
+
 
 
 (provide 'diaspora-post)
