@@ -109,7 +109,9 @@
 "
   (with-current-buffer buffer-to
     (let ((date (cdr (assoc 'updated_at (cdr (car notification)))))
-	  (unread (cdr (assoc 'unread (cdr (car notification))))))
+	  (unread (cdr (assoc 'unread (cdr (car notification)))))
+	  (not-id (cdr (assoc 'id (cdr (car notification)))))
+	  )      
       (insert "\n"
 	      (propertize 
 	       "          ====================          \n"
@@ -120,9 +122,14 @@
 	  (insert (propertize "Unread!"
 			      'diaspora-is-unread-notification t)
 		  "\n")
-	(insert (propertize "Readed"
-			    'diaspora-is-readed-notification t)
-		"\n")))))
+	(progn
+	  (insert (propertize "Readed"
+			      'diaspora-is-readed-notification t)
+		 " | " )
+	  (insert (diaspora-add-link-to-unread "Mark as Unread" not-id)
+		  "\n")
+	  )
+	))))
 
 (defun diaspora-unknown-notifications (notification buffer-to)
   "Write an unknown type of notification. That's mean, write every data in the notification."
@@ -159,7 +166,8 @@
   "Write a \"comment-on-post\" notification."
   (with-current-buffer buffer-to
     (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
-	  (note-html (cdr (assoc 'note_html (cdr (car notification))))))
+	  (note-html (cdr (assoc 'note_html (cdr (car notification)))))
+	  )
       (let ((splited-html (split-string note-html "\n")))
 	(insert 
 	 (diaspora-notification-remove-image-tags (nth 1 splited-html))
@@ -172,6 +180,25 @@
 	(insert (diaspora-add-link-to-publication "Goto publication" target-id)
 		"\n")
 	 ))))
+
+(defvar diaspora-notifications-mark-as-unread-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] 'diaspora-notifications-mark-as-unread-action)
+    (define-key map [mouse-2] 'diaspora-notifications-mark-as-unread-action)
+    map
+    )
+  "Keymap used for diaspora notifications \"mark as unread\" buttons."
+  )
+
+(defun diaspora-add-link-to-unread (text notification-id)
+  "Return a text with button or link properties for mark as unread the post with id PUBLICATION-ID."
+  (propertize text
+	      'diaspora-notification-id  notification-id
+	      'mouse-face 'highlight
+	      'help-echo "Click here to mark this publication as unread."
+	      'keymap diaspora-notifications-mark-as-unread-map
+	      )
+  )
 
 (defun diaspora-liked-notification (notification buffer-to)
   "Write a \"liked\" notification."
@@ -229,6 +256,17 @@
     )
   )
 
+(defun diaspora-notifications-get-id-near-point ()
+  "Return the nearest `diaspora-notification-id' property value."
+  (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-notification-id))
+		     'diaspora-notification-id)
+  )
+  
 
+(defun diaspora-notifications-mark-as-unread-action (&rest)
+  "Mark publication as unread."
+  (interactive)
+  (diaspora-notifications-mark-as-unread (diaspora-notifications-get-id-near-point))
+  )
 
 (provide 'diaspora-notifications)
