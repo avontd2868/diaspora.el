@@ -197,6 +197,7 @@
 	      'mouse-face 'highlight
 	      'help-echo "Click here to mark this publication as unread."
 	      'keymap diaspora-notifications-mark-as-unread-map
+	      'diaspora-is-notification-mark-as-unread t
 	      )
   )
 

@@ -386,6 +386,12 @@ This buttons are used by the user for clicking or pressing ENTER."
   :group 'diaspora-faces
   )
 
+(defface diaspora-mark-as-unread-face
+  '((t :inherit diaspora-buttons-elements-face))
+  "Face for username's citation like \"@myname\"."
+  :group 'diaspora-faces
+  )
+
 (defun diaspora-check-is-property (limit property)
   "Return t if the symbol property given by PROPERTY is in any of the text's properties between current `point' up to LIMIT.
 Set `match-data' with the beginning and end position of the first text founded with that property.
@@ -460,6 +466,11 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
   (diaspora-check-is-property limit 'diaspora-is-readed-notification)
   )
 
+(defun diaspora-check-is-mark-as-unread (limit)
+  "Return t if the text from the current point up to the limit has the property diaspora-is-like-link setted to t."
+  (diaspora-check-is-property limit 'diaspora-is-notification-mark-as-unread)
+  )
+
 
 (defcustom diaspora-mode-hook '(diaspora-see-regexp-markdow diaspora-show-videos)
   "Functions run upon entering `diaspora-mode'."
@@ -497,6 +508,7 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    (cons 'diaspora-check-is-comment-text ''diaspora-comment-text-face)
    (cons 'diaspora-check-is-unread-notification ''diaspora-unread-notification-face)
    (cons 'diaspora-check-is-readed-notification ''diaspora-readed-notification-face)
+   (cons 'diaspora-check-is-mark-as-unread ''diaspora-mark-as-unread-face)
    )   
   "Syntax highlighting for diaspora files.")
 
