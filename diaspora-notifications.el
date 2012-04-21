@@ -202,7 +202,7 @@
 (defun diaspora-notifications-mark-all-read ()
   "Mark all notifications as readed."
   (interactive)
-  (diaspora-get-url (diaspora-url diaspora-notification-read-all-url))
+  (diaspora-get-url (diaspora-notif-url "read_all"))
   )
 
 (defun diaspora-notifications-mark-as-unread (notification-id)
