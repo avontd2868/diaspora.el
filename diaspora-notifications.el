@@ -44,6 +44,10 @@
   "notifications.json"
   "This is the URL for JSON format notifications.")
 
+(defconst diaspora-notifications-read-all-url
+  "notifications/read_all"
+  "This is the URL used to make all notifications pass to the read state.")
+
 					; ********************
 					; Functions
 
@@ -67,6 +71,7 @@
     (switch-to-buffer buff)
     (with-current-buffer buff
       (let ((inhibit-read-only t))
+	(diaspora-hide-markdown)
 	(diaspora-mode)
 	)      
       (setq buffer-read-only t)
@@ -193,5 +198,35 @@
 	(insert 
 	 (diaspora-notification-remove-link-tags (nth 2 splited-html))
 	 "\n")))))
+
+(defun diaspora-notifications-mark-all-read ()
+  "Mark all notifications as readed."
+  (interactive)
+  (diaspora-get-url (diaspora-url diaspora-notification-read-all-url))
+  )
+
+(defun diaspora-notifications-mark-as-unread (notification-id)
+  "Send a POST indicating that a notification must be marked as unread."
+  (let ((url-request-method "POST")
+	(url-request-extra-headers
+	 '(("Content-Type" . "application/x-www-form-urlencoded")
+	   ("Accept-Language" . "en")
+	   ("Accept-Charset" . "utf-8")))
+	(buffer-file-coding-system 'utf-8)
+	(url-request-data 
+	 (mapconcat (lambda (arg)
+		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
+		    (list (cons "user[username]" diaspora-username)
+			  (cons "user[password]" diaspora-password)
+			  (cons "user[remember_me]" "1")
+			  (cons "authenticity_token" diaspora-auth-token)
+			  (cons "set_unread" "false")
+			  )
+		    "&")))
+    (url-retrieve-synchronously (diaspora-notif-url notification-id))
+    )
+  )
+
+
 
 (provide 'diaspora-notifications)

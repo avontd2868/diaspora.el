@@ -123,6 +123,12 @@ See `diaspora-url' and `diaspora-url-json'."
   :type 'string
   )
 
+(defcustom diaspora-notif-url "/notifications"
+  "This is the URL part that corresponds to the notifications."
+  :group 'diaspora-url
+  :type 'string
+  )
+
 (defun diaspora-url (location)
   "Make the URL according to the `diaspora-pod'(pod selected)."
   (format "%s://%s/%s" 
@@ -210,7 +216,18 @@ See `diaspora-url' and `diaspora-url-json'."
 	   )
    )
   )
-	   
+
+
+(defun diaspora-notif-url (notification-id)
+  (diaspora-url
+   (format "%s/%s"
+	   diaspora-notifi-url
+	   (if (numberp message-id)
+	       (number-to-string message-id)
+	     message-id)
+	   )
+   )
+  )
 
 (provide 'diaspora-urls)
 
