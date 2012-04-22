@@ -653,13 +653,13 @@ This parses the two options!"
 	  (i 0))
       (dotimes (i le)	  
 	(insert "![photo](" 
-		(cdr (assoc 'large (car (aref photos i))))
+		(cdr (assoc 'large (assoc 'sizes (aref photos i))))
 		")\n")))
     )
    ((listp photos) ;; Is a single message JSON photo field!
     (dolist (photo photos)
       (insert "![photo](" 
-	      (cdr (assoc 'large (car photo)))
+	      (cdr (assoc 'large (assoc 'sizes (car photo))))
 	      ")\n"))
     )
    )
