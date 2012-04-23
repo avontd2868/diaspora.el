@@ -167,6 +167,7 @@ PHOTOS-IDS is a list of strings or numbers of photos ids."
 		    (list (cons "user[username]" diaspora-username)
 			  (cons "user[password]" diaspora-password)
 			  (cons "status_message[text]" post)
+			  (cons "status_message[provider_display_name]" "diaspora.el") ;; Founded in Tiago Charters Azevedo's Diaspora-el
 			  (cons "user[remember_me]" "1")
 			  (cons "authenticity_token" diaspora-auth-token)
 			  (cons "commit" "Sign in")

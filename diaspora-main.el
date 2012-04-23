@@ -69,6 +69,10 @@
     ("Messages" . diaspora-messages)
     "Posting"
     ("Post a text" . diaspora-post-to)
+    "Configuration"
+    ("Change Login" . diaspora-login)
+    ("Change POD" . diaspora-set-pod)
+    ("Customize D*.el" . diaspora-customize)
     )
   "This is a list of elements to show in the main menu.
 
@@ -77,7 +81,6 @@ Is a list of cons with the name of the option and the function to call."
   :type '(alist :key-type (group string) :value-type (group function))
   )
     
-
 (defun diaspora-main ()
   "¡Show the main menu!"
   (interactive)

@@ -173,12 +173,25 @@ If nil, you will be prompted."
 
 (defun diaspora ()
   "Make all dirs if they don' exist and set `diaspora-username' 
-and  `diaspora-password' no matter what.  
-To be called interactively instead of `diaspora-ask'"
+and  `diaspora-password' if they weren't."
   (interactive)
   (diaspora-make-dirs)
-  (diaspora-ask t)
+  (diaspora-ask)
   (diaspora-main)
+  )
+
+(defun diaspora-customize ()
+  "Run Customization utility for customize D*.el."
+  (interactive)
+  (customize-group "diaspora")
+  )
+
+(defun diaspora-login ()
+  "Ask for username and password interactivelly. 
+
+Use `diaspora-ask'."
+  (interactive)
+  (diaspora-ask t)
   )
   
 (defun diaspora-make-dirs ()
@@ -324,6 +337,36 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
 (defun diaspora-get-pod (username-at-pod)
   "Get only the username from the string \"username@pod\"."
   (cadr (split-string username-at-pod "@" t))
+  )
+
+(defcustom diaspora-pod-list
+  '("joindiaspora.com" "diasp.org" "calispora.org" "despora.de" "diasp.be"
+    "diasp.de" "diasp.eu" "diasp0ra.ca" "diaspora.cloudid.net" "diaspora.compadre.dk"
+    "diaspora.digitalinsanity.de" "diaspora.eigenlab.org" "diaspora.podzimek.org"
+    "diaspora.re" "diaspora.sceal.ie" "diasporaserbia.org" "diaspora.subsignal.org"
+    "diaspora.urbanabydos.ca" "dipod.org" "dipod.es" "foobar.cx" "free-beer.ch"
+    "hasst-euch-alle.de" "li-la.de:3000" "londondiaspora.org" "my-seed.com" 
+    "nerdpol.ch" "www.nomed.de" "ottospora.nl" "pod.geraspora.de" "poddery.com"
+    "privit.us" "soc.ragriz.net" "spargo.me" "spora.com.ua" "the.diasperse.com"
+    "wk3.org" "yaspora.com" "diaspora.danapriesing.net" "diasp.3towers.de"
+    "d-aspora.ru" "diaspora.erchache2000.es"
+    )
+  "List of Pods used by `diaspora-set-pod' function."
+  :group 'diaspora
+  :type '(repeat string)
+  )
+
+(defun diaspora-set-pod (other-pod)
+  "Change the pod for the next connection. This doesn't set it permanently, just temporary.
+
+This command is usefull when you want to change the POD for now."
+  (interactive 
+   (let ((string (completing-read "POD URL?" diaspora-pod-list nil nil))
+	 )
+     (list string))
+   )
+  (setq diaspora-pod other-pod)
+  (message (format "%s %s" "Setted temporary to " other-pod))
   )
 
 
