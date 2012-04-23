@@ -334,6 +334,7 @@ Same as LST-POST-PARAMETERS."
 	    )
 
 	  (diaspora-remove-bad-chars)
+	  (diaspora-replace-bad-links)
 	  (diaspora-hide-markdown)
 
 	  (switch-to-buffer stream-buff)

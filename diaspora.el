@@ -329,6 +329,20 @@ and  `diaspora-password' has not been setted. `opt' t forces setting."
     )
   )
 
+(defun diaspora-replace-bad-links ()
+  "Replace links like \"[](http://something.com\" or \"![](http://something.com/image.png\". 
+
+This links when parsing doesn't show anything because there is no label. 
+Change it to something like: \"[nolabel](http://...)\"."
+  (save-excursion
+    (goto-char (point-min))
+    (while (search-forward-regexp diaspora-regexp-image nil t)
+      (if (string= (match-string-no-properties 1) "[]")
+	  (replace-match "[nolabel]" nil nil nil 1))
+      )
+    )
+  )
+
 (defun diaspora-get-username (username-at-pod)
   "Get only the username from the string \"username@pod\"."
   (car (split-string username-at-pod "@" t))
