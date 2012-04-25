@@ -60,11 +60,13 @@
     "Aspects"
     ("Get Aspect Stream" . diaspora-get-aspects-stream)
     ("Get Aspect List" . diaspora-show-all-aspects)    
+    ("Get Stream by One Aspect" . diaspora-get-stream-by-aspect)
     "Other Streams" ;; This is a particular item
     ("Diaspora-el STREAM! See latest news! :)" . diaspora-tag-stream)
     ("Get Tag Stream" . diaspora-get-stream-by-tag)
     ("Get Contact Stream" . diaspora-get-stream-by-contact)
     ("Get Stream using a Username" . diaspora-get-stream-by-username)
+    ("Get Liked Stream" . diaspora-get-liked-stream)
     "Personal Conversations(Messages)"
     ("Messages" . diaspora-messages)
     "Posting"
