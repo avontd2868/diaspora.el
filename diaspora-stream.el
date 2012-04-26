@@ -597,6 +597,7 @@ If buffer is nil, then use the `current-buffer'."
 	     (amount-likes (diaspora-extract-json-list
 			    '(likes_count) parsed-message))
 	     (likes (cdr (assoc 'likes parsed-message)))
+	     (public (cdr (assoc 'public parsed-message)))
 	     )
 	
 	(insert (concat
@@ -625,6 +626,11 @@ If buffer is nil, then use the `current-buffer'."
 	(insert (format "%s\n\n" text))
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	
+	(if (equal public t)
+	    (insert "Public")
+	  (insert "Limited\n")
+	  )
+	  
 	(when show-last-three-comments
 	  (insert  "\n"
 		   (propertize 

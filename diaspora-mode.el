@@ -285,6 +285,11 @@ This buttons are used by the user for clicking or pressing ENTER."
   "Face for URLs."
   :group 'diaspora-faces)
 
+(defface diaspora-tag-face
+  '((t :inherit diaspora-url-face))
+  "Face for tags."
+  :group 'diaspora-faces)
+
 (defface diaspora-emph-face
   '((t :inherit font-lock-variable-name-face :italic t))
   "Face for italic text."

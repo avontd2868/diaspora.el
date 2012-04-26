@@ -95,6 +95,18 @@
   :type 'dir
   :group 'diaspora)
 
+(defcustom diaspora-image-history-file
+  "~/.diaspora/image-sended-history"
+  "This file will store all the images id an information that you may need when a post fails.
+
+If you send an image to diáspora, the server will save it until you send a post with its id. 
+If posting goes wrong for some reason, and the variable `diaspora-images-posted' has been cleared, you miss all the ids of the images resulting in sending them again.
+
+Well, thanks to this file, you don't need to send the images again, just look at the id, add it to the variable `diaspora-images-posted' and that's all."
+  :type 'file
+  :group 'diaspora
+  )
+
 (defcustom diaspora-show-images-by-default
   nil
   "Loads images by default at start."

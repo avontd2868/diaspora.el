@@ -329,7 +329,8 @@ Most useful for posting things from any where."
 (defun diaspora-post-send-image (image-path url)
   "Send an image file given by IMAGE-PATH to the given URL."
   (with-current-buffer (find-file-literally image-path)
-    (let ((url-request-method "POST")
+    (let ((image-data nil)
+	  (url-request-method "POST")
 	  (url-request-extra-headers
 	   (list (cons "Content-Type" "application/octet-stream")
 		 (cons "X-File-Name" (file-name-nondirectory image-path))
@@ -338,12 +339,42 @@ Most useful for posting things from any where."
 	   )
 	  (url-request-data (buffer-string))	  
 	  )
-      (url-retrieve-synchronously url)
-      (kill-buffer (current-buffer))
+      (with-current-buffer (url-retrieve-synchronously url)
+	(diaspora-delete-http-header)
+	(setq image-data (json-read)) ;; save image url and data for history
+	)      
+      (kill-buffer (current-buffer))      
       )
     )
+  (diaspora-save-image-data image-data)
+  (push (cdr (assoc 'id image-data)) diaspora-images-posted)
   )
 
 
+(defun diaspora-save-image-data (image-data)
+  "Save the image data in a history file `diaspora-image-history-file'."
+  (with-temp-buffer 
+    (insert-file-contents diaspora-image-history-file)
+    (insert "\n"
+	    (cdr (assoc 'id image-data)))
+    )
+  )
+
+(defvar diaspora-images-posted
+  nil
+  "This is a list of images ids that has been posted.
+
+This variable should store all the images ids of those unpublished images(temporary submitted).
+
+It will be erased when you use `diaspora-post-this-buffer' or simmilar functions that post the message with the images ids."
+  )
+
+
+(defun diaspora-add-image (image-path)
+  "Add an image to the next post."
+  (interactive "fImage file?")
+  (diaspora-post-send-image image-path (diaspora-url diaspora-image-url))
+  )
+  
 
 (provide 'diaspora-post)

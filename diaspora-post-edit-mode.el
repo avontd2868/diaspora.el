@@ -56,15 +56,46 @@
     map
     ))
 
+(defvar diaspora-post-edit-mode-keywords
+  '(t (
+       (diaspora-regexp-tag . diaspora-tag-face)
+       (diaspora-regexp-user-name . diaspora-user-name-citation-face)
+       )
+      )
+  "Keywords for `diaspora-post-edit-mode' minor mode."
+  )
+  
+
 (define-minor-mode diaspora-post-edit-mode 
   "Minor mode for adding keymaps and highlightings according to D*."
   nil
-  "D*-post-edit"
-  diaspora-edit-mode-map
+  " D*-post-edit"
+  diaspora-post-edit-mode-map
   :group 'diaspora
+
+  (if diaspora-post-edit-mode
+      (diaspora-pem-add-keywords)
+    (diaspora-pem-remove-keywords)
+    )	    
+  )
+
+;; "pem" = "post edit mode". As abreviation we use "pem" instead of "post-edit-mode".
+
+(defun diaspora-pem-add-keywords ()
+  "Append the `diaspora-post-edit-mode-keywords' into the `font-lock-defaults'."
+  (setq font-lock-keywords 
+	(append diaspora-post-edit-mode-keywords font-lock-keywords)
+	)
+  )
+
+(defun diaspora-pem-remove-keywords ()
+  "Remove the `diaspora-post-edit-mode-keywords' from the `font-lock-defaults'."
+  (dolist (e diaspora-post-edit-mode-keywords)
+    (setq font-lock-defaults (remove e font-lock-defaults))
+    )
   )
 
 
-(require 'diaspora-edit-mode)
+(provide 'diaspora-post-edit-mode)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; diaspora-edit-mode.el ends here
