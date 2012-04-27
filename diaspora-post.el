@@ -154,6 +154,19 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
   (interactive)
   (diaspora-post diaspora-last-post-text))
 
+(defun diaspora-image-list (lst-photos-ids)
+  "Return a list with cons where the first element is the string \"photos[n]\" changing n accordingly, and the second element is the photo id taken from LST-PHOTOS-IDS."
+  (let ((num 0)
+	(outlst nil)
+	)
+    (dolist (e lst-photos-ids)
+      (push (cons "photos[]" e) outlst)
+      (setq num (+ 1 num))
+      )
+    outlst
+    )
+  )
+
 (defun diaspora-post (post &optional aspects_ids photos-ids)
   "Post POST to diaspora.
 ASPECTS_IDS is a list of strings or numbers of aspects ids.
@@ -164,17 +177,18 @@ PHOTOS-IDS is a list of strings or numbers of photos ids."
 	(url-request-data
 	 (mapconcat (lambda (arg)
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-		    (list (cons "user[username]" diaspora-username)
-			  (cons "user[password]" diaspora-password)
-			  (cons "status_message[text]" post)
-			  (cons "status_message[provider_display_name]" "diaspora.el") ;; Founded in Tiago Charters Azevedo's Diaspora-el
-			  (cons "user[remember_me]" "1")
-			  (cons "authenticity_token" diaspora-auth-token)
-			  (cons "commit" "Sign in")
-			  (cons "aspect_ids[]" (diaspora-aspect-post-parameter aspects_ids))
-			  (cons "photos[]" (diaspora-aspect-post-parameter photos-ids))
-			  )		    
-		    "&")))
+		    (append 
+		     (list (cons "user[username]" diaspora-username)
+			   (cons "user[password]" diaspora-password)
+			   (cons "status_message[text]" post)
+			   (cons "status_message[provider_display_name]" "diaspora.el") ;; Founded in Tiago Charters Azevedo's Diaspora-el
+			   (cons "user[remember_me]" "1")
+			   (cons "authenticity_token" diaspora-auth-token)
+			   (cons "commit" "Sign in")
+			   (cons "aspect_ids[]" (diaspora-aspect-post-parameter aspects_ids)))
+		     (diaspora-image-list photos-ids))
+		    "&"))
+	)
     (url-retrieve (diaspora-url diaspora-status-messages-url)
 		  (lambda (arg) ))))
 		  ;;   (kill-buffer (current-buffer))))))
@@ -189,7 +203,8 @@ PHOTOS-IDS is a list of strings or numbers of photos ids."
   (diaspora-post (buffer-string) diaspora-aspects-for-post diaspora-images-posted)
   (setq diaspora-images-posted nil)
   (diaspora-save-post-to-file)
-  (kill-buffer))
+  ;;(kill-buffer)
+  )
 
 (defsubst diaspora-date ()
   "Date string for inserting in posts."
