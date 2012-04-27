@@ -343,14 +343,16 @@ Most useful for posting things from any where."
 	  )
       (with-current-buffer (url-retrieve-synchronously url)
 	(diaspora-delete-http-header)
+	(goto-char (point-min))
 	(setq image-data (json-read)) ;; save image url and data for history
 	)      
       (kill-buffer (current-buffer))      
+      (diaspora-save-image-data image-data)
+      (push (cdr (assoc 'id (diaspora-image-data-get-photo-data image-data)))
+	    diaspora-images-posted)
+
       )
     )
-  (diaspora-save-image-data image-data)
-  (push (cdr (assoc 'id (diaspora-image-data-get-photo-data image-data)))
-	diaspora-images-posted)
   )
 
 (defvar diaspora-images-posted
