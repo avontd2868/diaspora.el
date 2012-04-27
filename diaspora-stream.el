@@ -666,7 +666,8 @@ This parses the two options!"
    ((listp photos) ;; Is a single message JSON photo field!
     (dolist (photo photos)
       (insert "![photo](" 
-	      (cdr (assoc 'large (assoc 'sizes (car photo))))
+	      (or (cdr (assoc 'large (assoc 'sizes (car photo))))
+		  (cdr (assoc 'large (assoc 'sizes photo))))
 	      ")\n"))
     )
    )
