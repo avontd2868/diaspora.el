@@ -160,7 +160,7 @@ It doesn't matter if aspects_id has a string or number values as elements(or mix
 	(outlst nil)
 	)
     (dolist (e lst-photos-ids)
-      (push (cons "photos[]" e) outlst)
+      (push (cons "photos[]" (number-to-string e)) outlst)
       (setq num (+ 1 num))
       )
     outlst
@@ -415,9 +415,10 @@ It will be erased when you use `diaspora-post-this-buffer' or simmilar functions
   (diaspora-get-authenticity-token-if-necessary)
   (unless diaspora-aspects-for-post
     (diaspora-get-aspects)
-    (setq diaspora-aspects-for-post (diaspora-get-values diaspora-aspect-alist))
-    (setq diaspora-aspects-for-post (remove "all_aspects"
-					    (remove "public" diaspora-aspects-for-post)))
+    ;; (setq diaspora-aspects-for-post (diaspora-get-values diaspora-aspect-alist))
+    ;; (setq diaspora-aspects-for-post (remove "all_aspects"
+    ;; 					    (remove "public" diaspora-aspects-for-post)))
+    (setq diaspora-aspects-for-post '("public"))
     )
   (diaspora-post-send-image image-path 
 			    (diaspora-image-url t
