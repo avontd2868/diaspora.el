@@ -62,6 +62,7 @@
 (require 'diaspora-contacts)
 (require 'diaspora-messages)
 (require 'diaspora-main)
+(require 'diaspora-misc)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")

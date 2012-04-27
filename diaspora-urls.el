@@ -231,14 +231,17 @@ See `diaspora-url' and `diaspora-url-json'."
 
 (defun diaspora-image-url (pending aspect-ids-list image-name)
   (diaspora-url
-   (url-hexify-string (format "/photos?photo[pending]=%s&%sset_profile_image=&qqfile=%s"
-			      (if pending
-				  "true"
-				"false")
-			      (diaspora-image-aspect-list aspect-ids-list)
-			      image-name
-			      )
-		      )
+   (concat
+    "/photos?"
+    (url-hexify-string (format "photo[pending]=%s&%sset_profile_image=&qqfile=%s"
+			       (if pending
+				   "true"
+				 "false")
+			       (diaspora-image-aspect-list aspect-ids-list)
+			       image-name
+			       )
+		       )
+    )
    )
   )
 

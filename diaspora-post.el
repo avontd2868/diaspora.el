@@ -186,7 +186,8 @@ PHOTOS-IDS is a list of strings or numbers of photos ids."
   (interactive)
   (diaspora-ask)
   (diaspora-get-authenticity-token-if-necessary)
-  (diaspora-post (buffer-string) diaspora-aspects-for-post)
+  (diaspora-post (buffer-string) diaspora-aspects-for-post diaspora-images-posted)
+  (setq diaspora-images-posted nil)
   (diaspora-save-post-to-file)
   (kill-buffer))
 
@@ -335,6 +336,7 @@ Most useful for posting things from any where."
 	   (list (cons "Content-Type" "application/octet-stream")
 		 (cons "X-File-Name" (file-name-nondirectory image-path))
 		 (cons "X-CSRF-Token" diaspora-auth-token)
+		 (cons "Referer" "https://joindiaspora.com/stream")
 		 )	   
 	   )
 	  (url-request-data (buffer-string))	  
@@ -347,17 +349,8 @@ Most useful for posting things from any where."
       )
     )
   (diaspora-save-image-data image-data)
-  (push (cdr (assoc 'id image-data)) diaspora-images-posted)
-  )
-
-
-(defun diaspora-save-image-data (image-data)
-  "Save the image data in a history file `diaspora-image-history-file'."
-  (with-temp-buffer 
-    (insert-file-contents diaspora-image-history-file)
-    (insert "\n"
-	    (cdr (assoc 'id image-data)))
-    )
+  (push (cdr (assoc 'id (diaspora-image-data-get-photo-data image-data)))
+	diaspora-images-posted)
   )
 
 (defvar diaspora-images-posted
@@ -369,11 +362,52 @@ This variable should store all the images ids of those unpublished images(tempor
 It will be erased when you use `diaspora-post-this-buffer' or simmilar functions that post the message with the images ids."
   )
 
+(defun diaspora-save-image-data (image-data)
+  "Save the image data in a history file `diaspora-image-history-file'."
+  (let* ((photo-data (diaspora-image-data-get-photo-data image-data))
+	 (photo-urls (assoc 'unprocessed_image photo-data))
+	)
+    (with-temp-buffer 
+      (if (file-exists-p diaspora-image-history-file)
+	  (insert-file-contents diaspora-image-history-file)
+	)
+      (insert (format "\n* Photo
+%s
+** URL
+%s
+** Scaled full:
+%s"
+		      (cdr (assoc 'id photo-data))	      
+		      (cdr (assoc 'url photo-urls))		      
+		      (cdr (assoc 'url (cdr (assoc 'scaled_full photo-urls))))
+		      )
+	      )
+      (write-file diaspora-image-history-file nil)
+      )
+    )
+  )
+
+(defun diaspora-image-data-get-photo-data (image-data)
+  (cdr (assoc 'photo (cdr (assoc 'data image-data))))
+  )
 
 (defun diaspora-add-image (image-path)
   "Add an image to the next post."
   (interactive "fImage file?")
-  (diaspora-post-send-image image-path (diaspora-url diaspora-image-url))
+  (diaspora-ask)
+  (diaspora-get-authenticity-token-if-necessary)
+  (unless diaspora-aspects-for-post
+    (diaspora-get-aspects)
+    (setq diaspora-aspects-for-post (diaspora-get-values diaspora-aspect-alist))
+    (setq diaspora-aspects-for-post (remove "all_aspects"
+					    (remove "public" diaspora-aspects-for-post)))
+    )
+  (diaspora-post-send-image image-path 
+			    (diaspora-image-url t
+						diaspora-aspects-for-post 
+						(file-name-nondirectory image-path)
+						)
+			    )
   )
   
 
