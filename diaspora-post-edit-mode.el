@@ -100,6 +100,10 @@ Expected values are:
   ;;     (diaspora-pem-add-keywords)
   ;;   (diaspora-pem-remove-keywords)
   ;;   )	    
+
+  (unless diaspora-send-type
+    (diaspora-set-send-type 'post)
+    )
   )
 
 ;; "pem" = "post edit mode". As abreviation we use "pem" instead of "post-edit-mode".
