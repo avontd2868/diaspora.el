@@ -85,7 +85,8 @@
     (let ((lst-parsed (json-read))) ;;This returns an array of json notifications!
       (with-current-buffer buffer-to
 	(delete-region (point-min) (point-max))
-	(let ((le (length lst-parsed)))
+	(insert (diaspora-add-link-to-read-all "Mark all as read"))
+	(let ((le (length lst-parsed)))	  
 	  (dotimes (i le)
 	    (diaspora-show-notification (aref lst-parsed i) buffer-to)))))))
 
@@ -201,6 +202,16 @@
 	      )
   )
 
+(defun diaspora-add-link-to-read-all (text)
+  "Return a text with button or link properties for mark all notifications as readed."
+  (propertize text
+	      'mouse-face 'highlight
+	      'help-echo "Click here to mark all publications as readed."
+	      'keymap diaspora-notifications-mark-all-as-read-map
+	      'diaspora-is-notification-mark-as-unread t
+	      )
+  )
+
 (defun diaspora-liked-notification (notification buffer-to)
   "Write a \"liked\" notification."
   (let ((target-id (cdr (assoc 'target_id (cdr (car notification)))))
@@ -210,6 +221,15 @@
       (insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
       (insert (diaspora-add-link-to-publication "Goto publication" target-id) "\n"))))
    
+
+(defvar diaspora-notifications-mark-all-as-read-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] 'diaspora-notifications-mark-all-as-read-action)
+    (define-key map [mouse-2] 'diaspora-notifications-mark-all-as-read-action)
+    map
+    )
+  "Keymap used for diaspora notifications \"mark as unread\" buttons."
+  )
 
 (defun diaspora-started-sharing-notification (notification buffer-to)
   "Write a \"started sharing\" notification. in buffer 'buffer-to'."
@@ -268,6 +288,12 @@
   "Mark publication as unread."
   (interactive)
   (diaspora-notifications-mark-as-unread (diaspora-notifications-get-id-near-point))
+  )
+
+(defun diaspora-notifications-mark-all-as-read-action (&rest)
+  "Mark publication as unread."
+  (interactive)
+  (diaspora-notifications-mark-all-read)
   )
 
 (provide 'diaspora-notifications)
