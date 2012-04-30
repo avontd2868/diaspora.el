@@ -63,6 +63,7 @@
 (require 'diaspora-messages)
 (require 'diaspora-main)
 (require 'diaspora-misc)
+(require 'diaspora-post-edit-mode)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")

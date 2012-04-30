@@ -31,6 +31,8 @@
 ;; Posting
 
 (require 'cl)
+(require 'markdown-mode)
+(require 'diaspora-post-edit-mode)
 
 (defcustom diaspora-header-post
   "### "
@@ -69,6 +71,8 @@ For example: C-u M-x diaspora-post-to."
       (goto-char (point-min))
       (insert diaspora-header-post)
       (diaspora-mode)
+      (diaspora-set-send-type 'post)
+      (diaspora-post-edit-mode)      
       (set 'buffer-read-only nil)
       )
     )

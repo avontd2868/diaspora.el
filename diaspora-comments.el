@@ -49,6 +49,8 @@
 ;; 
 ;;; Code:
 
+(require 'diaspora-post-edit-mode)
+
 					; ********************
 					; Customization
 
@@ -144,6 +146,8 @@ If post-id parameter is not given, use the message id from `diaspora-next-commen
       (goto-char (point-min))
       (insert diaspora-header-post)
       (diaspora-mode)
+      (diaspora-set-send-type 'comment)
+      (diaspora-post-edit-mode)      
       (set 'buffer-read-only nil)
     ))
   (message "Use C-c C-c to comment to diaspora or use diaspora-send-comment-this-buffer."))

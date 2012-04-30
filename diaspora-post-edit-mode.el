@@ -50,9 +50,32 @@
 ;;; Code:
 
 
+(defvar diaspora-send-type nil
+  "This buffer shows what type of message is in the current buffer.
+You should make it as a buffer-local variable using `make-local-variable' function and use it accordingly.
+
+Expected values are:
+* nil      :: It is not determined or unknown.
+* 'post    :: Is a new post. 
+* 'comment :: Is a new comment."
+  )
+
+(defun diaspora-set-send-type (type &optional buffer)
+  "Set the type of buffer: 
+
+* If it is a new post set TYPE to 'post.
+* If it is a new comment set TYPE to 'comment"
+  (unless buffer
+    (setq buffer (current-buffer))
+    )
+  (with-current-buffer buffer
+    (set (make-local-variable 'diaspora-send-type) type)
+    )
+  )
+
 (defvar diaspora-post-edit-mode-map 
   (let ((map (make-sparse-keymap)))
-    (define-key map "\C-c\C-c" 'diaspora-post-this-buffer)
+    (define-key map "\C-c\C-c" 'diaspora-send-post-or-comment-this-buffer)
     map
     ))
 
@@ -73,10 +96,10 @@
   diaspora-post-edit-mode-map
   :group 'diaspora
 
-  (if diaspora-post-edit-mode
-      (diaspora-pem-add-keywords)
-    (diaspora-pem-remove-keywords)
-    )	    
+  ;; (if diaspora-post-edit-mode
+  ;;     (diaspora-pem-add-keywords)
+  ;;   (diaspora-pem-remove-keywords)
+  ;;   )	    
   )
 
 ;; "pem" = "post edit mode". As abreviation we use "pem" instead of "post-edit-mode".
@@ -93,6 +116,27 @@
   (dolist (e diaspora-post-edit-mode-keywords)
     (setq font-lock-defaults (remove e font-lock-defaults))
     )
+  )
+
+(defun diaspora-send-post-or-comment-this-buffer (&rest r)
+  "Depending if this is a comment or post, send it.
+Use `diaspora-post-this-buffer' for posting, or `diaspora-send-comment-this-buffer' if it is a new comment.
+
+I read the `diaspora-send-type' variable and reset it to nil after sending."
+  (interactive)
+  (cond
+   ((equal diaspora-send-type 'post)
+    (diaspora-post-this-buffer)
+    (message "Buffer POSTED!")
+    )
+   ((equal diaspora-send-type 'comment)
+    (diaspora-send-comment-this-buffer)
+    (message "COMMENT sended!")
+    )
+   (t 
+    (message "D* cannot determine the type of buffer you are trying to send. Use C-cp for sending a new post or C-cc for sending a new comment."))
+   )
+   (setq diaspora-send-type nil)
   )
 
 
