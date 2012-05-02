@@ -67,6 +67,7 @@
     (with-current-buffer buffer-to
       (delete-region (point-min) (point-max))
       (diaspora-mode)
+      (diaspora-stream-mode)
       (with-current-buffer (diaspora-messages-get-list)
 	(diaspora-messages-parse-json-msg-list (current-buffer) buffer-to)
 	) 

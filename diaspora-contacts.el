@@ -74,6 +74,7 @@ See `diaspora-url' and `diaspora-url-json'."
 	)
     (with-current-buffer contact-buffer
       (diaspora-mode)
+      (diaspora-stream-mode)
       (delete-region (point-min) (point-max))      
       )
     (diaspora-contacts-get-contacts contact-buffer)

@@ -71,8 +71,8 @@
     (switch-to-buffer buff)
     (with-current-buffer buff
       (let ((inhibit-read-only t))
-	(diaspora-hide-markdown)
 	(diaspora-mode)
+	(diaspora-stream-mode)
 	)      
       (setq buffer-read-only t)
       (goto-char (point-min)))))

@@ -56,10 +56,10 @@
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-cl" 'diaspora-get-and-show-images)
     (define-key map "\C-cio" 'diaspora-show-image-at-point)
+    (define-key map "q" 'kill-buffer)
     map
     )
   )
-
 
 (define-minor-mode diaspora-stream-mode 
   "Minor mode for viewing Diaspora's streams. Use it only for this PURPOSE.
@@ -71,6 +71,8 @@ It is intended to be used only with `diaspora-mode' major mode and no other mino
   diaspora-stream-mode-map
   :group 'diaspora
   
+  (set (make-local-variable 'buffer-read-only) t)
+
   (if diaspora-stream-mode
       (diaspora-hide-markdown)
     (diaspora-show-markdown)

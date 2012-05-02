@@ -322,7 +322,8 @@ Same as LST-POST-PARAMETERS."
       (let ((inhibit-read-only t))
 	;; Apply diaspora-mode
 	(with-current-buffer stream-buff	  
-	  (diaspora-mode) 	
+	  (diaspora-mode)
+	  (diaspora-stream-mode)
 	  
 	  (diaspora-parse-json buff stream-buff)
 
@@ -738,8 +739,8 @@ Use it for getting the nearest id post number when selecting a message."
     (switch-to-buffer-other-window buff)
 ;    (switch-to-buffer buff)
     (with-current-buffer buff
-      (diaspora-hide-markdown)
-      (diaspora-mode)      
+      (diaspora-mode)
+      (diaspora-stream-mode)
       )
     )
   )
