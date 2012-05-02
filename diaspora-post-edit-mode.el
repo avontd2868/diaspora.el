@@ -114,9 +114,10 @@ Expected values are:
   ;;     (diaspora-pem-add-keywords)
   ;;   (diaspora-pem-remove-keywords)
   ;;   )	    
-
+  
   (unless diaspora-send-type
     (diaspora-set-send-type 'post)
+    (message "Use C-c C-c to send this buffer as a new POST")
     )
   )
 
@@ -154,7 +155,7 @@ I read the `diaspora-send-type' variable and reset it to nil after sending."
    (t 
     (message "D* cannot determine the type of buffer you are trying to send. Use C-cp for sending a new post or C-cc for sending a new comment."))
    )
-   (setq diaspora-send-type nil)
+  (set (make-local-variable 'diaspora-send-type) nil)
   )
 
 (define-skeleton diaspora-markdown-insert-headline-2
