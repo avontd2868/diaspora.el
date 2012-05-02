@@ -537,6 +537,13 @@ Check if the temporal directory exists, if not create it."
     map)
   "Keymap used in the stream and messages buffers.")
 
+(defvar diaspora-comment-message-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] 'diaspora-comment-message)
+    (define-key map [mouse-2] 'diaspora-comment-message)
+    map)
+  "Keymap used in the stream and messages buffers for commenting a message.")
+
 
 ;; A few notes about the next functiom `diaspora-show-message`
 ;; date: 20120128
@@ -620,7 +627,9 @@ If buffer is nil, then use the `current-buffer'."
 	  (diaspora-show-all-likes likes)
 	  (insert "\n")
 	  )
-	(insert (diaspora-add-link-to-publication "Read in new buffer" id)
+	(insert (diaspora-add-comment-link "Comment" id)
+		" | "	 
+		(diaspora-add-link-to-publication "Read in new buffer" id)
 		" | "
 		(diaspora-add-like-link "I like it!" id)
 		"\n")
@@ -672,6 +681,19 @@ This parses the two options!"
 	      ")\n"))
     )
    )
+  )
+
+(defun diaspora-add-comment-link (text id-message)
+    "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
+or a function like `diaspora-show-message-new-buffer'."
+    (propertize
+     text
+     'mouse-face 'highlight
+     'face "link"
+     'keymap diaspora-comment-message-map
+     'diaspora-is-link-to-pub t
+     'diaspora-id-message id-message
+     'help-echo "Click here to comment this message in new buffer.")
   )
 
 (defun diaspora-add-link-to-publication (text id-message)
