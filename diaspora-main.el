@@ -178,6 +178,7 @@ If a change in the property is founded return t."
     (define-key diaspora-main-mode-map [return] 'diaspora-main-execute-option)
     (define-key diaspora-main-mode-map [mouse-2] 'diaspora-main-execute-option)
     (define-key diaspora-main-mode-map [tab] 'diaspora-main-next-option)
+    (define-key diaspora-main-mode-map "q" 'diaspora-main-exit)
     diaspora-main-mode-map
     )
   )
@@ -196,6 +197,12 @@ If a change in the property is founded return t."
 			    diaspora-main-mode-font-lock-keywords)
   (use-local-map diaspora-main-mode-map)
   (set (make-local-variable 'buffer-read-only) t)
+  )
+
+(defun diaspora-main-exit (&rest r)
+  "Exit D* Main Window."
+  (interactive)  
+  (kill-buffer diaspora-main-buffer-name)
   )
 
 (provide 'diaspora-main)

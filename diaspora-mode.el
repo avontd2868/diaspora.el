@@ -519,17 +519,6 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
 
 (defvar diaspora-mode-map 
   (let ((diaspora-mode-map (make-sparse-keymap)))
-    (define-key diaspora-mode-map "\C-c4" 'diaspora-markdown-insert-headline-4)
-    (define-key diaspora-mode-map "\C-c3" 'diaspora-markdown-insert-headline-3)
-    (define-key diaspora-mode-map "\C-c2" 'diaspora-markdown-insert-headline-2)
-    (define-key diaspora-mode-map "\C-c1" 'diaspora-markdown-insert-headline-1)
-    (define-key diaspora-mode-map "\C-c\C-cl" 'diaspora-markdown-insert-unordered-list)
-    (define-key diaspora-mode-map "\C-c\C-ce" 'diaspora-markdown-insert-emph-text)
-    (define-key diaspora-mode-map "\C-c\C-cb" 'diaspora-markdown-insert-bold-text)
-    (define-key diaspora-mode-map "\C-c\C-c-" 'diaspora-markdown-insert-horizontal-rule)
-    (define-key diaspora-mode-map "\C-c\C-ch" 'diaspora-markdown-insert-link)
-    (define-key diaspora-mode-map "\C-c\C-ci" 'diaspora-markdown-insert-image)
-    (define-key diaspora-mode-map "\C-c\C-cm" 'diaspora-markdown-mention-user)
     (define-key diaspora-mode-map "\C-cp" 'diaspora-post-this-buffer)
     (define-key diaspora-mode-map "\C-c\C-cp" 'diaspora-post-to)
     (define-key diaspora-mode-map "\C-c\C-cc" 'diaspora-post-clipboard)
