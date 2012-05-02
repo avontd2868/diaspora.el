@@ -58,6 +58,7 @@
     (define-key map "\C-cio" 'diaspora-show-image-at-point)
     (define-key map "q" 'kill-buffer)
     (define-key map "g" 'diaspora-last-stream-visited)
+    (define-key map [tab] 'diaspora-stream-mode-next-element)
     map
     )
   )
@@ -78,6 +79,12 @@ It is intended to be used only with `diaspora-mode' major mode and no other mino
       (diaspora-hide-markdown)
     (diaspora-show-markdown)
     )
+  )
+
+(defun diaspora-stream-mode-next-element (&rest r)
+  "Go to the next interactive element in the current buffer."
+  (interactive)
+  (diaspora-misc-next-option 'keymap)
   )
 
 (provide 'diaspora-stream-mode)

@@ -68,6 +68,31 @@
     lstout
     )	     
   )
+
+(defun diaspora-misc-next-option (property)
+  "Go to next property... if there is no more, goto the first one."
+  (goto-char (point-at-eol))
+  (unless (diaspora-misc-next-option-1 property)
+    ;; End of buffer! 
+    (goto-char (point-min))
+    (diaspora-misc-next-option-1 property)
+    )
+  )
+
+(defun diaspora-misc-next-option-1 (property)
+  "Go to next change in the property given by PROPERTY. 
+If a change in the property is not founded(i.e. the property remains constant and unchanged until end of buffer), return nil.
+If a change in the property is founded return t."
+  (let ((next-option (next-single-property-change (point) property)))
+    (if next-option
+	(progn 
+	  (goto-char next-option)
+	  t)
+      nil
+      )
+    )
+  )
+
 (provide 'diaspora-misc)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
