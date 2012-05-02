@@ -117,7 +117,7 @@ Is a list of cons with the name of the option and the function to call."
     (if (listp option)
 	(insert (propertize (car option)
 			    'diaspora-main-option (car option)
-			    'mouse-face 'highlight
+			    'mouse-face 'diaspora-mouse-highlight-face
 			    'help-echo "Click or press Enter to execute the option."
 			    )
 		"\n")

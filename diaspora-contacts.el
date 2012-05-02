@@ -125,7 +125,7 @@ JSON-PARSED-CONTACT is a parsed part of the JSON readed by `json-read' that corr
 USERNAME must be only the username(foo) not all the complete diaspora-id(foo@joindiaspora.com)."
   (propertize
    text
-   'mouse-face 'highlight
+   'mouse-face 'diaspora-mouse-highlight-face
    'face "link"
    'keymap diaspora-show-userstream-map
    'diaspora-username username

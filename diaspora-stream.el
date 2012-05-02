@@ -688,7 +688,7 @@ This parses the two options!"
 or a function like `diaspora-show-message-new-buffer'."
     (propertize
      text
-     'mouse-face 'highlight
+     'mouse-face 'diaspora-mouse-highlight-face
      'face "link"
      'keymap diaspora-comment-message-map
      'diaspora-is-link-to-pub t
@@ -701,7 +701,7 @@ or a function like `diaspora-show-message-new-buffer'."
 or a function like `diaspora-show-message-new-buffer'."
   (propertize
    text
-   'mouse-face 'highlight
+   'mouse-face 'diaspora-mouse-highlight-face
    'face "link"
    'keymap diaspora-show-message-map-stream
    'diaspora-id-message id-message
@@ -712,7 +712,7 @@ or a function like `diaspora-show-message-new-buffer'."
   "Return a propertized text with a link for sending a \"like\". Ready to use with a map like `diaspora-like-message-map-stream'."
   (propertize
    text
-   'mouse-face 'highlight
+   'mouse-face 'diaspora-mouse-highlight-face
    'face "link"
    'keymap diaspora-like-message-map-stream
    'diaspora-id-message id-message
@@ -966,7 +966,7 @@ Image links must match the regexp in `diaspora-regexp-image'."
     (let ((markdown-points (diaspora-get-all-regexp-markdown-points  diaspora-regexp-tag 0)))
       (dolist (mpoint markdown-points)
 	(add-text-properties (cadr mpoint) (cddr mpoint)
-			     (list 'mouse-face 'highlight
+			     (list 'mouse-face 'diaspora-mouse-highlight-face
 				   'face "link"
 				   'keymap diaspora-show-tag-map
 				   'diaspora-tag (car mpoint)
@@ -977,7 +977,7 @@ Image links must match the regexp in `diaspora-regexp-image'."
     ;; (let ((markdown-points (diaspora-get-all-regexp-markdown-points  diaspora-regexp-user-entry 0)))
     ;;   (dolist (mpoint markdown-points)
     ;; 	(add-text-properties (cadr mpoint) (cddr mpoint)
-    ;; 			     (list 'mouse-face 'highlight
+    ;; 			     (list 'mouse-face 'diaspora-mouse-highlight-face
     ;; 				   'face "link"
     ;; 				   'keymap diaspora-show-message-map
     ;; 				   'diaspora-id-message id
@@ -986,7 +986,7 @@ Image links must match the regexp in `diaspora-regexp-image'."
     
 ;; (insert (propertize
 	;; 	 (format "%s(%s):\n" name diaspora_id)
-	;; 	 'mouse-face 'highlight
+	;; 	 'mouse-face 'diaspora-mouse-highlight-face
 	;; 	 'face "link"
 	;; 	 'keymap diaspora-show-message-map
 	;; 	 'diaspora-id-message id

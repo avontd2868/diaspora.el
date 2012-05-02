@@ -138,7 +138,7 @@
     (let ((markdown-points (diaspora-get-all-regexp-markdown-points  diaspora-regexp-tag 0)))
       (dolist (mpoint markdown-points)
 	(add-text-properties (cadr mpoint) (cddr mpoint)
-			     (list 'mouse-face 'highlight
+			     (list 'mouse-face 'diaspora-mouse-highlight-face
 				   'face "link"
 				   'keymap diaspora-show-tag-map
 				   'diaspora-tag (car mpoint)
@@ -152,7 +152,7 @@
 			    (diaspora-get-all-regexp-markdown-points  "\\(message guid: \\)\\(.*\\)" 1))))
       (dolist (mpoint markdown-points)
 	(add-text-properties (cadar mpoint) (cddar mpoint)
-			     (list 'mouse-face 'highlight
+			     (list 'mouse-face 'diaspora-mouse-highlight-face
 				   'face "link"
 				   'keymap diaspora-show-message-map
 				   'diaspora-message-id (caadr mpoint)
@@ -165,7 +165,7 @@
 			    (diaspora-get-all-regexp-markdown-points  diaspora-regexp-user-id 1))))
       (dolist (mpoint markdown-points)
 	(add-text-properties (cadar mpoint) (cddar mpoint)
-			     (list 'mouse-face 'highlight
+			     (list 'mouse-face 'diaspora-mouse-highlight-face
 				   'face "link"
 				   'keymap diaspora-show-guid-user-map
 				   'diaspora-user-guid (caadr mpoint)
@@ -318,14 +318,14 @@
 (defun diaspora-header-stream ()
   (insert (propertize
   	   (format "%s" "Extrapolation")
-  	   'mouse-face 'highlight
+  	   'mouse-face 'diaspora-mouse-highlight-face
   	   'face diaspora-header-face-1
   	   'keymap diaspora-stream-header-map
   	   'help-echo "Click here to see this diaspora stream.")
   	  " ")
   (insert (propertize
   	   (format "%s" "Pinboard")
-  	   'mouse-face 'highlight
+  	   'mouse-face 'diaspora-mouse-highlight-face
   	   'face diaspora-header-face-1
   	   'keymap diaspora-likes-header-map
   	   'help-echo "Click here to see this diaspora stream.")
@@ -333,7 +333,7 @@
   (insert
 	  (propertize
 	   (format "%s" "search tag")
-	   'mouse-face 'highlight
+	   'mouse-face 'diaspora-mouse-highlight-face
 	   'face diaspora-header-face-1
 	   'keymap diaspora-stream-header-tag-map
 	   'help-echo "Click here to see this diaspora stream tag (tag will be prompted).")))
@@ -372,7 +372,7 @@
   (let ((markdown-points (diaspora-get-all-regexp-markdown-points diaspora-regexp-youtube-link)))
     (dolist (mpoint markdown-points)
       (add-text-properties (cadr mpoint) (cddr mpoint)
-			   (list 'mouse-face 'highlight
+			   (list 'mouse-face 'diaspora-mouse-highlight-face
 				 'face "link"
 				 'keymap diaspora-show-video-map
 				 'help-echo "Click here to see the this video on a external browser.")))))

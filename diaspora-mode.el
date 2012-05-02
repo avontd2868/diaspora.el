@@ -207,6 +207,16 @@ This buttons are used by the user for clicking or pressing ENTER."
   :version "23.0")
 
 
+(defface diaspora-mouse-highlight-face 
+  '((t :weight bold
+       :foreground "green"
+       :background "gray20"
+       :box (:line-width 2 :color "grey10" :style pressed-button)
+       ))
+  "Face used when mouse is over a button, link, etc."
+  :group 'diaspora-faces
+  )
+
 (defvar diaspora-header-face-1 'diaspora-header-face-1
   "Face name to use for level-1 headers.")
 

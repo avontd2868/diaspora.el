@@ -195,7 +195,7 @@
   "Return a text with button or link properties for mark as unread the post with id PUBLICATION-ID."
   (propertize text
 	      'diaspora-notification-id  notification-id
-	      'mouse-face 'highlight
+	      'mouse-face 'diaspora-mouse-highlight-face
 	      'help-echo "Click here to mark this publication as unread."
 	      'keymap diaspora-notifications-mark-as-unread-map
 	      'diaspora-is-notification-mark-as-unread t
@@ -205,7 +205,7 @@
 (defun diaspora-add-link-to-read-all (text)
   "Return a text with button or link properties for mark all notifications as readed."
   (propertize text
-	      'mouse-face 'highlight
+	      'mouse-face 'diaspora-mouse-highlight-face
 	      'help-echo "Click here to mark all publications as readed."
 	      'keymap diaspora-notifications-mark-all-as-read-map
 	      'diaspora-is-notification-mark-as-unread t

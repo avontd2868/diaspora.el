@@ -138,7 +138,7 @@ Then return a temporary buffer with the messages in JSON format."
 (defun diaspora-add-link-to-message (text msg-id)
   (propertize 
    text
-   'mouse-face 'highlight
+   'mouse-face 'diaspora-mouse-highlight-face
    'face "link"
    'keymap diaspora-message-show-msg-map
    'diaspora-conversation-id msg-id ;;We use diaspora-conversation-id because of misinterpretation
