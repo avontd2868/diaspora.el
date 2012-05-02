@@ -82,8 +82,10 @@ For example: C-u M-x diaspora-post-to."
   "Add an aspect to the list of aspects `diaspora-aspects-for-post' for posting.
 This list is used as parameter for `diaspora-post'."
   (interactive 
-   (let ((string (completing-read "Aspect name?" diaspora-aspect-alist)))
-     (diaspora-get-aspects)
+   (let ((string (progn 
+		   (diaspora-get-aspects)
+		   (completing-read "Aspect name?" diaspora-aspect-alist)))
+	 )
      (list string)))
   (let ((aspect-id (cdr (assoc aspect-name diaspora-aspect-alist))))
     (if (null aspect-id)
