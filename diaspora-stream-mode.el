@@ -52,8 +52,28 @@
 ;;; Code:
 
 
+(defvar diaspora-stream-mode-map 
+  (let ((map (make-sparse-keymap)))
+    map
+    )
+  )
 
 
+(define-minor-mode diaspora-stream-mode 
+  "Minor mode for viewing Diaspora's streams. Use it only for this PURPOSE.
+
+This minor mode applies a couple of properties in the current buffer, so it can't be used with other minor modes.
+It is intended to be used only with `diaspora-mode' major mode and no other minor mode."
+  nil
+  " D*-stream"
+  diaspora-stream-mode-map
+  :group 'diaspora
+  
+  (if diaspora-stream-mode
+      (diaspora-hide-markdown)
+    (diaspora-show-markdown)
+    )
+  )
 
 (provide 'diaspora-stream-mode)
 
