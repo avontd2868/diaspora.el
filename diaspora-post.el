@@ -295,57 +295,6 @@ Most useful for posting things from any where."
 		     (setq s-url (match-string-no-properties 0))))
    (insert s-url)))
 
-(define-skeleton diaspora-markdown-insert-headline-2
-  "Headline 2."
-  "Text: "
-  "## " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-headline-3
-  "Headline 3."
-  "Text: "
-  "### " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-headline-4
-  "Headline 4."
-  "Text: "
-  "#### " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-unordered-list
-  "Unordered list."
-  "Text: "
-  "* " str \n \n)
-
-(define-skeleton diaspora-markdown-insert-emph-text
-  "Emphasis."
-  "Text: "
-  "*" str "*")
-
-(define-skeleton diaspora-markdown-insert-bold-text
-  "Bold."
-  "Text: "
-  "**" str "**")
-
-(define-skeleton diaspora-markdown-insert-horizontal-rule
-  "Horizontal rule tag."
-  nil
-  "---" \n \n)
-
-(define-skeleton diaspora-markdown-insert-link
-  "Link"
-  "Text: "
-  "[" str "](http://" _ ")")
-
-(define-skeleton diaspora-markdown-insert-image
-  "Image with URL."
-  "Text: "
-  "![" str "](http://" _ ")")
-
-(define-skeleton diaspora-markdown-mention-user
-  "Mention user."
-  "User: "
-  "@{" str ";" _ (concat "@" diaspora-pod "}"))
-
-
 (defun diaspora-post-send-image (image-path url)
   "Send an image file given by IMAGE-PATH to the given URL."
   (with-current-buffer (find-file-literally image-path)
