@@ -523,8 +523,6 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
     (define-key diaspora-mode-map "\C-c\C-cp" 'diaspora-post-to)
     (define-key diaspora-mode-map "\C-c\C-cc" 'diaspora-post-clipboard)
     (define-key diaspora-mode-map "\C-c\C-k" 'diaspora-post-destroy)
-    (define-key diaspora-mode-map "\C-cl" 'diaspora-toogle-images) ; not implemented yet
-    (define-key diaspora-mode-map "\C-cio" 'diaspora-show-image-at-point)
     diaspora-mode-map)
   "Keymap based on html-mode")
 

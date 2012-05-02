@@ -54,6 +54,8 @@
 
 (defvar diaspora-stream-mode-map 
   (let ((map (make-sparse-keymap)))
+    (define-key map "\C-cl" 'diaspora-get-and-show-images)
+    (define-key map "\C-cio" 'diaspora-show-image-at-point)
     map
     )
   )

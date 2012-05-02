@@ -851,6 +851,16 @@ Also save the last post date for getting the next posts(older posts) in the stre
     (error nil)) ;; Don't throw errors... creating an image that emacs doesn't understand creates an error.
   )
 
+(defun diaspora-get-and-show-images (&rest r)
+  "Look for all images URL and download all of them into the temporary directory, then insert them in the current buffer where those URLs are."
+  (interactive)
+  (let ((inhibit-read-only t))    
+    (diaspora-get-all-images)
+    (diaspora-show-images)
+    )
+  )
+  
+
 (defun diaspora-unshow-images ()
   "Un shows images in buffer."
   (interactive)
