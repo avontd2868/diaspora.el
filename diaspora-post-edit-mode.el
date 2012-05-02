@@ -80,13 +80,14 @@ Expected values are:
     (define-key map "\C-c\C-h3" 'diaspora-markdown-insert-headline-3)
     (define-key map "\C-c\C-h2" 'diaspora-markdown-insert-headline-2)
     (define-key map "\C-c\C-h1" 'diaspora-markdown-insert-headline-1)
-    (define-key map "\C-c\C-l" 'diaspora-markdown-insert-unordered-list)
+    (define-key map "\C-c\C-u" 'diaspora-markdown-insert-unordered-list)
     (define-key map "\C-c\C-e" 'diaspora-markdown-insert-emph-text)
     (define-key map "\C-c\C-b" 'diaspora-markdown-insert-bold-text)
     (define-key map "\C-c\C-r" 'diaspora-markdown-insert-horizontal-rule)
-    (define-key map "\C-c\C-h" 'diaspora-markdown-insert-link)
+    (define-key map "\C-c\C-l" 'diaspora-markdown-insert-link)
     (define-key map "\C-c\C-i" 'diaspora-markdown-insert-image)
     (define-key map "\C-c\C-m" 'diaspora-markdown-mention-user)
+    (define-key map "\C-c\C-t" 'diaspora-markdown-insert-tag)
     map
     )
   "Keymap for `diaspora-post-edit-mode'."
@@ -205,6 +206,11 @@ I read the `diaspora-send-type' variable and reset it to nil after sending."
   "Mention user."
   "User: "
   "@{" str ";" _ (concat "@" diaspora-pod "}"))
+
+(define-skeleton diaspora-markdown-mention-user
+  "Tag."
+  "Tag(without #): "
+  "#" str )
 
 (provide 'diaspora-post-edit-mode)
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
