@@ -57,6 +57,7 @@
     (define-key map "\C-cl" 'diaspora-get-and-show-images)
     (define-key map "\C-cio" 'diaspora-show-image-at-point)
     (define-key map "q" 'kill-buffer)
+    (define-key map "g" 'diaspora-last-stream-visited)
     map
     )
   )
