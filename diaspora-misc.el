@@ -71,7 +71,9 @@
 
 (defun diaspora-misc-next-option (property)
   "Go to next property... if there is no more, goto the first one."
-  (goto-char (point-at-eol))
+  ;;(goto-char (point-at-eol))
+  (if (get-text-property (point) property)
+      (diaspora-misc-next-option-1 property))
   (unless (diaspora-misc-next-option-1 property)
     ;; End of buffer! 
     (goto-char (point-min))
