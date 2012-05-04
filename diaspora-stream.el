@@ -606,6 +606,7 @@ If buffer is nil, then use the `current-buffer'."
 			    '(likes_count) parsed-message))
 	     (likes (cdr (assoc 'likes parsed-message)))
 	     (public (cdr (assoc 'public parsed-message)))
+	     (provider-name (cdr (assoc 'provider_display_name parsed-message)))
 	     )
 	
 	(insert (concat
@@ -638,7 +639,12 @@ If buffer is nil, then use the `current-buffer'."
 	  (diaspora-insert-photos-markdown photos))	
 	(if (equal public t)
 	    (insert "Public")
-	  (insert "Limited\n")
+	  (insert "Limited")
+	  )
+
+	(if provider-name
+	    (insert (format " - Published using *%s*\n" provider-name))
+	  (insert " - Published using web(or there's no provider name!)\n")
 	  )
 	  
 	(when show-last-three-comments
