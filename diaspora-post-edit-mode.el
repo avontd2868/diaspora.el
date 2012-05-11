@@ -206,7 +206,7 @@ I read the `diaspora-send-type' variable and reset it to nil after sending."
 (define-skeleton diaspora-markdown-mention-user
   "Mention user."
   "User: "
-  "@{" str ";" _ (concat "@" diaspora-pod "}"))
+  "@{" str " ; " _ (concat "@" diaspora-pod "}"))
 
 (define-skeleton diaspora-markdown-insert-tag
   "Tag."

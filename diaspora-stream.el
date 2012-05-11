@@ -799,7 +799,7 @@ Also save the last post date for getting the next posts(older posts) in the stre
     (let* (;;(json-array-type 'list)
 	   ;;(json-object-type 'alist)       
 	   (parsed-json (json-read))
-	   (lstparsed (cdr (assoc 'posts parsed-json)))
+	   (lstparsed parsed-json)
 	   )      
       ;; Save the last post's date
       (setq diaspora-stream-last-post-date (diaspora-get-last-post-time parsed-json))
@@ -1148,7 +1148,7 @@ MICROSECOND are ignored, even can be absent.
 
 STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
   (let* (
-	 (post-arr (cdr (assoc 'posts stream-json-parsed))) ;; return the posts array
+	 (post-arr stream-json-parsed) ;; return the posts array
 	 (last-post (aref post-arr (1- (length post-arr)))) ;; return the last post
 	 (interacted-date (cdr (assoc 'created_at last-post))) ;; return the string with the last created_at date
 	 (year (string-to-number (substring interacted-date 0 4)))
