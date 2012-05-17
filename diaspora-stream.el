@@ -612,6 +612,7 @@ If buffer is nil, then use the `current-buffer'."
 		     '(interactions likes) parsed-message))
 	     (public (cdr (assoc 'public parsed-message)))
 	     (provider-name (cdr (assoc 'provider_display_name parsed-message)))
+	     (post-type (diaspora-extract-json 'post_type parsed-message))
 	     )
 	
 	(insert (concat
@@ -639,7 +640,12 @@ If buffer is nil, then use the `current-buffer'."
 		" | "
 		(diaspora-add-like-link "I like it!" id)
 		"\n")
+	(when (string= "Reshare" post-type)
+	  (diaspora-insert-reshare-data parsed-message)
+	  )
+
 	(insert (format "%s\n\n" text))
+
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	
 	(if (equal public t)
@@ -659,11 +665,27 @@ If buffer is nil, then use the `current-buffer'."
 		    'diaspora-comments-start t)
 		   "\n")
 	  (diaspora-comments-show-last-three parsed-message)
-	  (insert "\n")
+	  (insert "\n")	  
 	  )
 	)      
       )    
     )  
+  )
+
+(defun diaspora-insert-reshare-data (parsed-message)
+  "Look for reshare data in PARSED-MESSAGE and insert it in the current buffer."
+  (let ((name (diaspora-extract-json-list '(root author name) parsed-message))
+	(author-id (diaspora-extract-json-list '(root author diaspora_id) parsed-message))
+	(post-id (diaspora-extract-json-list '(root id) parsed-message))
+	)
+    (insert "Reshare from: ")
+    (insert (propertize
+	     (format "%s (%s):" name author-id)
+	     'diaspora-is-user-name t)
+	    "\n") 
+    (insert (diaspora-add-link-to-publication "Read Original" post-id)
+	    "\n\n"))    
+    )
   )
 
 (defun diaspora-insert-photos-markdown (photos &optional buffer)
