@@ -669,7 +669,7 @@ If buffer is nil, then use the `current-buffer'."
 	  )
 	)      
       )    
-    )  
+    )
   )
 
 (defun diaspora-insert-reshare-data (parsed-message)
@@ -684,9 +684,9 @@ If buffer is nil, then use the `current-buffer'."
 	     'diaspora-is-user-name t)
 	    "\n") 
     (insert (diaspora-add-link-to-publication "Read Original" post-id)
-	    "\n\n"))    
-    )
-  )
+	    "\n\n")
+    )  
+  )  
 
 (defun diaspora-insert-photos-markdown (photos &optional buffer)
   "Insert photos in markdown format.
