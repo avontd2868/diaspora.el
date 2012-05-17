@@ -567,14 +567,16 @@ Modify this function if you want to show more information or show it in other wa
 
 (defun diaspora-show-all-likes (all-parsed-likes)
   "Write in the current buffer the people who likes this post."
-  ;; (let ((le (length all-parsed-likes))
-  ;; 	)
-  ;;   (dotimes (i le)
-  ;;     (diaspora-show-like (aref all-parsed-likes i))
-  ;;     )
-  ;;   )
-  (dolist (elt all-parsed-likes)
-    (diaspora-show-like elt)
+  (if (arrayp all-parsed-likes)
+      (let ((le (length all-parsed-likes)) ;; is an array
+	    )
+	(dotimes (i le)
+	  (diaspora-show-like (aref all-parsed-likes i))
+	  )
+	)
+    (dolist (elt all-parsed-likes) ;; Is a list
+      (diaspora-show-like elt)
+      )
     )
   )
 
@@ -601,10 +603,13 @@ If buffer is nil, then use the `current-buffer'."
 		      '(author avatar small) parsed-message))
 	     (photos (cdr (assoc 'photos parsed-message)))
 	     (amount-comments (diaspora-extract-json-list
-			       '(comments_count) parsed-message))
+			       '(interactions comments_count) parsed-message))
 	     (amount-likes (diaspora-extract-json-list
-			    '(likes_count) parsed-message))
-	     (likes (cdr (assoc 'likes parsed-message)))
+			    '(interactions likes_count) parsed-message))
+	     (amount-reshares (diaspora-extract-json-list
+			       '(interactions reshares_count) parsed-message))
+	     (likes (diaspora-extract-json-list
+		     '(interactions likes) parsed-message))
 	     (public (cdr (assoc 'public parsed-message)))
 	     (provider-name (cdr (assoc 'provider_display_name parsed-message)))
 	     )
@@ -620,7 +625,7 @@ If buffer is nil, then use the `current-buffer'."
 		 "\n")
 	(insert (format "%s\n" date))
 	(insert (propertize
-		 (format "Has %s comments. %s likes." amount-comments amount-likes)
+		 (format "Has %s comments. %s likes. %s reshares." amount-comments amount-likes amount-reshares)
 		 'diaspora-is-amount-comments t)
 		"\n")
 	(when likes 
@@ -1032,9 +1037,16 @@ Image links must match the regexp in `diaspora-regexp-image'."
 
 
 (defun diaspora-extract-json (e a)
+  "Extract the value from the E key in the JSON parsed list A."
   (cdr (assoc e a)))
 
 (defun diaspora-extract-json-list (e a)
+  "Extract a value from a JSON parsed list A using a list of hierarchical keys.
+For example:
+ (diaspora-extract-json-list '(a b c) json-list)
+
+Will look for A, then B in A and then C in B in A and return C's values.
+"
   (cond (e
 	 (diaspora-extract-json-list (cdr e) 
 			 (diaspora-extract-json (car e) a)))
