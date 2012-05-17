@@ -192,14 +192,15 @@ Comment should be a String and post-id the id number of the post."
   "Insert in the current buffer the last three comments part of a JSON parsed message taken from a stream.
 
 This function is usefull when you are showing a stream with lots of posts."
-  (let* ((lst-msgs (cdr (assoc 'last_three_comments message-json-parsed)))
+  (let* ((lst-msgs (diaspora-extract-json-list
+		    '(interactions comments) message-json-parsed))
 	 (amount-comments (length lst-msgs))
 	 )
     (if (arrayp lst-msgs)
 	(dotimes (i amount-comments) ;;lst-msgs is an array!
 	  (diaspora-insert-comment (aref lst-msgs i) (current-buffer))
 	  )
-      (dolist (elt lst-msgs)
+      (dolist (elt lst-msgs) ;;lst-msgs is a list!
 	(diaspora-insert-comment elt (current-buffer))
 	)
       )
