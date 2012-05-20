@@ -850,11 +850,16 @@ Also save the last post date for getting the next posts(older posts) in the stre
 	(url-retrieve url 'diaspora-write-image
 		      (list url user-id))))
 				 
-(defun diaspora-get-image (url)
+(defun diaspora-get-image (url &optional function)
+  "Retrieve the image asynchronously and call the given function.
+FUNCTION must recieve two parameters:
+The status and the url. See `url-retrieve'."
   (let ((url-request-method "GET")
 	(url-show-status nil))
-	(url-retrieve url 'diaspora-write-image
-		      (list url))))
+    (url-retrieve url '(lambda (status url function)
+			 (diaspora-write-image status url) ; write into a file! then call the function...
+			 (funcall function status url))
+		  (list url function))))
 
 (defun diaspora-get-image-sync (url)
   "Same as `diaspora-get-image' but synchronously."
@@ -1128,6 +1133,18 @@ If STRING is nil return an empty string."
       (diaspora-get-image-sync url))
     (diaspora-image-path image-name)))
 
+(defun diaspora-get-image-if-necessary-async (url &optional function)
+  "If it hasn'd downloaded, download the image asynchronously and save it in the temp directory.
+After that, call the given FUNCTION."
+  (let ((image-name (file-name-nondirectory url)))
+    (if (file-exists-p (diaspora-image-path image-name))
+	(diaspora-image-path image-name)
+      (diaspora-get-image url function)
+      )
+    )
+  )
+      
+
 (defun diaspora-show-image-at-region ()
   "Consider the region as the image's URL, download it(if necessary) and open an external program to see it."
   (interactive)
@@ -1143,7 +1160,31 @@ If STRING is nil return an empty string."
   (let ((image-url (diaspora-get-image-link-at-point)))
     (diaspora-get-image-if-necessary image-url)
     (diaspora-open-image-program (diaspora-image-path (file-name-nondirectory image-url)))))
+
+(defun diaspora-callback-for-opening-image-from-url (status url)
+  "This is a callback for `diaspora-get-image'.
+Its open the image viewer with the image taken from the url."
+  (diaspora-open-image-program (diaspora-image-path (file-name-nondirectory url)))
+  )
+
+(defun diaspora-get-and-show-image-async (url)
+  "Get the URL if necessary(if not downloaded before) and show it with an external viewer(using `diaspora-image-external-program')."
+  (let ((image-name (file-name-nondirectory url)))
+    (if (file-exists-p (diaspora-image-path image-name))
+	(diaspora-callback-for-opening-image-from-url nil url)
+      (diaspora-get-image url 'diaspora-callback-for-opening-image-from-url)
+      )
+    )
+  )  
   
+
+(defun diaspora-show-image-at-point-async ()
+  "Show only the image at the cursor."
+  (interactive)
+  (let ((image-url (diaspora-get-image-link-at-point)))
+    (diaspora-get-and-show-image-async image-url)
+    )
+  )
 
 (defun diaspora-open-image-program (image-path)
   (let ((command-string (concat
