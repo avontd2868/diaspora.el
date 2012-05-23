@@ -79,6 +79,35 @@
 
 ;;; User variable:
 
+(defcustom diaspora-debug-mode nil
+  "Set this to t for make diaspora.el be in debug mode. This means:
+
+* HTTP buffers doesn't kills.
+* Errors are debugged and not catched.
+
+Depending on the revision, changing this can have differents effects.
+
+You may would like to use `diaspora-debug' so you can set this dinamically.
+"
+  :type 'boolean
+  :group 'diaspora)
+
+(defun diaspora-debug ()
+  "Start or exit the debug mode."
+  (interactive)
+  (if diaspora-debug-mode
+      (progn
+	(setq diaspora-debug-mode nil)
+	(message "Diaspora.el: Exiting Debug Mode.")
+	)
+    (progn
+      (setq diaspora-debug-mode t)
+      (message "Diaspora.el: Starting Debug Mode.")
+      )
+    )
+  )
+
+
 (defcustom diaspora-posts-directory
   "~/.diaspora/posts/"
   "Diaspora* temp dir (abs path)."
