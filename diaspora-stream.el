@@ -886,7 +886,7 @@ The status and the url. See `url-retrieve'."
 
 (defun diaspora-get-all-images ()
   (interactive)
-  (mapcar 'diaspora-get-image-sync (diaspora-get-all-image-links)))
+  (mapcar 'diaspora-get-image-if-necessary (diaspora-get-all-image-links)))
 
 (defun diaspora-show-images ()
   "Shows images in buffer."
@@ -1126,10 +1126,13 @@ If STRING is nil return an empty string."
         (setq string (substring string 0 (match-beginning 0))))
     (substring-no-properties string)))
 
-(defun diaspora-get-image-if-necessary (url)
-  "If it hasn'd downloaded, download the image and save it in the temp directory."
+(defun diaspora-get-image-if-necessary (url &optional get-anyway)
+  "If it hasn'd downloaded, download the image and save it in the temp directory.
+
+If GET-ANYWAY is setted, download the image without any checks."
   (let ((image-name (file-name-nondirectory url)))
-    (unless (file-exists-p (diaspora-image-path image-name))
+    (if (or (not (file-exists-p (diaspora-image-path image-name)))
+	    get-anyway)
       (diaspora-get-image-sync url))
     (diaspora-image-path image-name)))
 
@@ -1154,11 +1157,15 @@ After that, call the given FUNCTION."
     )
   )
 
-(defun diaspora-show-image-at-point ()
-  "Show only the image at the cursor."
-  (interactive)
+(defun diaspora-show-image-at-point (&optional get-anyway)
+  "Show only the image at the cursor.
+
+If the image already exists, it won't download again, except if GET-ANYWAY is setted to t."
+  (interactive "P")
+  (when get-anyway
+    (setq get-anyway t))
   (let ((image-url (diaspora-get-image-link-at-point)))
-    (diaspora-get-image-if-necessary image-url)
+    (diaspora-get-image-if-necessary image-url get-anyway)
     (diaspora-open-image-program (diaspora-image-path (file-name-nondirectory image-url)))))
 
 (defun diaspora-callback-for-opening-image-from-url (status url)
@@ -1167,10 +1174,11 @@ Its open the image viewer with the image taken from the url."
   (diaspora-open-image-program (diaspora-image-path (file-name-nondirectory url)))
   )
 
-(defun diaspora-get-and-show-image-async (url)
+(defun diaspora-get-and-show-image-async (url &optional get-anyway)
   "Get the URL if necessary(if not downloaded before) and show it with an external viewer(using `diaspora-image-external-program')."
   (let ((image-name (file-name-nondirectory url)))
-    (if (file-exists-p (diaspora-image-path image-name))
+    (if (and (file-exists-p (diaspora-image-path image-name))
+	     (not get-anyway))
 	(diaspora-callback-for-opening-image-from-url nil url)
       (diaspora-get-image url 'diaspora-callback-for-opening-image-from-url)
       )
@@ -1178,11 +1186,13 @@ Its open the image viewer with the image taken from the url."
   )  
   
 
-(defun diaspora-show-image-at-point-async ()
+(defun diaspora-show-image-at-point-async (&optional get-anyway)
   "Show only the image at the cursor."
-  (interactive)
+  (interactive "P")
+  (when get-anyway
+    (setq get-anyway t))
   (let ((image-url (diaspora-get-image-link-at-point)))
-    (diaspora-get-and-show-image-async image-url)
+    (diaspora-get-and-show-image-async image-url get-anyway)
     )
   )
 
