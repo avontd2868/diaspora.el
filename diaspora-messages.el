@@ -175,6 +175,7 @@ Use it for getting the nearest id post number when selecting a message."
 	(diaspora-message-replace-necessary)
 	(setq text (buffer-string))
 	)
+      (diaspora-kill-buffer-safe)
       )
     (with-current-buffer buffer-to
       (let ((inhibit-read-only t)

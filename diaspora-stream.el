@@ -194,7 +194,7 @@ if not, the buffer called \"Diáspora Stream\" will be re-used or created if nee
     (switch-to-buffer buffer)
     (insert text)    
     ;; kill the http buffer
-    (kill-buffer buf-kill)))
+    (diaspora-kill-buffer-safe buf-kill)))
 
 (defun diaspora-get-time-by-timezone (max-time)
   "Return the time in seconds from the epoch modified according to the timezone specified by `diaspora-timezone' to represents the time
@@ -343,10 +343,11 @@ Same as LST-POST-PARAMETERS."
 	  )
 	)
       )
-    ;; Delete HTTP Buffer
-    ;;(kill-buffer buff)   
+    ;; Delete HTTP Buffer if `diaspora-debug-mode' is off
+    (diaspora-kill-buffer-safe buff)
     )
   )
+
 
 (defun diaspora-read-date ()
   "Read a date from the minibuffer and return in the format as `current-time' or `encode-time' does."
@@ -791,6 +792,8 @@ Use it for getting the nearest id post number when selecting a message."
       (diaspora-parse-single-message-json buff-http buff nil)
       (diaspora-insert-comments-for-message id-message buff)
       )
+    (diaspora-kill-buffer-safe buff-http)
+    
     (switch-to-buffer-other-window buff)
 ;    (switch-to-buffer buff)
     (with-current-buffer buff
@@ -846,9 +849,11 @@ Also save the last post date for getting the next posts(older posts) in the stre
 
 (defun diaspora-get-user-avatar (url &optional user-id)
   (let ((url-request-method "GET")
-	(url-show-status nil))
-	(url-retrieve url 'diaspora-write-image
-		      (list url user-id))))
+	(url-show-status nil)	
+	)
+    (url-retrieve url 'diaspora-write-image
+		  (list url user-id)))
+  )
 				 
 (defun diaspora-get-image (url &optional function)
   "Retrieve the image asynchronously and call the given function.
@@ -866,7 +871,11 @@ The status and the url. See `url-retrieve'."
   (let ((url-request-method "GET")
 	(url-show-status nil))
     (with-current-buffer (url-retrieve-synchronously url)
-      (diaspora-write-image nil url))))
+      (diaspora-write-image nil url)
+      (diaspora-kill-buffer-safe)
+      )
+    )
+  )
 
 
 (defun diaspora-write-image (status url &optional user-id)
@@ -881,7 +890,7 @@ The status and the url. See `url-retrieve'."
       (delete-region (point-min) (search-forward "\C-j\C-j" nil t))
       )
     (save-buffer 0)
-    (kill-buffer (current-buffer)))
+    (diaspora-kill-buffer-safe (current-buffer)))
   )
 
 (defun diaspora-get-all-images ()
@@ -1113,6 +1122,7 @@ The tag must be a string without the starting \"#\"."
     (with-current-buffer http-buffer
       (diaspora-delete-http-header)
       (let ((stream-parsed (json-read)))
+	(diaspora-kill-buffer-safe http-buffer)
 	 stream-parsed))))
 
 (defsubst diaspora-string-trim (string)
@@ -1272,7 +1282,8 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
 			    (cons "user[remember_me]" "1")
 			    (cons "authenticity_token" diaspora-auth-token))
 		      "&")))
-      (url-retrieve-synchronously (diaspora-likes-url post-id)))    
+      (url-retrieve-synchronously (diaspora-likes-url post-id))
+      (diaspora-kill-buffer-safe))
     )
   )
 

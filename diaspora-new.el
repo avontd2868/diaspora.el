@@ -48,7 +48,8 @@
     (with-current-buffer http-buffer
       (diaspora-delete-http-header)
       (let ((stream-parsed (json-read)))
-	 stream-parsed))))
+	(diaspora-kill-buffer-safe)
+	stream-parsed))))
 
 (defun diaspora-parse-json-read (key &optional url)
 "Get from URL the JSON part of KEY."
@@ -253,8 +254,8 @@
 	    (insert url)))))))
 
 (defun diaspora-post-comment (post id)
-  "Does not work!!!"
-  "Post POST to diaspora."
+  "Does not work!!!
+Post POST to diaspora."
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
@@ -399,7 +400,8 @@ Comment should be a String and post-id the id number of the post."
 			  (cons "authenticity_token" diaspora-auth-token)
 			  (cons "commit" "Sign in"))
 		    "&")))
-    (url-retrieve-synchronously (diaspora-post-comment-url post-id))))
+    (diaspora-kill-buffer-safe 
+     (url-retrieve-synchronously (diaspora-post-comment-url post-id)))))
 
 (defun diaspora-post-comment-url (post-id)
   "Return the URL for posting a comment for the post with id post-id"

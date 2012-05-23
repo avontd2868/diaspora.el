@@ -84,7 +84,11 @@ buffer or in the buffer specified."
 ;;	      (inhibit-read-only t)
 	      )
 	  (dotimes (i le)
-	    (diaspora-insert-comment (aref lstparsed i) buffer)))))))
+	    (diaspora-insert-comment (aref lstparsed i) buffer))))      
+      )
+    (diaspora-kill-buffer-safe buff-http)
+    )
+  )
 	    
 (defun diaspora-insert-comment (comment buffer)
   "Insert a JSON parsed (with `json-read') into a specific buffer."
@@ -182,7 +186,8 @@ Comment should be a String and post-id the id number of the post."
 			  (cons "authenticity_token" diaspora-auth-token)
 			  (cons "commit" "Sign in"))
 		    "&")))
-    (url-retrieve-synchronously (diaspora-post-comment-url post-id))))
+    (diaspora-kill-buffer-safe 
+     (url-retrieve-synchronously (diaspora-post-comment-url post-id)))))
 
 ;; Add keymap for `diaspora-mode':
 

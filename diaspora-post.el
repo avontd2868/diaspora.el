@@ -127,7 +127,9 @@ This list is used as parameter for `diaspora-post'."
 			  (cons "utf8" "✓"))
 		    "&")))
     (with-current-buffer (url-retrieve-synchronously url)
-      (diaspora-find-auth-token))))
+      (diaspora-find-auth-token)
+      (diaspora-kill-buffer-safe)))
+  )
 
 (defun diaspora-find-auth-token (&optional status)
   "Find the authenticity token."  
@@ -196,9 +198,11 @@ PHOTOS-IDS is a list of strings or numbers of photos ids."
 		    "&"))
 	)
     (url-retrieve (diaspora-url diaspora-status-messages-url)
-		  (lambda (arg) ))))
-		  ;;   (kill-buffer (current-buffer))))))
-		  
+		  (lambda (arg) (diaspora-kill-buffer-safe)))
+    )		    
+  )
+
+  
 		  
 
 (defun diaspora-post-this-buffer ()
@@ -209,7 +213,7 @@ PHOTOS-IDS is a list of strings or numbers of photos ids."
   (diaspora-post (buffer-string) diaspora-aspects-for-post diaspora-images-posted)
   (setq diaspora-images-posted nil)
   (diaspora-save-post-to-file)
-  ;;(kill-buffer)
+  (diaspora-kill-buffer-safe)
   )
 
 (defsubst diaspora-date ()
@@ -291,11 +295,11 @@ Most useful for posting things from any where."
   (interactive "M")
   (let ((url-request-method "GET"))
     (url-retrieve (concat "http://is.gd/create.php?format=simple&url=" url)
-                   (lambda (x)
-		     (goto-char (point-min))
-		     (search-forward-regexp "http://.*")
-		     (setq s-url (match-string-no-properties 0))))
-   (insert s-url)))
+		  (lambda (x)
+		    (goto-char (point-min))
+		    (search-forward-regexp "http://.*")
+		    (setq s-url (match-string-no-properties 0))))
+    (insert s-url)))
 
 (defun diaspora-post-send-image (image-path url)
   "Send an image file given by IMAGE-PATH to the given URL."
@@ -315,8 +319,8 @@ Most useful for posting things from any where."
 	(diaspora-delete-http-header)
 	(goto-char (point-min))
 	(setq image-data (json-read)) ;; save image url and data for history
+	(diaspora-kill-buffer-safe)
 	)      
-      (kill-buffer (current-buffer))      
       (diaspora-save-image-data image-data)
       (push (cdr (assoc 'id (diaspora-image-data-get-photo-data image-data)))
 	    diaspora-images-posted)

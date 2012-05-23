@@ -192,6 +192,7 @@ Get any information necessary as well(like username, password and authenticity t
   (with-current-buffer (diaspora-get-url (diaspora-url-json diaspora-contact-url))
     (diaspora-delete-http-header)
     (diaspora-contacts-parse-json-and-insert (current-buffer) buffer-to)
+    (diaspora-kill-buffer-safe)
     )
   )
 
@@ -245,6 +246,7 @@ If RELOAD is t, then get the contacts from D* despite the variable is already se
 	(with-current-buffer (diaspora-get-url (diaspora-url-json diaspora-contact-url))
 	  (diaspora-delete-http-header)
 	  (setq diaspora-contacts-all-contacts (diaspora-contacts-parse-json-for-contacts))
+	  (diaspora-kill-buffer-safe)
 	  )
 	)
     diaspora-contacts-all-contacts ;; the variable already has contents...

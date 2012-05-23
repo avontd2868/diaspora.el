@@ -68,6 +68,8 @@
     (with-current-buffer http-buff
       (diaspora-delete-http-header))
     (diaspora-parse-notifications-json http-buff buff)
+    (diaspora-kill-buffer-safe http-buff)
+
     (switch-to-buffer buff)
     (with-current-buffer buff
       (let ((inhibit-read-only t))
@@ -273,7 +275,8 @@
 			  )
 		    "&")))
     (push (cons "X-CSRF-Token" diaspora-auth-token) url-request-extra-headers)
-    (url-retrieve-synchronously (diaspora-notif-url notification-id))
+    (diaspora-kill-buffer-safe 
+     (url-retrieve-synchronously (diaspora-notif-url notification-id)))    
     )
   )
 

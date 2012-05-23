@@ -95,6 +95,17 @@ If a change in the property is founded return t."
     )
   )
 
+(defun diaspora-kill-buffer-safe (&optional buffer)
+  "Kill the temporary buffer. If BUFFER is not setted, use the `current-buffer'
+
+This is a safe function that makes some checks before killing. If not, just hides the buffer.
+
+For example: if `diaspora-debug-mode' is activated, the buffer will not be killed."
+  (unless diaspora-debug-mode
+    (kill-buffer (or buffer (current-buffer)))		 
+    )
+  )
+
 (provide 'diaspora-misc)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
