@@ -1195,6 +1195,14 @@ Its open the image viewer with the image taken from the url."
     )
   )  
   
+(defun diaspora-refresh-image-at-point (&rest r)
+  "Download the image again so emacs can refresh it."
+  (interactive)
+  (let ((image-url (diaspora-get-image-link-at-point)))
+    (diaspora-get-image-if-necessary image-url t)
+    )
+  )
+  
 
 (defun diaspora-show-image-at-point-async (&optional get-anyway)
   "Show only the image at the cursor."

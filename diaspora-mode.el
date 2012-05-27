@@ -103,6 +103,13 @@ Note: this is not correct! Needs more thought to get all images right."
   :type 'regexp
   :group 'diaspora-regexps)
 
+(defcustom diaspora-regexp-link
+  "\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
+  "Regular expression for a [text](file) link.
+Note: this is not correct! Needs more thought to get all images right."
+  :type 'regexp
+  :group 'diaspora-regexps)
+
 (defcustom diaspora-regexp-user-entry 
 "^[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*[a-zA-Z0-9_úùüãâáàéíìõóòñ\s-\.\*\/@]*@[a-zA-Z0-9\s-]*[\.a-zA-Z0-9\s-]*)"
   "Regular expression for user entry."
@@ -504,6 +511,9 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    (cons diaspora-regexp-header-4 ''diaspora-header-face-4)
    (cons diaspora-regexp-hr ''diaspora-header-face-1)
    (cons diaspora-regexp-image
+   	 ''((1 diaspora-link-face t)
+   	   (2 diaspora-url-face t)))
+   (cons diaspora-regexp-link
    	 ''((1 diaspora-link-face t)
    	   (2 diaspora-url-face t)))
    (cons diaspora-regexp-user-name ''diaspora-user-name-citation-face)

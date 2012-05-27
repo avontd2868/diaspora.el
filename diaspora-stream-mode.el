@@ -56,6 +56,7 @@
   (let ((map (make-sparse-keymap)))
     (define-key map "\C-cl" 'diaspora-get-and-show-images)
     (define-key map "\C-cio" 'diaspora-show-image-at-point-async)
+    (define-key map "\C-cir" 'diaspora-refresh-image-at-point)
     (define-key map "q" 'kill-buffer)
     (define-key map "g" 'diaspora-visit-last-stream)
     (define-key map [tab] 'diaspora-stream-mode-next-element)
