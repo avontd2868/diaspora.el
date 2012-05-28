@@ -197,19 +197,40 @@ From Markdown to Emacs faces."
   )
 
 (defcustom markdown-trans-goto-link-fnc
-  'nil
-  "A function binded to the `markdown-trans-goto-link-key'."
+  'browse-url
+  "A function binded to the `markdown-trans-goto-link-key'.
+
+Is called with the URL as a parameter."
   :type 'function
   :group 'markdown-trans)
 
-(defvar markdown-trans-map
-  (let ((markdown-trans-map (make-sparse-keymap)))
-    (define-key markdown-trans-map markdown-trans-goto-link-key markdown-trans-goto-link-fnc)
-    markdown-trans-map)
+(defvar markdown-trans-url-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map markdown-trans-goto-link-key 'markdown-trans-goto-link-fnc-1)
+    (define-key map [mouse-2] 'markdown-trans-goto-link-fnc-1)
+    map)
   "Personalizable keymap for markdown-trans.")
 
+(defun markdown-trans-goto-link-fnc-1 (&rest p)
+  "Call the `markdown-trans-goto-link-fnc' function given the URL as parameter.
+
+So, I have to look for the URL in the current text."
+  (interactive)
+  (save-excursion
+    ;; go to the begining of the inline URL 
+    (goto-char (previous-single-property-change (+ (point) 1) 'keymap))    
+    (search-forward-regexp markdown-regex-link-inline nil t)    
+    ;; Find the URL and drop all the rest...
+    (let ((pre-url (match-string-no-properties 2))
+	  )
+      (setq pre-url (substring pre-url 1 (- (length pre-url) 1)))
+      (funcall markdown-trans-goto-link-fnc pre-url) ;; Call the `markdown-trans-goto-link-fnc' witht the URL.
+      )
+    )
+  )
+
 (defun markdown-trans-add-link-props (beg end)
-  (add-text-properties beg end '(mouse-face highlight help-echo "mouse-2: Go to link." keymap markdown-trans-map))  
+  (add-text-properties beg end (list 'keymap markdown-trans-url-map 'mouse-face 'highlight 'help-echo "mouse-2: Go to link." ))
   (if (string-equal (buffer-substring beg (+ beg 1)) "!")
       (add-text-properties beg (+ beg 2) '(markdown-trans-hide t))
     (add-text-properties beg (+ beg 1) '(markdown-trans-hide t))
