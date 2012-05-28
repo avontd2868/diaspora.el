@@ -545,6 +545,13 @@ Check if the temporal directory exists, if not create it."
     map)
   "Keymap used in the stream and messages buffers for commenting a message.")
 
+(defvar diaspora-next-oldies-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] 'diaspora-get-next-oldies)
+    (define-key map [mouse-2] 'diaspora-get-next-oldies)
+    map)
+  "Keymap used in the stream and messages buffers for commenting a message.")
+
 
 ;; A few notes about the next functiom `diaspora-show-message`
 ;; date: 20120128
@@ -754,6 +761,17 @@ or a function like `diaspora-show-message-new-buffer'."
    'help-echo "Click here to declare that I like this post!")  
   )
 
+(defun diaspora-add-next-oldies-link (text)
+  "Return a propertized text with a link for getting the next oldies posts."
+  (propertize
+   text
+   'mouse-face 'diaspora-mouse-highlight-face
+   'face "link"
+   'keymap diaspora-next-oldies-map
+   'diaspora-is-link-to-pub t
+   'help-echo "Click here to get the next oldies!")
+  )
+
 (defun diaspora-get-id-message-near-point ()
   "Get the diaspora-id-message property value searching from point.
 Use it for getting the nearest id post number when selecting a message."
@@ -840,7 +858,8 @@ Also save the last post date for getting the next posts(older posts) in the stre
 	  (delete-region (point-min) (point-max))
 	  ;; Show all elements
 	  (dotimes (i le)
-	    (diaspora-show-message (aref lstparsed i) buffer-to t))))
+	    (diaspora-show-message (aref lstparsed i) buffer-to t))
+	  (insert (diaspora-add-next-oldies-link "Next Oldies Posts ->"))))
       )
     )
   )
