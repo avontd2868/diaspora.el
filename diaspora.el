@@ -48,6 +48,7 @@
 
 (require 'url)
 (require 'url-http)
+(require 'url-cookie)
 (require 'json)
 (require 'font-lock)
 (require 'markdown-translator)
@@ -233,9 +234,22 @@ and  `diaspora-password' if they weren't."
 (defun diaspora-login ()
   "Ask for username and password interactivelly. 
 
-Use `diaspora-ask'."
+This use `diaspora-ask' and then resets everything."
   (interactive)
+  (diaspora-reset)
   (diaspora-ask t)
+  )
+
+(defun diaspora-reset ()
+  "Reset all data according to login, aspects, contacts list, etc. 
+Like starting diaspora as new."
+  (url-cookie-clean-up)
+  (setq diaspora-username nil)
+  (setq diaspora-password nil)
+  (setq diaspora-auth-token nil)
+  (diaspora-aspect-reset)
+  (diaspora-contacts-reset)
+  (diaspora-stream-reset)
   )
   
 (defun diaspora-make-dirs ()

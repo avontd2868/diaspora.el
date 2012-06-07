@@ -276,6 +276,11 @@ The `diaspora-username-url' functions help me finding the apropiate URL."
   (diaspora-get-stream-by-name (diaspora-username-name username))
   )
 
+(defun diaspora-contacts-reset ()
+  "Reset contact information as if you have just started diaspora.el again."
+  (setq diaspora-contacts-all-contacts nil)
+  )
+
 (provide 'diaspora-contacts)
 
 

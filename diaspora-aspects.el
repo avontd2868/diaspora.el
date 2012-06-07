@@ -148,6 +148,12 @@ If the reload parameter is t then, no matter what `diaspora-aspect-alist' has, r
     )
   )
 
+(defun diaspora-aspect-reset ()
+  "Reset all aspect data, like you have just started diaspora again."
+  (setq diaspora-aspect-alist nil)
+  (setq diaspora-aspects-for-post nil)
+  )
+
 (provide 'diaspora-aspects)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -1310,8 +1310,15 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
 			    (cons "authenticity_token" diaspora-auth-token))
 		      "&")))
       (url-retrieve-synchronously (diaspora-likes-url post-id))
-      (diaspora-kill-buffer-safe))
+      ;;(diaspora-kill-buffer-safe)
+      )
     )
+  )
+
+(defun diaspora-stream-reset ()
+  "Reset all this library as if diaspora has just started."
+  (setq diaspora-stream-last-post-date nil)
+  (setq diaspora-last-stream-visited nil)
   )
 
 (provide 'diaspora-stream)
