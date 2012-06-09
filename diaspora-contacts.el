@@ -197,7 +197,7 @@ Get any information necessary as well(like username, password and authenticity t
   )
 
 (defvar diaspora-contacts-all-contacts nil
-  "An alist of contacts names and its usernames@pods.
+  "An alist of contacts names and al its info(username, id, etc.)
 
 Use `diaspora-contacts-get-all-contacts' to set this variable accordingly."
   )
@@ -208,13 +208,19 @@ This is usually a cons made by the name and the username@pod.
 
 You can change this so you can have more information on each element in the `diaspora-contacts-all-contacts' variable."
   (let ((handle (cdr (assoc 'handle json-parsed-contact))) ;; Usually is the diaspora address (name@joindiaspora.com for example)
-;;	(url (diaspora-url (cdr (assoc 'url json-parsed-contact))))
-;;	(avatar (cdr (assoc 'avatar json-parsed-contact)))
+	(url (diaspora-url (cdr (assoc 'url json-parsed-contact))))
+	(avatar (cdr (assoc 'avatar json-parsed-contact)))
 	(name (cdr (assoc 'name json-parsed-contact)))
-;;	(guid (cdr (assoc 'guid json-parsed-contact)))
-;;	(id (cdr (assoc 'id json-parsed-contact)))
+	(guid (cdr (assoc 'guid json-parsed-contact)))
+	(id (cdr (assoc 'id json-parsed-contact)))
 	)
-    (cons name handle)
+    (cons name (list
+		(cons 'handle handle)
+		(cons 'url url)
+		(cons 'avatar avatar)
+		(cons 'guid guid)
+		(cons 'id id))
+	  )
     )
   )
 
