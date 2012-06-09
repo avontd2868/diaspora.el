@@ -258,16 +258,33 @@ If RELOAD is t, then get the contacts from D* despite the variable is already se
     diaspora-contacts-all-contacts ;; the variable already has contents...
     )   
   )
+
+(defun diaspora-contacts-get-all-contacts-name (&optional reload)
+  "Return all the contacts name(just their names). If the variable `diaspora-contacts-all-contacts' is not seted, download the contacts and set it properly using `diaspora-contacts-get-all-contacts'.
+
+If RELOAD is t, then retrieve all the contacts from D* despite all."
+  (let ((allinfo (diaspora-contacts-get-all-contacts reload))
+	(output nil)
+	)
+    (dolist (e allinfo)
+      (push (car e) output )
+      )
+    output
+    )
+  )
+
   
 (defun diaspora-get-stream-by-contact (name)
   "Look for the contact stream only by its name. "
   (interactive
-   (let ((string (completing-read "Contact name?" (diaspora-contacts-get-all-contacts)))
+   (let ((string (completing-read "Contact name?" (diaspora-contacts-get-all-contacts-name)))
 	 )
      (list string))
    )
   
-  (let ((username (cdr (assoc name diaspora-contacts-all-contacts)))
+  (let ((username (cdr (assoc 'handle 
+		       (cdr (assoc name diaspora-contacts-all-contacts)))
+		       ))
 	)
     (diaspora-get-stream-by-username  (diaspora-get-username username))
     )
