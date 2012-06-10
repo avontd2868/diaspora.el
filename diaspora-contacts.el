@@ -66,9 +66,9 @@ See `diaspora-url' and `diaspora-url-json'."
 (defconst diaspora-contact-buffer-name "*Diaspora Contacts*"
   "This is the name of the contact buffer.")
 
-(defun diaspora-get-all-contacts ()
+(defun diaspora-get-all-contacts (&optional reload)
   "Retrieve the contact list and print it in a buffer called `diaspora-contact-buffer-name'."
-  (interactive)
+  (interactive "P")
   (let ((inhibit-read-only t)	
 	(contact-buffer (get-buffer-create diaspora-contact-buffer-name))
 	)
@@ -76,23 +76,30 @@ See `diaspora-url' and `diaspora-url-json'."
       (diaspora-mode)
       (diaspora-stream-mode)
       (delete-region (point-min) (point-max))      
+      
+      (let ((aux (diaspora-contacts-get-all-contacts reload))
+	    )
+	(dolist (e aux)
+	  (diaspora-contacts-show e)
+	  )
+	)
       )
-    (diaspora-contacts-get-contacts contact-buffer)
+    
     (switch-to-buffer contact-buffer)
     )
   )
 
 
-(defun diaspora-contacts-show (json-parsed-contact)
+(defun diaspora-contacts-show (alist-contact)
   "Print a contact in the current buffer according to the JSON parsed element.
 
 JSON-PARSED-CONTACT is a parsed part of the JSON readed by `json-read' that corresponds to the contact. Usually is a list of const."
-  (let ((url (diaspora-url (cdr (assoc 'url json-parsed-contact))))
-	(handle (cdr (assoc 'handle json-parsed-contact))) ;; Usually is the diaspora address (name@joindiaspora.com for example)
-	(avatar (cdr (assoc 'avatar json-parsed-contact)))
-	(name (cdr (assoc 'name json-parsed-contact)))
-	(guid (cdr (assoc 'guid json-parsed-contact)))
-	(id (cdr (assoc 'id json-parsed-contact)))
+  (let ((url (diaspora-url (cdr (assoc 'url (cdr alist-contact)))))
+	(handle (cdr (assoc 'handle (cdr alist-contact)))) ;; Usually is the diaspora address (name@joindiaspora.com for example)
+	(avatar (cdr (assoc 'avatar (cdr alist-contact))))
+	(name (car alist-contact))
+	(guid (cdr (assoc 'guid (cdr alist-contact))))
+	(id (cdr (assoc 'id (cdr alist-contact))))
 	)
     (insert (concat
 	     (propertize 
@@ -243,20 +250,20 @@ You can change this so you can have more information on each element in the `dia
 Return the contents of `diapsora-contacts-all-contacts'.
 
 If RELOAD is t, then get the contacts from D* despite the variable is already setted."
-  (if (or reload
-	  (null diaspora-contacts-all-contacts)
-	  )
-      (progn ;; Look for contacts and set the variable!
-	(diaspora-ask)
-	(diaspora-get-authenticity-token-if-necessary)
-	(with-current-buffer (diaspora-get-url (diaspora-url-json diaspora-contact-url))
-	  (diaspora-delete-http-header)
-	  (setq diaspora-contacts-all-contacts (diaspora-contacts-parse-json-for-contacts))
-	  (diaspora-kill-buffer-safe)
-	  )
+  (when (or reload
+	    (null diaspora-contacts-all-contacts)
+	    )
+    (progn ;; Look for contacts and set the variable!
+      (diaspora-ask)
+      (diaspora-get-authenticity-token-if-necessary)
+      (with-current-buffer (diaspora-get-url (diaspora-url-json diaspora-contact-url))
+	(diaspora-delete-http-header)
+	(setq diaspora-contacts-all-contacts (diaspora-contacts-parse-json-for-contacts))
+	(diaspora-kill-buffer-safe)
 	)
-    diaspora-contacts-all-contacts ;; the variable already has contents...
-    )   
+      )
+    )
+  diaspora-contacts-all-contacts ;; the variable already has contents...  
   )
 
 (defun diaspora-contacts-get-all-contacts-name (&optional reload)
