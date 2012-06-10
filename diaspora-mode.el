@@ -494,7 +494,7 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
   )
 
 
-(defcustom diaspora-mode-hook '(diaspora-see-regexp-markdow diaspora-show-videos)
+(defcustom diaspora-mode-hook '()
   "Functions run upon entering `diaspora-mode'."
   :type 'hook
   :options '(flyspell-mode turn-on-auto-fill longlines-mode diaspora-get-all-images diaspora-show-images)

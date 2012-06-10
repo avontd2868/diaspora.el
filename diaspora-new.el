@@ -131,7 +131,7 @@
   (diaspora-mode))
 
 
-(defun diaspora-see-regexp-markdow ()
+(defun diaspora-see-regexp-markdown ()
   (interactive)
   (save-excursion
     (goto-char (point-min))

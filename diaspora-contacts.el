@@ -83,6 +83,7 @@ See `diaspora-url' and `diaspora-url-json'."
 	  (diaspora-contacts-show e)
 	  )
 	)
+      (diaspora-hide-markdown)
       )
     
     (switch-to-buffer contact-buffer)

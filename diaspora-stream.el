@@ -1025,7 +1025,7 @@ Image links must match the regexp in `diaspora-regexp-image'."
     (when (search-forward-regexp diaspora-regexp-image nil t)
       (match-string-no-properties 2))))  
 
-(defun diaspora-see-regexp-markdow ()
+(defun diaspora-see-regexp-markdown ()
   (interactive)
   (save-excursion
     (goto-char (point-min))

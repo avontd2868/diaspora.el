@@ -71,6 +71,8 @@
     ("Messages" . diaspora-messages)
     "Posting"
     ("Post a text" . diaspora-post-to)
+    "Contacts"
+    ("Show all contacts" . diaspora-get-all-contacts)
     "Configuration"
     ("Change Login" . diaspora-login)
     ("Change POD" . diaspora-set-pod)
