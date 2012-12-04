@@ -312,6 +312,47 @@ The `diaspora-username-url' functions help me finding the apropiate URL."
   (setq diaspora-contacts-all-contacts nil)
   )
 
+(defun diaspora-contacts-add-to-aspect (contactname aspectname)
+  "Add a contact to an aspect sending the apropiate POST. 
+
+CONTACTNAME is the name of the contact. ASPECTNAME is the aspect name where to add."
+  (interactive 
+   (let ((c-name (completing-read "Contact name?" (diaspora-contacts-get-all-contacts-name)))
+	 (a-name (completing-read "Aspect name?" (diaspora-get-aspects)))
+	 )
+     (list c-name a-name)
+     )
+   )
+  (diaspora-ask)
+  (diaspora-get-authenticity-token-if-necessary)
+  ;; We have to get the aspect and the post id to create the post data
+  (let* ((contact-id (cdr (assoc 'id (assoc contactname diaspora-contacts-all-contacts))))
+	(aspect-id (cdr (assoc aspectname diaspora-aspect-alist)))
+	
+	(url-request-method "POST")
+	(url-request-extra-headers 
+	 '(("Content-Type" . "application/x-www-form-urlencoded")))
+	(url-request-data
+	 (mapconcat (lambda (arg)
+		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
+		     (list (cons "user[username]" diaspora-username)
+			   (cons "user[password]" diaspora-password)
+			   (cons "authenticity_token" diaspora-auth-token)
+			   (cons "_method" "POST")
+			   (cons "aspect_id" (if (numberp aspect-id)
+						 (number-to-string aspect-id)
+					       aspect-id))				
+			   (cons "person_id" (if (numberp contact-id)
+						 (number-to-string contact-id)
+					       contact-id))
+			   )
+		    "&")))
+    (with-current-buffer (url-retrieve-synchronously (diaspora-url-json diaspora-add-contacts-to-aspect-url))
+      (diaspora-kill-buffer-safe)
+      )      
+    )  
+  )
+
 (provide 'diaspora-contacts)
 
 
