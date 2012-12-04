@@ -545,6 +545,14 @@ Check if the temporal directory exists, if not create it."
     map)
   "Keymap used in the stream and messages buffers for commenting a message.")
 
+(defvar diaspora-reshare-message-map-stream
+  (let ((map (make-sparse-keymap)))
+    (define-key map "\C-cc" 'diaspora-comment-message)
+    (define-key map [return] 'diaspora-reshare-message)
+    (define-key map [mouse-2] 'diaspora-reshare-message)
+    map)
+  "Keymap used when the user clics on a reshare link.")
+
 (defvar diaspora-next-oldies-map
   (let ((map (make-sparse-keymap)))
     (define-key map [return] 'diaspora-get-next-oldies)
@@ -648,6 +656,8 @@ If buffer is nil, then use the `current-buffer'."
 		(diaspora-add-link-to-publication "Read in new buffer" id guid)
 		" | "
 		(diaspora-add-like-link "I like it!" id guid)
+		" | "
+		(diaspora-add-reshare-link "Reshare" id guid)
 		"\n")
 	(when (string= "Reshare" post-type)
 	  (diaspora-insert-reshare-data parsed-message)
@@ -764,6 +774,19 @@ or a function like `diaspora-show-message-new-buffer'."
    'diaspora-guid-message guid-message
    'diaspora-is-like-link t
    'help-echo "Click here to declare that I like this post!")  
+  )
+
+(defun diaspora-add-reshare-link (text id-message guid-message)
+  "Return a propertized text with a link for sending a \"reshare\". Ready to use with a map like `diaspora-like-message-map-stream'."
+  (propertize
+   text
+   'mouse-face 'diaspora-mouse-highlight-face
+   'face "link"
+   'keymap diaspora-reshare-message-map-stream
+   'diaspora-id-message id-message
+   'diaspora-guid-message guid-message
+   'diaspora-is-like-link t
+   'help-echo "Click here to declare that I like to *reshare* this post!")  
   )
 
 (defun diaspora-add-next-oldies-link (text)
@@ -1325,7 +1348,7 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
     )
   )
 
-(defun diaspora-reshare-messasge (&rest r)
+(defun diaspora-reshare-message (&rest r)
   "Send a \"reshare\" for this message!"
   (interactive)
   (diaspora-send-reshare (diaspora-get-guid-message-near-point))
