@@ -599,6 +599,7 @@ If buffer is nil, then use the `current-buffer'."
 		  buffer)))
     (with-current-buffer buffer
       (let* ((id (cdr (assoc 'id parsed-message)))
+	     (guid (cdr (assoc 'guid parsed-message)))
 	     (name (diaspora-extract-json-list 
 		    '(author name) parsed-message))
 	     (diaspora_id (diaspora-extract-json-list 
@@ -642,11 +643,11 @@ If buffer is nil, then use the `current-buffer'."
 	  (diaspora-show-all-likes likes)
 	  (insert "\n")
 	  )
-	(insert (diaspora-add-comment-link "Comment" id)
+	(insert (diaspora-add-comment-link "Comment" id guid)
 		" | "	 
-		(diaspora-add-link-to-publication "Read in new buffer" id)
+		(diaspora-add-link-to-publication "Read in new buffer" id guid)
 		" | "
-		(diaspora-add-like-link "I like it!" id)
+		(diaspora-add-like-link "I like it!" id guid)
 		"\n")
 	(when (string= "Reshare" post-type)
 	  (diaspora-insert-reshare-data parsed-message)
@@ -685,13 +686,14 @@ If buffer is nil, then use the `current-buffer'."
   (let ((name (diaspora-extract-json-list '(root author name) parsed-message))
 	(author-id (diaspora-extract-json-list '(root author diaspora_id) parsed-message))
 	(post-id (diaspora-extract-json-list '(root id) parsed-message))
+	(guid (diaspora-extract-json-list '(root guid) parsed-message))
 	)
     (insert "Reshare from: ")
     (insert (propertize
 	     (format "%s (%s):" name author-id)
 	     'diaspora-is-user-name t)
 	    "\n") 
-    (insert (diaspora-add-link-to-publication "Read Original" post-id)
+    (insert (diaspora-add-link-to-publication "Read Original" post-id guid)
 	    "\n\n")
     )  
   )  
@@ -724,7 +726,7 @@ This parses the two options!"
    )
   )
 
-(defun diaspora-add-comment-link (text id-message)
+(defun diaspora-add-comment-link (text id-message guid-message)
     "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
 or a function like `diaspora-show-message-new-buffer'."
     (propertize
@@ -734,10 +736,11 @@ or a function like `diaspora-show-message-new-buffer'."
      'keymap diaspora-comment-message-map
      'diaspora-is-link-to-pub t
      'diaspora-id-message id-message
+     'diaspora-guid-message guid-message
      'help-echo "Click here to comment this message in new buffer.")
   )
 
-(defun diaspora-add-link-to-publication (text id-message)
+(defun diaspora-add-link-to-publication (text id-message guid-message)
   "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
 or a function like `diaspora-show-message-new-buffer'."
   (propertize
@@ -746,10 +749,11 @@ or a function like `diaspora-show-message-new-buffer'."
    'face "link"
    'keymap diaspora-show-message-map-stream
    'diaspora-id-message id-message
+   'diaspora-guid-message guid-message
    'diaspora-is-link-to-pub t
    'help-echo "Click here to see this message in new buffer.")
   )
-(defun diaspora-add-like-link (text id-message)
+(defun diaspora-add-like-link (text id-message guid-message)
   "Return a propertized text with a link for sending a \"like\". Ready to use with a map like `diaspora-like-message-map-stream'."
   (propertize
    text
@@ -757,6 +761,7 @@ or a function like `diaspora-show-message-new-buffer'."
    'face "link"
    'keymap diaspora-like-message-map-stream
    'diaspora-id-message id-message
+   'diaspora-guid-message guid-message
    'diaspora-is-like-link t
    'help-echo "Click here to declare that I like this post!")  
   )
@@ -778,6 +783,11 @@ Use it for getting the nearest id post number when selecting a message."
   (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-id-message))
 		     'diaspora-id-message))
 
+(defun diaspora-get-guid-message-near-point ()
+  "Get the diaspora-guid-message property value searching from point.
+Use it for getting the nearest id post number when selecting a message."
+  (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-guid-message))
+		     'diaspora-guid-message))
 
 (defun diaspora-show-message-new-buffer (&rest r)
   "Show this message in new buffer. Load the message, and all its comments, and show it!."
@@ -1314,6 +1324,38 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
       )
     )
   )
+
+(defun diaspora-reshare-messasge (&rest r)
+  "Send a \"reshare\" for this message!"
+  (interactive)
+  (diaspora-send-reshare (diaspora-get-guid-message-near-point))
+  )
+
+(defun diaspora-send-reshare (post-guid)
+  "Send a reshare POST"
+  (when post-guid
+    (let ((url-request-method "POST")
+	  (url-request-extra-headers
+	   '(("Content-Type" . "application/x-www-form-urlencoded")
+	     ("Accept-Language" . "en")
+	     ("Accept-Charset" . "utf-8")))
+	  (buffer-file-coding-system 'utf-8)
+	  (url-request-data  ;; there is no need of information
+	   (mapconcat (lambda (arg)
+			(concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
+		      (list (cons "user[username]" diaspora-username)
+			    (cons "user[password]" diaspora-password)
+			    (cons "user[remember_me]" "1")
+			    (cons "authenticity_token" diaspora-auth-token)
+			    (cons "root_guid" post-guid))
+			    "&"))
+	   )
+      (url-retrieve-synchronously (diaspora-reshare-url))
+      ;;(diaspora-kill-buffer-safe)
+      )
+    )
+  )
+  
 
 (defun diaspora-stream-reset ()
   "Reset all this library as if diaspora has just started."

@@ -108,6 +108,13 @@ A bit complicated but the only way known to get a list of aspects."
   :type 'string
   :group 'diaspora-streams)
 
+(defcustom diaspora-reshare-name
+  "reshares"
+  "Name for sending reshare POSTs."
+  :type 'string
+  :group 'diaspora-streams)
+
+
 (defcustom diaspora-userstream-url
   "/u"
   "This is the rest of the URL for getting a user stream. The first part is usually taken from `diaspora-pod' variable.
@@ -125,6 +132,12 @@ See `diaspora-url' and `diaspora-url-json'."
 
 (defcustom diaspora-notifi-url "notifications"
   "This is the URL part that corresponds to the notifications."
+  :group 'diaspora-url
+  :type 'string
+  )
+
+(defcustom diaspora-add-contacts-to-aspect-url "aspect_memberships"
+  "This is the URL part that let add a contact to an aspect."
   :group 'diaspora-url
   :type 'string
   )
@@ -205,6 +218,12 @@ See `diaspora-url' and `diaspora-url-json'."
 	   diaspora-likes-name)
    )
   )
+
+(defun diaspora-reshare-url ()
+  (diaspora-url
+   diaspora-reshare-name)
+  )
+  
 
 (defun diaspora-messages-url (message-id)
   (diaspora-url
