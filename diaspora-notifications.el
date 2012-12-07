@@ -163,7 +163,8 @@
 	(insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
 	(when (string-match "/posts/\\([[:digit:]]*\\)" (nth 2 splited-html))
 	  (insert (diaspora-add-link-to-publication "Goto publication" 
-						    (string-to-number (match-string 1 (nth 2 splited-html)))) "\n"))))))
+						    (string-to-number (match-string 1 (nth 2 splited-html)))
+						    nil) "\n"))))))
 
 (defun diaspora-comment-on-post-notification (notification buffer-to)
   "Write a \"comment-on-post\" notification."
@@ -180,7 +181,7 @@
 	 ;; Remove the name link property
 	 (diaspora-notification-remove-link-tags (nth 2 splited-html))
 	 "\n")
-	(insert (diaspora-add-link-to-publication "Goto publication" target-id)
+	(insert (diaspora-add-link-to-publication "Goto publication" target-id nil)
 		"\n")
 	 ))))
 
@@ -221,7 +222,7 @@
     (let ((splited-html (split-string note-html "\n")))
       (insert (diaspora-notification-remove-image-tags (nth 1 splited-html)) "\n")
       (insert (diaspora-notification-remove-link-tags (nth 2 splited-html)) "\n")
-      (insert (diaspora-add-link-to-publication "Goto publication" target-id) "\n"))))
+      (insert (diaspora-add-link-to-publication "Goto publication" target-id nil) "\n"))))
    
 
 (defvar diaspora-notifications-mark-all-as-read-map
