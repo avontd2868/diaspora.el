@@ -663,7 +663,8 @@ If buffer is nil, then use the `current-buffer'."
 	  (diaspora-insert-reshare-data parsed-message)
 	  )
 
-	(insert (format "%s\n\n" text))
+	(insert (format "%s\n\n" (propertize text
+					     'diaspora-id-message id)))
 
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	
