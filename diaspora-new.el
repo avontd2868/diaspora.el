@@ -18,6 +18,7 @@
     ;; Lunes 12 De Marzo Del 2012    
 
 (require 'cl)
+(require 'diaspora-urls)
 
 (defvar diaspora-single-message-buffer "*diaspora single message*"
   "Name of the buffer for a diaspora message")
@@ -402,16 +403,6 @@ Comment should be a String and post-id the id number of the post."
 		    "&")))
     (diaspora-kill-buffer-safe 
      (url-retrieve-synchronously (diaspora-post-comment-url post-id)))))
-
-(defun diaspora-post-comment-url (post-id)
-  "Return the URL for posting a comment for the post with id post-id"
-  (diaspora-url
-   (format "%s/%s/%s"
-	   diaspora-single-message-url
-	   (if (numberp post-id)
-	       (number-to-string post-id)
-	     post-id)
-	   diaspora-comment-name)))
 
 (defconst diaspora-comment-buffer-name "*diaspora comment*"
   "This is the name of the comment buffer.")
