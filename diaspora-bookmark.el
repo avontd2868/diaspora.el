@@ -60,7 +60,7 @@ The ID of the post is needed, and a NAME for reference."
     (goto-char (point-max))
     (insert "    - " name " :: " (number-to-string id)
 	    " ([[" 
-	    (format "%s/%s.json" (diaspora-url diaspora-single-message-url) id)
+	    (diaspora-post-url id)
 	    "][Link]])\n"
 	    )
     (write-file diaspora-bookmark-file nil)

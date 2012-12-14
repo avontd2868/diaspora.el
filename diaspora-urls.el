@@ -280,6 +280,30 @@ See `diaspora-url' and `diaspora-url-json'."
     )
   )
 
+(defun diaspora-post-url (post-id &optional format)
+  "Return the post url for that POST-ID.
+
+If FORMAT optional parameter can be any of the following strings:
+
+- nil (or parameter ignored) default format (HTML)
+- \"json\" for JSON format.
+- \"xml\" for XML format.
+- \"html\" for HTML format.
+- any other supported format by D*.
+"
+  (diaspora-url
+   (format "%s/%s%s"
+	   diaspora-single-message-url
+	   (if (numberp post-id)
+	       (number-to-string post-id)
+	     post-id)
+	   (if format
+	       (concat "." format)
+	     "")
+	   )
+   )
+  )  
+
 (provide 'diaspora-urls)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

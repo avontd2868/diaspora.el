@@ -1,4 +1,4 @@
-;;; diaspora.el --- Simple Emacs-based client for diaspora*
+;;; diaspora-stream.el --- Simple Emacs-based client for diaspora*
 
 ;; Author: Tiago Charters de Azevedo <tca@diale.org>
 ;; Maintainer: Tiago Charters de Azevedo <tca@diale.org>
@@ -831,11 +831,11 @@ Use it for getting the nearest id post number when selecting a message."
 
 
 (defun diaspora-get-single-message (id-message)
-  "Get from the `diaspora-single-message-url' URL the given message by id."
+  "Get from the `diaspora-post-url' URL the given message by id."
   (window-configuration-to-register diaspora-single-message-register)
   (let ((buff (get-buffer-create diaspora-single-message-buffer))
 	(buff-http (diaspora-get-url-entry-stream
-		    (format "%s/%s.json" (diaspora-url diaspora-single-message-url) id-message))))
+		    (diaspora-post-url id-message "json"))))
     (with-current-buffer buff-http
       ;; Delete HTTP header!
       (diaspora-delete-http-header))

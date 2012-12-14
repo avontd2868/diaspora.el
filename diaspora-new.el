@@ -224,7 +224,7 @@
       (with-current-buffer buffer-message
 	(diaspora-show-json-parsed-message 
 	 (car (diaspora-json-read-url
-	       (format "%s/%s.json" diaspora-single-message-url message-id))))
+	       (diaspora-post-url message-id))))
 	(switch-to-buffer-other-window buffer-message)
 ;    (concat "https://" diaspora-pod "/" message-id ".json"))))
 	(diaspora-mode)))))
