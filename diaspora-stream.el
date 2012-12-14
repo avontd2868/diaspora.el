@@ -810,8 +810,11 @@ or a function like `diaspora-show-message-new-buffer'."
 (defun diaspora-get-id-message-near-point ()
   "Get the diaspora-id-message property value searching from point.
 Use it for getting the nearest id post number when selecting a message."
-  (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-id-message))
-		     'diaspora-id-message))
+  ;; Think is no more needed now that the id message is everywhere!
+  ;; (get-text-property (+ 1 (previous-single-property-change (+ (point) 1) 'diaspora-id-message))
+  ;; 		     'diaspora-id-message))
+  (get-text-property (point) 'diaspora-id-message))
+  
 
 (defun diaspora-get-guid-message-near-point ()
   "Get the diaspora-guid-message property value searching from point.
