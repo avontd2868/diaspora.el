@@ -606,7 +606,8 @@ If buffer is nil, then use the `current-buffer'."
 		    (current-buffer)
 		  buffer)))
     (with-current-buffer buffer
-      (let* ((id (cdr (assoc 'id parsed-message)))
+      (let* ((begin-message (point))
+	     (id (cdr (assoc 'id parsed-message)))
 	     (guid (cdr (assoc 'guid parsed-message)))
 	     (name (diaspora-extract-json-list 
 		    '(author name) parsed-message))
@@ -663,8 +664,7 @@ If buffer is nil, then use the `current-buffer'."
 	  (diaspora-insert-reshare-data parsed-message)
 	  )
 
-	(insert (format "%s\n\n" (propertize text
-					     'diaspora-id-message id)))
+	(insert (format "%s\n\n" text))
 
 	(if (equal (length photos) 0) ""
 	  (diaspora-insert-photos-markdown photos))	
@@ -687,7 +687,13 @@ If buffer is nil, then use the `current-buffer'."
 	  (diaspora-comments-show-last-three parsed-message)
 	  (insert "\n")	  
 	  )
-	)      
+	
+	;; At the end of the message: set all the message the diaspora-id-message property
+	(add-text-properties begin-message (point) 
+			     (list 
+			      'diaspora-id-message id
+			      'diaspora-guid-message guid))
+	)    
       )    
     )
   )
