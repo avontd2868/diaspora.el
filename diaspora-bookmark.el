@@ -30,6 +30,8 @@
 
 ;;; Code:
 
+(require 'diaspora-urls)
+(require 'diaspora-stream)
 
 (defcustom diaspora-bookmark-file "~/.diaspora/bookmarks.org"
   "Diaspora bookmarks file where we save all bookmarks in an organized way.

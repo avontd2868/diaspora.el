@@ -66,6 +66,7 @@
 (require 'diaspora-misc)
 (require 'diaspora-post-edit-mode)
 (require 'diaspora-stream-mode)
+(require 'diaspora-bookmark)
 
 (defconst diaspora-el-version ".0"
   "This version of diaspora*-el.")
