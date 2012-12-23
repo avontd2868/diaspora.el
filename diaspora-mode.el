@@ -104,7 +104,7 @@ Note: this is not correct! Needs more thought to get all images right."
   :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-link
-  "\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
+  "[^!]\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
   "Regular expression for a [text](file) link.
 Note: this is not correct! Needs more thought to get all images right."
   :type 'regexp
@@ -117,7 +117,7 @@ Note: this is not correct! Needs more thought to get all images right."
   :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-tag
-  "#[a-zA-Z0-9_/\.-]+"
+  "#[áéíóúàèìòùñçÇÁÉÍÓÚÀÈÌÒÙÑa-zA-Z0-9_/\.-]+"
   "Regular expression for a tag."
   :type 'regexp
   :group 'diaspora-regexps)
@@ -242,6 +242,9 @@ This buttons are used by the user for clicking or pressing ENTER."
 (defvar diaspora-link-face 'diaspora-link-face
   "Face name to use for links.")
 
+(defvar diaspora-image-link-face 'diaspora-image-link-face
+  "Face name to use for links.")
+
 (defvar diaspora-emph-face 'diaspora-emph-face
   "Face name to use for links.")
 
@@ -320,6 +323,12 @@ This buttons are used by the user for clicking or pressing ENTER."
 (defface diaspora-link-face
   '((t :inherit font-lock-keyword-face))
   "Face for links."
+  :group 'diaspora-faces)
+
+(defface diaspora-image-link-face
+  '((t :inherit font-lock-keyword-face
+       :foreground "SpringGreen1"))
+  "Face for *image* links."
   :group 'diaspora-faces)
 
 (defface diaspora-date-face
@@ -511,7 +520,7 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    (cons diaspora-regexp-header-4 ''diaspora-header-face-4)
    (cons diaspora-regexp-hr ''diaspora-header-face-1)
    (cons diaspora-regexp-image
-   	 ''((1 diaspora-link-face t)
+   	 ''((1 diaspora-image-link-face t)
    	   (2 diaspora-url-face t)))
    (cons diaspora-regexp-link
    	 ''((1 diaspora-link-face t)
@@ -529,8 +538,8 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    (cons 'diaspora-check-is-comments-start ''diaspora-comments-start-face)
    (cons 'diaspora-check-is-user-name ''diaspora-user-name-face)
    (cons 'diaspora-check-is-amount-comments ''diaspora-amount-comments-face)
-   (cons 'diaspora-check-is-comment-user-name ''diaspora-comment-user-name-face)
-   (cons 'diaspora-check-is-comment-text ''diaspora-comment-text-face)
+   (list 'diaspora-check-is-comment-user-name 0 ''diaspora-comment-user-name-face t)
+   (list 'diaspora-check-is-comment-text 0 ''diaspora-comment-text-face 'append)
    (cons 'diaspora-check-is-unread-notification ''diaspora-unread-notification-face)
    (cons 'diaspora-check-is-readed-notification ''diaspora-readed-notification-face)
    (cons 'diaspora-check-is-mark-as-unread ''diaspora-mark-as-unread-face)
