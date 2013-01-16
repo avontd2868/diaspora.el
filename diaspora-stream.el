@@ -1436,7 +1436,7 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
 		      "&")))
 
       (diaspora-debug-msg "***POSTing:")
-      (diaspora-debug-msg url)
+      (diaspora-debug-msg (diaspora-likes-url post-id))
       (diaspora-debug-msg url-request-data)
 
       (url-retrieve-synchronously (diaspora-likes-url post-id))
@@ -1472,7 +1472,7 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
 	   )
 
       (diaspora-debug-msg "***POSTing:")
-      (diaspora-debug-msg url)
+      (diaspora-debug-msg (diaspora-reshare-url))
       (diaspora-debug-msg url-request-data)
 
       (url-retrieve-synchronously (diaspora-reshare-url))
