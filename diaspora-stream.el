@@ -568,6 +568,21 @@ Check if the temporal directory exists, if not create it."
     map)
   "Keymap used when the user clics on a reshare link.")
 
+(defvar diaspora-show-source-code-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] 'diaspora-show-markdown)
+    (define-key map [mouse-2] 'diaspora-show-markdown)
+    map)
+  "Keymap used when the user clics on a source link.")
+
+(defvar diaspora-hide-source-code-map
+  (let ((map (make-sparse-keymap)))
+    (define-key map [return] 'diaspora-hide-markdown)
+    (define-key map [mouse-2] 'diaspora-hide-markdown)
+    map)
+  "Keymap used when the user clics on a source link.")
+
+
 (defvar diaspora-next-oldies-map
   (let ((map (make-sparse-keymap)))
     (define-key map [return] 'diaspora-get-next-oldies)
@@ -691,7 +706,11 @@ If buffer is nil, then use the `current-buffer'."
 	(if provider-name
 	    (insert (format " - Published using *%s*\n" provider-name))
 	  (insert " - Published using web(or there's no provider name!)\n")
-	  )
+	  )	
+
+	(insert (diaspora-add-source-link "Source code" id guid) 
+		"|"
+		(diaspora-add-hide-source-link "Hide Source code" id guid))
 	  
 	(when show-last-three-comments
 	  (insert  "\n"
@@ -757,6 +776,36 @@ This parses the two options!"
     )
    )
   )
+
+(defun diaspora-add-source-link (text id-message guid-message)
+    "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
+or a function like `diaspora-show-message-new-buffer'."
+    (propertize
+     text
+     'mouse-face 'diaspora-mouse-highlight-face
+     'face "link"
+     'keymap diaspora-show-source-code-map
+     'diaspora-is-link-to-pub t
+     'diaspora-id-message id-message
+     'diaspora-guid-message guid-message
+     'help-echo "Click here for show the source code.")
+  )
+
+(defun diaspora-add-hide-source-link (text id-message guid-message)
+    "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
+or a function like `diaspora-show-message-new-buffer'."
+    (propertize
+     text
+     'mouse-face 'diaspora-mouse-highlight-face
+     'face "link"
+     'keymap diaspora-hide-source-code-map
+     'diaspora-is-link-to-pub t
+     'diaspora-id-message id-message
+     'diaspora-guid-message guid-message
+     'help-echo "Click here for hide the source code.")
+  )
+
+
 
 (defun diaspora-add-comment-link (text id-message guid-message)
     "Return a propertized text with a link to publication. Ready to use with a map like `diaspora-show-message-map'
@@ -875,6 +924,9 @@ Use it for getting the nearest id post number when selecting a message."
     (with-current-buffer buff
       (diaspora-mode)
       (diaspora-stream-mode)
+      (diaspora-remove-bad-chars)
+      (diaspora-replace-bad-links)
+      (diaspora-hide-markdown)
       )
     )
   )
@@ -1473,4 +1525,5 @@ Fortunately we'll use it for calculate how much time has passed... :)"
 	  )
     )  
   )
+
 (provide 'diaspora-stream)
