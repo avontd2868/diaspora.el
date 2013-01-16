@@ -220,9 +220,14 @@ Returns: A new buffer where is all the information retrieved from the URL."
 			    (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
 			  (append (list (cons "max_time" (number-to-string (diaspora-get-time-by-timezone max-time))))
 				  lst-get-parameters
-				  lst-post-parameters)
+				  lst-post-parameters)			  
 			  "&"))
 	      )
+
+	  (diaspora-debug-msg "***GETing:")
+	  (diaspora-debug-msg url)
+	  (diaspora-debug-msg url-request-data)
+	  
 	  (url-retrieve-synchronously url)) 
       (let ((url-request-data ;; there is no interval of time
 	     (mapconcat (lambda (arg)
@@ -230,6 +235,11 @@ Returns: A new buffer where is all the information retrieved from the URL."
 			(append lst-get-parameters lst-post-parameters)
 			"&"))
 	    )
+
+	(diaspora-debug-msg "***GETing:")
+	(diaspora-debug-msg url)
+	(diaspora-debug-msg url-request-data)
+
 	(url-retrieve-synchronously url))      
       )
     )
@@ -312,8 +322,13 @@ Same as LST-POST-PARAMETERS."
   (diaspora-ask) ;; don't forget username and password!
   (diaspora-get-authenticity-token-if-necessary)
   ;; get the in JSON format all the data
-  (let (
+  (let* (
 	(stream-buff (get-buffer-create diaspora-stream-buffer))
+	(lst-get-parameters (append  (list (cons "user[username]" diaspora-username)
+					   (cons "user[password]" diaspora-password)
+					   (cons "user[remember_me]" "1")
+					   (cons "authenticity_token" diaspora-auth-token))
+				     lst-get-parameters))
 	(buff (diaspora-get-url-entry-stream stream-url max-time lst-get-parameters lst-post-parameters )))
     (with-current-buffer buff
       ;; Delete the HTTP header...
@@ -344,7 +359,7 @@ Same as LST-POST-PARAMETERS."
 	)
       )
     ;; Delete HTTP Buffer if `diaspora-debug-mode' is off
-    (diaspora-kill-buffer-safe buff)
+    (diaspora-kill-buffer-safe buff)      
     )
   )
 
@@ -642,7 +657,7 @@ If buffer is nil, then use the `current-buffer'."
 		 (format "%s (%s):" name diaspora_id)
 		 'diaspora-is-user-name t)
 		 "\n")
-	(insert (format "%s\n" date))
+	(insert (format "%s\n" (diaspora-parse-timestamp date)))
 	(insert (propertize
 		 (format "Has %s comments. %s likes. %s reshares." amount-comments amount-likes amount-reshares)
 		 'diaspora-is-amount-comments t)
@@ -913,6 +928,9 @@ Also save the last post date for getting the next posts(older posts) in the stre
   (let ((url-request-method "GET")
 	(url-show-status nil)	
 	)
+    (diaspora-debug-msg "***GETing:")
+    (diaspora-debug-msg url)
+
     (url-retrieve url 'diaspora-write-image
 		  (list url user-id)))
   )
@@ -923,6 +941,10 @@ FUNCTION must recieve two parameters:
 The status and the url. See `url-retrieve'."
   (let ((url-request-method "GET")
 	(url-show-status nil))
+
+    (diaspora-debug-msg "***GETing:")
+    (diaspora-debug-msg url)
+
     (url-retrieve url '(lambda (status url function)
 			 (diaspora-write-image status url) ; write into a file! then call the function...
 			 (funcall function status url))
@@ -932,6 +954,10 @@ The status and the url. See `url-retrieve'."
   "Same as `diaspora-get-image' but synchronously."
   (let ((url-request-method "GET")
 	(url-show-status nil))
+
+    (diaspora-debug-msg "***GETing:")
+    (diaspora-debug-msg url)
+
     (with-current-buffer (url-retrieve-synchronously url)
       (diaspora-write-image nil url)
       (diaspora-kill-buffer-safe)
@@ -1172,6 +1198,10 @@ The tag must be a string without the starting \"#\"."
 	   ("Accept-Charset" . "utf-8")))
 	(buffer-file-coding-system 'utf-8)
 	)
+
+    (diaspora-debug-msg "***GETing:")
+    (diaspora-debug-msg url)
+
     (url-retrieve-synchronously url)))
 
 
@@ -1352,6 +1382,11 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
 			    (cons "user[remember_me]" "1")
 			    (cons "authenticity_token" diaspora-auth-token))
 		      "&")))
+
+      (diaspora-debug-msg "***POSTing:")
+      (diaspora-debug-msg url)
+      (diaspora-debug-msg url-request-data)
+
       (url-retrieve-synchronously (diaspora-likes-url post-id))
       ;;(diaspora-kill-buffer-safe)
       )
@@ -1383,6 +1418,11 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
 			    (cons "root_guid" post-guid))
 			    "&"))
 	   )
+
+      (diaspora-debug-msg "***POSTing:")
+      (diaspora-debug-msg url)
+      (diaspora-debug-msg url-request-data)
+
       (url-retrieve-synchronously (diaspora-reshare-url))
       ;;(diaspora-kill-buffer-safe)
       )
@@ -1396,4 +1436,41 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
   (setq diaspora-last-stream-visited nil)
   )
 
+
+(defun diaspora-parse-timestamp (date)
+  "Parse the DATE and time from the format it recieve in JSON(like '2013-01-10T11:34:27Z') to 
+a list '(date time).
+Where date is a list with (year month day) and time is a list with (hour minutes seconds).
+
+Remember: this time is in UTC-0. So it needs to be changed to your timezone if you want to print it correctly. 
+Fortunately we'll use it for calculate how much time has passed... :)"
+  (let* (
+	 (utc-date (date-to-time date))
+	 (seconds (float-time utc-date)) ;; Seconds from epoch of DATE
+	 (cur-date (current-time))
+	 (cur-seconds (float-time cur-date)) ;; Seconds from epoch of `current-time'
+	 (difference (/ (- cur-seconds seconds) 60)) ;; Difference is in minutes
+	 )
+    (cond ((<= difference 1)
+	   "Less than a minute ago")
+	  ((<= difference 60) ;; Less than an hour
+	   (format "%s minutes ago"
+		   (floor difference)))
+	  ((<= difference 1440) ;; Less than a day
+	   (format "%s hours ago"
+		   (floor (/ difference 60))))
+	  ((<= difference 44640) ;; Less than a month
+	   (format "%s days ago"
+		   (floor (/(/ difference 60) ; in hours
+			    24)))) ; in days
+	  ((<= difference 518400)
+	   (format "%s months ago"
+		   (floor
+		    (/ (/ (/ difference 60) ; in hours
+			  24) ; in days
+		       30))) ; in months aprox. (30 days) 
+	   )
+	  )
+    )  
+  )
 (provide 'diaspora-stream)

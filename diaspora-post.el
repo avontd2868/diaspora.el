@@ -126,6 +126,11 @@ This list is used as parameter for `diaspora-post'."
 			  (cons "user[remember_me]" "1")
 			  (cons "utf8" "✓"))
 		    "&")))
+
+    (diaspora-debug-msg "***POSTing:")
+    (diaspora-debug-msg url)
+    (diaspora-debug-msg url-request-data)
+
     (with-current-buffer (url-retrieve-synchronously url)
       (diaspora-find-auth-token)
       (diaspora-kill-buffer-safe)))
@@ -197,6 +202,12 @@ PHOTOS-IDS is a list of strings or numbers of photos ids."
 		     (diaspora-image-list photos-ids))
 		    "&"))
 	)
+
+    (diaspora-debug-msg "***POSTing:")
+    (diaspora-debug-msg (diaspora-url diaspora-status-messages-url))
+    (diaspora-debug-msg url-request-data)
+
+
     (url-retrieve (diaspora-url diaspora-status-messages-url)
 		  (lambda (arg) (diaspora-kill-buffer-safe)))
     )		    
@@ -315,6 +326,11 @@ Most useful for posting things from any where."
 	   )
 	  (url-request-data (buffer-string))	  
 	  )
+
+      (diaspora-debug-msg "***POSTing:")
+      (diaspora-debug-msg url)
+      (diaspora-debug-msg url-request-data)
+
       (with-current-buffer (url-retrieve-synchronously url)
 	(diaspora-delete-http-header)
 	(goto-char (point-min))

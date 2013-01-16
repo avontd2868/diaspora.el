@@ -109,6 +109,19 @@ You may would like to use `diaspora-debug' so you can set this dinamically.
     )
   )
 
+(defconst diaspora-debug-buffer " *Diaspora-debug*"
+  "This is the name of the debug buffer when `diaspora-debug-mode' is t."
+  )
+
+(defun diaspora-debug-msg (string)
+  "Insert a message to the debug buffer if `diaspora-debug-mode' is t."
+  (when diaspora-debug-mode
+    (with-current-buffer (get-buffer-create diaspora-debug-buffer)
+      (insert "\n\n"
+	      string)
+      )
+    )
+  )
 
 (defcustom diaspora-posts-directory
   "~/.diaspora/posts/"

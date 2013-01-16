@@ -12,7 +12,7 @@
 #+EXPORT_EXCLUDE_TAGS: noexport
 #+LINK_UP:   
 #+LINK_HOME: 
-#+SEQ_TODO:  TODO PARTIALLY-DONE | DONE 
+#+SEQ_TODO:  TODO(t!) PARTIALLY-DONE(p) | DONE(d!)
 
 * Interface Features [1/3]
 ** DONE Main menu
@@ -60,6 +60,10 @@
 
 
 
+* Errors and Mistakes
+** TODO [#A] Changing login feature doesn't work anymore	      :error:
+   - State "TODO"       from ""           [2013-01-11 vie 17:35]
+   Don't know why, but it doesn't work.
 * Licence
 
     TODO.org
