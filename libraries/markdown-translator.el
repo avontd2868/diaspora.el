@@ -2,13 +2,13 @@
 ;; 
 ;; Filename: markdown-translator.el
 ;; Description: 
-;; Author: Christian
+;; Author: Christian Giménez
 ;; Maintainer: 
 ;; Created: mié abr  4 23:04:36 2012 (-0300)
 ;; Version: 
-;; Last-Updated: 
-;;           By: 
-;;     Update #: 0
+;; Last-Updated: lun feb 25 18:27:47 2013 (-0300)
+;;           By: Christian
+;;     Update #: 3
 ;; URL: 
 ;; Keywords: 
 ;; Compatibility: 
@@ -21,7 +21,15 @@
 ;; 
 ;;; Commentary: 
 ;; 
-;; 
+;; Applies properties to the markdown text for hiding(or showing) the auxiliary
+;; marks. 
+;;
+;; For example: 
+;; If you have the string "This is **a real example** of a bold text." in the buffer,
+;; calling `markdown-trans-apply' and the `markdown-trans-hide' will hide all "**" text and 
+;; leave "a real example" in bold face.
+;;
+;; You can use `markdown-trans-show' to unhide bold, italics or other marks.
 ;; 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 

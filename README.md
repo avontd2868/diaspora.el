@@ -16,8 +16,18 @@ This is in a very early stage of development...it will probably break some where
 * markdown-translator : I haven't submitted into GNA! yet... waiting for authorizations! :P
 * [htmlr](https://github.com/emacsmirror/htmlr/tree/)
 
-The library markdown-translator comes with this version of diaspora.el! :)
+All the libraries comes with this version of diaspora.el and are in the "libraries" directory! :)
 
+
+## Installing
+
+Download and unpack diaspora.el, then add this code into your init (.emacs) file:
+
+    (setq load-path (cons "/PATH/TO/DIASPORA/EL/DIRECTORY" load-path))
+	(setq load-path (cons "/PATH/TO/DIASPORA/EL/DIRECTORY/libraries" load-path))
+	(require 'diaspora)
+
+If you want to use your own libraries versions, then erase the second line.
 
 ### Before anything else:
 
