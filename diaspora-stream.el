@@ -32,6 +32,7 @@
 
 (require 'cl)
 (require 'diaspora-comments)
+(require 'diaspora-http-errors)
 
 					; ********************
 					; Customization
@@ -208,7 +209,8 @@ This is usefull for giving this as a GET(or POST) \"max_time\" parameter for any
 (defun diaspora-get-url-entry-stream (url &optional max-time lst-get-parameters lst-post-parameters)
   "Get the Diáspora URL and leave it in a new buffer.
 Returns: A new buffer where is all the information retrieved from the URL."
-  (let ((url-request-extra-headers
+  (let ((url-registered-auth-schemes '())
+	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
 	   ("Accept-Language" . "en")
 	   ("Accept-Charset" . "utf-8")))
@@ -228,7 +230,8 @@ Returns: A new buffer where is all the information retrieved from the URL."
 	  (diaspora-debug-msg url)
 	  (diaspora-debug-msg url-request-data)
 	  
-	  (url-retrieve-synchronously url)) 
+	  (url-retrieve-synchronously url)
+	  (diaspora-stream-check-http-error)) 
       (let ((url-request-data ;; there is no interval of time
 	     (mapconcat (lambda (arg)
 			  (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
@@ -240,7 +243,27 @@ Returns: A new buffer where is all the information retrieved from the URL."
 	(diaspora-debug-msg url)
 	(diaspora-debug-msg url-request-data)
 
-	(url-retrieve-synchronously url))      
+	(let ((out-buffer (url-retrieve-synchronously url)))
+	  (diaspora-stream-check-http-error)
+
+	  out-buffer ;; Ensure that the output is the buffer returned by `url-retrieve-synchronously'.
+	  )
+	)
+      )
+    )
+  )
+
+(defun diaspora-stream-check-http-error ()
+  "Check if there is an HTTP error, if there is present an `error' message. If not return nil."  
+  (let ((errornum (diaspora-http-error-get-number)))
+    (unless (equal errornum 200)
+      (cond
+       ((equal errornum 404)
+	(error "Page not found!" "Is your pod well configured? see `diaspora-pod'" "Check URLs variables(diaspora-*-url)."))
+       ((equal errornum 401)
+	(error "Unauthorized access!" "Is your username and password correct? use M-x `diaspora-login' function to call for sign in and try again."))
+       )
+      nil
       )
     )
   )
@@ -938,11 +961,18 @@ Use it for getting the nearest id post number when selecting a message."
     (goto-char (point-min))
     (let ((json-array-type 'list)
 	  (json-object-type 'alist))
-      (let ((lstparsed  (json-read)))
-	(with-current-buffer buff-to
-	  ;; Clean buffer buff-to and insert message
-	  (delete-region (point-min) (point-max))
-	  (diaspora-show-message lstparsed nil show-last-three-comments))))))
+      (condition-case nil
+	  (let ((lstparsed  (json-read)))
+	    (with-current-buffer buff-to
+	      ;; Clean buffer buff-to and insert message
+	      (delete-region (point-min) (point-max))
+	      (diaspora-show-message lstparsed nil show-last-three-comments)))
+	(message "I (`diaspora-parse-single-message-json') couldn't parse the JSON file downloaded from Diáspora. Internet is fine?")
+	)
+      )
+    )
+  )
+  
 
 (defun diaspora-parse-json (buffer-from buffer-to &optional status)
   "Parse de JSON entry stream.
@@ -1265,9 +1295,18 @@ The tag must be a string without the starting \"#\"."
 	(http-buffer (diaspora-get-url url)))
     (with-current-buffer http-buffer
       (diaspora-delete-http-header)
-      (let ((stream-parsed (json-read)))
-	(diaspora-kill-buffer-safe http-buffer)
-	 stream-parsed))))
+      (condition-case e-var
+	  (let ((stream-parsed (json-read)))
+	    (diaspora-kill-buffer-safe http-buffer)
+	    stream-parsed)
+	((json-readtable-error end-of-file)
+	 (message "I (`diaspora-json-read-url') coudn't parse the JSON! Not connected? Problems with URLs? Not logged in? Wrong username or password?")
+	 )
+	)
+      )
+    )
+  )
+
 
 (defsubst diaspora-string-trim (string)
   "Remove leading and trailing whitespace and all properties from STRING.
@@ -1440,6 +1479,7 @@ STREAM-JSON-PARSED is the stream in JSON format parsed with `json-read'."
       (diaspora-debug-msg url-request-data)
 
       (url-retrieve-synchronously (diaspora-likes-url post-id))
+      (diaspora-stream-check-http-error)
       ;;(diaspora-kill-buffer-safe)
       )
     )

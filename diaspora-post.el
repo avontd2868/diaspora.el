@@ -33,6 +33,7 @@
 (require 'cl)
 (require 'markdown-mode)
 (require 'diaspora-post-edit-mode)
+(require 'diaspora-http-errors)
 
 (defcustom diaspora-header-post
   "### "
@@ -132,6 +133,16 @@ This list is used as parameter for `diaspora-post'."
     (diaspora-debug-msg url-request-data)
 
     (with-current-buffer (url-retrieve-synchronously url)
+      (let ((errornum (diaspora-http-error-get-number)))
+	(unless (equal errornum 200)
+	  (cond
+	   ((equal errornum 401)
+	    (error "Username, Password or Pod is Incorrect!" "Take a look at your username and password. If it is correct, take a look `diaspora-pod'. If not, the signing URL may not be the correct one, check `diaspora-sign-in-url'."))
+	   ((equal errornum 404)
+	    (error "The sign in page is wrong!" "Check `diaspora-sign-in-url' and other diaspora-*-url variables."))	       
+	   )
+	  )
+	)
       (diaspora-find-auth-token)
       (diaspora-kill-buffer-safe)))
   )
