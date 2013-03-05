@@ -208,7 +208,8 @@ This is usefull for giving this as a GET(or POST) \"max_time\" parameter for any
 
 (defun diaspora-get-url-entry-stream (url &optional max-time lst-get-parameters lst-post-parameters)
   "Get the Diáspora URL and leave it in a new buffer.
-Returns: A new buffer where is all the information retrieved from the URL."
+Returns: A new buffer where is all the information retrieved from the URL.
+nil if something happened."
   (let ((url-registered-auth-schemes '())
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")
@@ -230,8 +231,13 @@ Returns: A new buffer where is all the information retrieved from the URL."
 	  (diaspora-debug-msg url)
 	  (diaspora-debug-msg url-request-data)
 	  
-	  (url-retrieve-synchronously url)
-	  (diaspora-stream-check-http-error)) 
+	  (let ((out-buffer (url-retrieve-synchronously url))
+		)
+	    (diaspora-stream-check-http-error)
+	  
+	    out-buffer ;; Ensure that the output is the buffer returned by `url-retrieve-synchronously'.
+	    )
+	  )      
       (let ((url-request-data ;; there is no interval of time
 	     (mapconcat (lambda (arg)
 			  (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
@@ -243,8 +249,11 @@ Returns: A new buffer where is all the information retrieved from the URL."
 	(diaspora-debug-msg url)
 	(diaspora-debug-msg url-request-data)
 
-	(let ((out-buffer (url-retrieve-synchronously url)))
-	  (diaspora-stream-check-http-error)
+	(let* ((out-buffer (url-retrieve-synchronously url))
+	       )
+	  (with-current-buffer out-buffer
+	    (diaspora-stream-check-http-error)
+	    )
 
 	  out-buffer ;; Ensure that the output is the buffer returned by `url-retrieve-synchronously'.
 	  )
@@ -353,6 +362,9 @@ Same as LST-POST-PARAMETERS."
 					   (cons "authenticity_token" diaspora-auth-token))
 				     lst-get-parameters))
 	(buff (diaspora-get-url-entry-stream stream-url max-time lst-get-parameters lst-post-parameters )))
+    (unless buff
+      (error "I (`diaspora-get-stream') could not find any useful information!")
+      )
     (with-current-buffer buff
       ;; Delete the HTTP header...
       (diaspora-delete-http-header)
@@ -933,6 +945,9 @@ Use it for getting the nearest id post number when selecting a message."
   (let ((buff (get-buffer-create diaspora-single-message-buffer))
 	(buff-http (diaspora-get-url-entry-stream
 		    (diaspora-post-url id-message "json"))))
+    (unless buff-http
+      (error "I (`diaspora-get-single-message') couldn't retrieve any useful information!")
+      )
     (with-current-buffer buff-http
       ;; Delete HTTP header!
       (diaspora-delete-http-header))
