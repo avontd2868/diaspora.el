@@ -140,6 +140,10 @@ This list is used as parameter for `diaspora-post'."
 	    (error "Username, Password or Pod is Incorrect!" "Take a look at your username and password. If it is correct, take a look `diaspora-pod'. If not, the signing URL may not be the correct one, check `diaspora-sign-in-url'."))
 	   ((equal errornum 404)
 	    (error "The sign in page is wrong!" "Check `diaspora-sign-in-url' and other diaspora-*-url variables."))	       
+	   ((equal errornum 302)
+	    ;; Login was successful but we're being redirected! We need to load the new page a take auth-token from there
+	    (diaspora-get-auth-token-from-page (diaspora-get-redirection-page))
+	    )
 	   )
 	  )
 	)
@@ -147,14 +151,45 @@ This list is used as parameter for `diaspora-post'."
       (diaspora-kill-buffer-safe)))
   )
 
+(defun diaspora-get-auth-token-from-page (url)
+  "Do a GET request to the URL and retrieve the Auth-token if founded (using `diaspora-find-auth-token')."
+  (let ((url-request-method "GET")	
+	)
+
+    (diaspora-debug-msg "***GETing:")
+    (diaspora-debug-msg url)
+    
+    (with-current-buffer (url-retrieve-synchronously url)
+      (when (equal (diaspora-http-error-get-number) 200)
+	(diaspora-find-auth-token)
+	)
+      )
+    )
+  )
+
+(defun diaspora-get-redirection-page ()
+  "Return the redirection page if 302 HTTP \"Error number\" is present.
+Usually is in the HTTP header inside the \"Location\" attribute."
+  (let ((url-redirection nil))
+    (goto-char (point-min))
+    (when (search-forward-regexp "^Location:[[:space:]]?\\(http.*\\)$")
+      (setq url-redirection (match-string-no-properties 1))
+      )
+    url-redirection
+    )
+  )
+
 (defun diaspora-find-auth-token (&optional status)
   "Find the authenticity token."  
   (save-excursion
     (goto-char (point-min))
     (unless (search-forward-regexp "<meta name=\"csrf-token\" content=\"\\(.*\\)\"/>" nil t)
-      (search-forward-regexp "<meta content=\"\\(.*\\)\" name=\"csrf-token\"[[:blank:]]*/>" nil t))
-    (setq diaspora-auth-token (match-string-no-properties 1)))
-  diaspora-auth-token)
+      (when (search-forward-regexp "<meta content=\"\\(.*\\)\" name=\"csrf-token\"[[:blank:]]*/>" nil t)
+	(setq diaspora-auth-token (match-string-no-properties 1)))
+      )
+    diaspora-auth-token
+    )    
+  )
 
 (defun diaspora-aspect-post-parameter (aspects_ids)
   "Concat the parameters in a string with commas. This is usefull to pass
