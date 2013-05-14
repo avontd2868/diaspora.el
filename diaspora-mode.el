@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mié abr  4 11:47:07 2012 (-0300)
 ;; Version: 
-;; Last-Updated: 
-;;           By: 
-;;     Update #: 0
+;; Last-Updated: mar may 14 18:05:33 2013 (+0000)
+;;           By: Christian
+;;     Update #: 54
 ;; URL: 
 ;; Keywords: 
 ;; Compatibility: 
@@ -104,7 +104,7 @@ Note: this is not correct! Needs more thought to get all images right."
   :group 'diaspora-regexps)
 
 (defcustom diaspora-regexp-link
-  "[^!]\\(\\[[^]]*?\\]\\)(\\(`?http.*:[^\\)?]*\\))"
+  "\\(^\\|[^!]\\)\\[\\([^]]*\\)\\](\\(`?http[^:]*:[^[:space:])]*\\))"
   "Regular expression for a [text](file) link.
 Note: this is not correct! Needs more thought to get all images right."
   :type 'regexp
@@ -149,6 +149,13 @@ Note: this is not correct! Needs more thought to get all images right."
 
 (defcustom diaspora-regexp-code
   "\\(^\\|[^\\]\\)\\(\\(`\\{1,2\\}\\)\\([^ \\]\\|[^ ]\\(.\\|\n[^\n]\\)*?[^ \\]\\)\\3\\)"
+  "Regular expression for matching inline code fragments."
+  :type 'regexp
+  :group 'diaspora-regexps)
+
+
+(defcustom diaspora-regexp-blockcode
+  "^[[:space:]]\\{4,\\}\\(.*\\)$"
   "Regular expression for matching inline code fragments."
   :type 'regexp
   :group 'diaspora-regexps)
@@ -203,6 +210,8 @@ This buttons are used by the user for clicking or pressing ENTER."
   :type 'regexp
   :group 'diaspora-regexps)
 
+
+
 					; ********************
 					; Faces
 
@@ -223,6 +232,9 @@ This buttons are used by the user for clicking or pressing ENTER."
   "Face used when mouse is over a button, link, etc."
   :group 'diaspora-faces
   )
+
+(defvar diaspora-hr-face 'diaspora-hr-face
+  "Face name to use for horizontal rules.")
 
 (defvar diaspora-header-face-1 'diaspora-header-face-1
   "Face name to use for level-1 headers.")
@@ -257,17 +269,33 @@ This buttons are used by the user for clicking or pressing ENTER."
 (defvar diaspora-inline-code-face 'diaspora-inline-code-face
   "Face name to use for inline code.")
 
+(defvar diaspora-blockcode-face 'diaspora-blockcode-face
+  "Face name to use for inline code.")
+
 (defvar diaspora-blockquote-face 'diaspora-blockquote-face
   "Face name to use for blockquote text.")
+
+(defvar diaspora-message-separator-face 'diaspora-message-separator-face
+  "Face for message separator.")
 
 (defface diaspora-inline-code-face
   '((t :inherit font-lock-constant-face))
   "Face for inline code."
   :group 'diaspora-faces)
 
+(defface diaspora-blockcode-face
+  '((t :background "forest green" :foreground "white" :inherit font-lock-constant-face))
+  "Face for inline code."
+  :group 'diaspora-faces)
+
 (defface diaspora-blockquote-face
   '((t :inherit font-lock-doc-face))
   "Face for blockquote sections."
+  :group 'diaspora-faces)
+
+(defface diaspora-hr-face
+  '((t :height 2.0 :strike-through t :background "black" :foreground "green" ))
+  "Face for level-1 headers."
   :group 'diaspora-faces)
 
 (defface diaspora-header-face
@@ -518,23 +546,30 @@ Create a new function like `diaspora-check-is-message-separator' so you can use 
    (cons diaspora-regexp-header-2 ''diaspora-header-face-2)
    (cons diaspora-regexp-header-3 ''diaspora-header-face-3)
    (cons diaspora-regexp-header-4 ''diaspora-header-face-4)
-   (cons diaspora-regexp-hr ''diaspora-header-face-1)
+   (cons diaspora-regexp-hr ''diaspora-hr-face)
    (cons diaspora-regexp-image
    	 ''((1 diaspora-image-link-face t)
    	   (2 diaspora-url-face t)))
    (cons diaspora-regexp-link
-   	 ''((1 diaspora-link-face t)
-   	   (2 diaspora-url-face t)))
+   	 ''((1 nil)
+	    (2 diaspora-link-face t)
+	    (3 diaspora-url-face t)))
    (cons diaspora-regexp-user-name ''diaspora-user-name-citation-face)
    (cons diaspora-regexp-bold ''(2 diaspora-bold-face))
    (cons diaspora-regexp-emph ''(2 diaspora-emph-face))
    (cons diaspora-regexp-code ''(2 diaspora-inline-code-face))
+   (cons diaspora-regexp-blockcode 
+	 ''(
+	    (1 diaspora-blockcode-face append)
+	    ))
    (cons diaspora-regexp-email ''diaspora-link-face)
    (cons diaspora-regexp-tag ''diaspora-url-face)
    ;;(cons diaspora-regexp-buttons-elements ''diaspora-buttons-elements-face)
    (cons 'diaspora-check-is-link-to-pub ''diaspora-buttons-elements-face)
    (cons 'diaspora-check-is-like-link ''diaspora-buttons-elements-face)
-   (cons 'diaspora-check-is-message-separator ''diaspora-message-separator-face)
+   (cons 'diaspora-check-is-message-separator ''(
+						 (0 diaspora-message-separator-face t))
+	 )						 
    (cons 'diaspora-check-is-comments-start ''diaspora-comments-start-face)
    (cons 'diaspora-check-is-user-name ''diaspora-user-name-face)
    (cons 'diaspora-check-is-amount-comments ''diaspora-amount-comments-face)
