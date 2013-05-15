@@ -1570,12 +1570,15 @@ Fortunately we'll use it for calculate how much time has passed... :)"
 	   (format "%s days ago"
 		   (floor (/(/ difference 60) ; in hours
 			    24)))) ; in days
-	  ((<= difference 518400)
-	   (format "%s months ago"
+	  ;;((<= difference 518400)
+	  (t
+	   (format "%s months ago ( %s )"
 		   (floor
 		    (/ (/ (/ difference 60) ; in hours
 			  24) ; in days
-		       30))) ; in months aprox. (30 days) 
+		       30)) ; in months aprox. (30 days) 
+		   date
+		   )
 	   )
 	  )
     )  
