@@ -21,8 +21,14 @@
 *** TODO Common function for retrieving the public stream
 *** TODO Common function for posting a message
 ** HTTP Libraries						       :http:
-*** CURRENT Create function for connect to D*    
-*** TODO Functions for getting a message
+*** PAUSED Create function for connect to D*
+**** TODO Save Cookies for next restart
+     This feature allows to the user to log in once, saving this tokens will make unnecessary to log in again.
+
+     Looks fantastic, but it has to be stored accordingly and may need more protection. 
+
+     *Discuss is needed!*
+*** CURRENT Functions for getting a message
 *** TODO Functions for getting the public stream
 *** TODO Functions for posting a message
 ** Cliaspora Wrapper Library					  :cliaspora:

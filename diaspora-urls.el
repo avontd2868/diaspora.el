@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mié abr  4 11:52:27 2012 (-0300)
 ;; Version: 
-;; Last-Updated: mar jul 23 02:04:19 2013 (-0300)
+;; Last-Updated: mar jul 23 02:46:16 2013 (-0300)
 ;;           By: Christian
-;;     Update #: 4
+;;     Update #: 12
 ;; URL: 
 ;; Keywords: 
 ;; Compatibility: 
@@ -162,7 +162,7 @@ A bit complicated but the only way known to get a list of aspects."
   :group 'diaspora-streams)
 
 (defcustom diaspora-single-message-url
-  "/posts"
+  "posts"
   "URL used to get a single message."
   :type 'string
   :group 'diaspora-streams)
@@ -346,15 +346,15 @@ See `diaspora-url' and `diaspora-url-json'."
     )
   )
 
-(defun diaspora-post-url (post-id &optional format)
+(defun diaspora-url-post (post-id &optional format)
   "Return the post url for that POST-ID.
 
-If FORMAT optional parameter can be any of the following strings:
+If FORMAT optional parameter can be any of the following strings or symbol:
 
 - nil (or parameter ignored) default format (HTML)
-- \"json\" for JSON format.
-- \"xml\" for XML format.
-- \"html\" for HTML format.
+- 'json for JSON format.
+- 'xml for XML format.
+- 'html for HTML format.
 - any other supported format by D*.
 "
   (diaspora-url
@@ -364,11 +364,14 @@ If FORMAT optional parameter can be any of the following strings:
 	       (number-to-string post-id)
 	     post-id)
 	   (if format
-	       (concat "." format)
+	       (concat "." 
+		       (if (symbolp format)
+			   (symbol-name format)
+			 format))
 	     "")
 	   )
    )
-  )  
+  ) 
 
 (defun diaspora-url-sign-in ()
   "Return the sign in URL.
@@ -376,7 +379,6 @@ Used for getting the authenticity token as well."
 
   (diaspora-url diaspora-sign-in-url)
   )
-
 
 (provide 'diaspora-urls)
 

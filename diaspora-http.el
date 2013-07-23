@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mié jun  5 00:04:08 2013 (-0300)
 ;; Version: 
-;; Last-Updated: mar jul 23 02:32:25 2013 (-0300)
+;; Last-Updated: mar jul 23 03:08:31 2013 (-0300)
 ;;           By: Christian
-;;     Update #: 64
+;;     Update #: 86
 ;; URL: 
 ;; Doc URL: 
 ;; Keywords: 
@@ -51,12 +51,14 @@
 ;;; Code:
 
 (require 'url)
+(require 'json)
 
 (require 'diaspora-urls)
 (require 'diaspora-http-errors)
+(require 'diaspora-tpost)
 
 
-(defun diaspora-connect (user pass fnc)
+(defun diaspora-http-connect (user pass fnc)
   "Connect to an account in D* using HTTP.
 
 *This function is part of the API at the Connection Level.*
@@ -79,18 +81,61 @@ FNC is a function with one parameter: the auth-token."
 			  (cons "utf8" "✓"))
 		    "&")))
 
-    (url-retrieve (diaspora-url-sign-in) 'diaspora-cb-get-session-cookie (list fnc))
+    (url-retrieve (diaspora-url-sign-in) 'diaspora-cb-connect (list fnc))
 
     )  
   )
 
 
+
+(defun diaspora-http-get-message (id fnc)
+  "Retrieve the message and return it as a tpost structure.
+
+ID a string with the id of the message. The id can be seen at the URL of the message.
+FNC a callback function with one parameter: a retrieved tpost structure."
+  (let ((url-request-method "GET")
+	)
+	
+
+    (url-retrieve (diaspora-url-post id) 'diaspora-cb-get-message (list fnc))
+    )
+  )
+
 ;; ====================================================================================================
 					; Private functions
 
+(defun diaspora-cb-get-message (status fnc)
+  "Callback function for `diaspora-http-get-message'.
 
-(defun diaspora-cb-get-session-cookie (status fnc)
-  "Callback function for `diaspora-get-session-cookie'.
+After finishing retrieving the message, execute FNC function with one parameter: the retrieved post as tpost structure."
+
+  (diaspora-http-remove-header)
+  
+  (funcall fnc (diaspora-http-parse-message))
+  )
+
+(defun diaspora-http-parse-message ()
+  "Parse the JSON message and return a tpost structure with all the information gathered."
+  (let ((parsed (json-read))
+	(post (make-diaspora-tpost))
+	)
+
+    (setf (diaspora-tpost-text post) (cdr (assoc 'text (cdr parsed))))
+    (setf (diaspora-tpost-id) (cdr (assoc 'id (cdr parsed))))
+    (setf (diaspora-tpost-date) (cdr (assoc 'created_at (cdr parsed))))
+    (setf (diaspora-tpost-guid) (cdr (assoc 'guid (cdr parsed))))
+    
+    ;; Author data
+    (setf (diaspora-tpost-author-name) (cdr (assoc 'name (cdr (assoc 'author (cdr parsed))))))
+    (setf (diaspora-tpost-author-guid) (cdr (assoc 'guid (cdr (assoc 'author (cdr parsed))))))
+    (setf (diaspora-tpost-author-id) (cdr (assoc 'id (cdr (assoc 'author (cdr parsed))))))
+    (setf (diaspora-tpost-author-diaspora-id) (cdr (assoc 'diaspora_id (cdr (assoc 'author (cdr parsed))))))
+    (setf (diaspora-tpost-author-avatar) (cdr (assoc 'small (cdr (assoc 'avatar (cdr (assoc 'author (cdr parsed))))))))
+    )
+  )
+
+(defun diaspora-cb-connect (status fnc)
+  "Callback function for `diaspora-http-connect'.
 After finishing checking errors, it execute FNC function with no parameter."
   (let ((errornum (diaspora-http-error-get-number)))
     (unless (equal errornum 200)
@@ -141,6 +186,14 @@ Returns the string or nil if not founded."
       )
     )  
   )
+
+(defun diaspora-http-remove-header ()
+  "Remove the HTTP header from the current buffer."
+  (goto-char (point-min))
+  (search-forward "\n\n" nil t)
+  (delete-region (point-min) (match-end 0))
+  )
+
 
 (provide 'diaspora-http)
 

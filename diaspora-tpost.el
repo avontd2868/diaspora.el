@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mar jun 11 10:20:48 2013 (-0300)
 ;; Version: 
-;; Last-Updated: mar jul 23 01:10:32 2013 (-0300)
+;; Last-Updated: mar jul 23 03:07:42 2013 (-0300)
 ;;           By: Christian
-;;     Update #: 11
+;;     Update #: 15
 ;; URL: 
 ;; Doc URL: 
 ;; Keywords: 
@@ -16,7 +16,7 @@
 ;; 
 ;; Features that might be required by this library:
 ;;
-;;   Cannot open load file: diaspora-tpost.
+;;   None
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 
@@ -53,7 +53,9 @@
 (require 'cl)
 
 
-(defstruct diaspora-tpost id guid name diaspora-id text date avatar photos amount-comments amount-likes amount-reshares likes public provider-name post-type)
+(defstruct diaspora-tpost id guid text date photos amount-comments amount-likes amount-reshares likes public provider-name post-type 
+  ;; Author data
+  author-name author-diaspora-id author-avatar author-guid author-id)
 
 ;; ====================================================================================================
 					; TPOST API FUNCTIONS
