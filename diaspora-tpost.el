@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mar jun 11 10:20:48 2013 (-0300)
 ;; Version: 
-;; Last-Updated: mar jun 11 11:55:06 2013 (-0300)
+;; Last-Updated: mar jul 23 01:10:32 2013 (-0300)
 ;;           By: Christian
-;;     Update #: 7
+;;     Update #: 11
 ;; URL: 
 ;; Doc URL: 
 ;; Keywords: 
@@ -16,7 +16,7 @@
 ;; 
 ;; Features that might be required by this library:
 ;;
-;;   None
+;;   Cannot open load file: diaspora-tpost.
 ;;
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; 
@@ -50,55 +50,13 @@
 ;; 
 ;;; Code:
 
-(defconst tpost-field-elements '(id guid name diaspora-id text date avatar photos amount-comments amount-likes amount-reshares likes public provider-name post-type)
-  "This are the fields accepted by the tpost structure.")
+(require 'cl)
+
+
+(defstruct diaspora-tpost id guid name diaspora-id text date avatar photos amount-comments amount-likes amount-reshares likes public provider-name post-type)
 
 ;; ====================================================================================================
 					; TPOST API FUNCTIONS
-;; This are external functions.
-
-(defun tpost-new ()
-  "Create a new structure with basic or null information and return it."
-  (make-hash-table)
-  )
-
-(defun tpost-get-value (tpost field)
-  "Return a given FIELD value.
-
-FIELD must be one of the elements listed in `tpost-field-elements'."
-  (if (tpost-is-field-correct field)
-      (gethash field tpost)
-    )
-  )
-
-(defun tpost-set-value (tpost field value )
-  "Set a new VALUE for a FIELD.
-
-FILED must be one of the elements listed in `tpost-field-elements'."
-  (if (tpost-is-field-correct field)
-      (puthash field value tpost)
-    )
-  )
-
-;; ====================================================================================================
-;; It is not recommended to use functions from here up to the end.
-
-(defun tpost-is-field-correct (field)
-  "Find a value given its FIELD.
-
-Return t if founded in `tpost-field-elements', nil otherwise."
-  (let ((item (car tpost-field-elements))
-	(next (cdr tpost-field-elements))
-	(founded nil))
-    (while (and (not founded)
-		next)
-      (setq founded (eq item field))
-      (setq item (car next))
-      (setq next (cdr next))
-      )
-    founded
-    )
-  )
 
 (provide 'diaspora-tpost)
 

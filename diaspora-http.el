@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mié jun  5 00:04:08 2013 (-0300)
 ;; Version: 
-;; Last-Updated: mié jun  5 15:36:27 2013 (-0300)
+;; Last-Updated: mar jul 23 01:34:55 2013 (-0300)
 ;;           By: Christian
-;;     Update #: 46
+;;     Update #: 54
 ;; URL: 
 ;; Doc URL: 
 ;; Keywords: 
@@ -82,10 +82,12 @@
 
 ;; ----------------------------------------------------------------------------------------------------
 
-(defun diaspora-get-session-cookie (user pass)
+(defun diaspora-http-get-session-cookie (user pass fnc)
   "Get the session cookie so we don't need later authentication.
 
-The procedure is simple: just send the POST data for the login form."
+The procedure is simple: just send the POST data for the login form.
+
+FNC is a function with one parameter: the auth-token."
   (let ((url-request-method "POST")
 	(url-request-extra-headers
 	 '(("Content-Type" . "application/x-www-form-urlencoded")))
@@ -94,7 +96,7 @@ The procedure is simple: just send the POST data for the login form."
 		      (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
 		    (list (cons "user[username]" user)
 			  (cons "user[password]" pass)
-			  (cons "user[remember_me]" "0")
+			  (cons "user[remember_me]" "1")
 			  (cons "utf8" "✓"))
 		    "&")))
 
@@ -103,26 +105,9 @@ The procedure is simple: just send the POST data for the login form."
     ;; (diaspora-debug-msg (diaspora-url-sign-in))
     ;; (diaspora-debug-msg url-request-data)
 
-    (url-retrieve (diaspora-url-sign-in) 'diaspora-cb-get-session-cookie))
-  )
-
-(defun diaspora-cb-get-session-cookie (status)
-  (let ((errornum (diaspora-http-error-get-number)))
-    (unless (equal errornum 200)
-      (cond
-       ((equal errornum 401)
-	(error "Username, Password or Pod is Incorrect!" "Take a look at your username and password. If it is correct, take a look `diaspora-pod'. If not, the signing URL may not be the correct one, check `diaspora-sign-in-url'."))
-       ((equal errornum 404)
-	(error "The sign in page is wrong!" "Check `diaspora-sign-in-url' and other diaspora-*-url variables."))	       
-       ((equal errornum 302)
-	;; Login was successful but we're being redirected! We need to load the new page a take auth-token from there
-	(error "We're being Redirected! I don't know what else to do yet... means: This is a TODO!")	
-	)
-       )
-      )
+    (url-retrieve (diaspora-url-sign-in) 'diaspora-cb-get-session-cookie (list fnc))
     )
   )
-
 
 (defun diaspora-get-stream (url &optional max-time lst-get-parameters lst-post-parameters)
   "Get the Diáspora URL and leave it in a new buffer.
@@ -180,6 +165,29 @@ nil if something happened."
     )
   )
 
+;; ====================================================================================================
+					; Private functions
+
+(defun diaspora-cb-get-session-cookie (status fnc)
+  "Callback function for `diaspora-get-session-cookie'.
+After finishing checking errors, it execute FNC function with no parameter."
+  (let ((errornum (diaspora-http-error-get-number)))
+    (unless (equal errornum 200)
+      (cond
+       ((equal errornum 401)
+	(error "Username, Password or Pod is Incorrect!" "Take a look at your username and password. If it is correct, take a look `diaspora-pod'. If not, the signing URL may not be the correct one, check `diaspora-sign-in-url'."))
+       ((equal errornum 404)
+	(error "The sign in page is wrong!" "Check `diaspora-sign-in-url' and other diaspora-*-url variables."))	       
+       ((equal errornum 302)
+	;; Login was successful but we're being redirected! We need to load the new page a take auth-token from there
+	(error "We're being Redirected! I don't know what else to do yet... means: This is a TODO!")	
+	)
+       )      
+      )    
+    
+    (funcall fnc)
+    )
+  )
 
 
 (provide 'diaspora-http)
