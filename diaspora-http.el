@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mié jun  5 00:04:08 2013 (-0300)
 ;; Version: 
-;; Last-Updated: mar jul 23 02:04:33 2013 (-0300)
+;; Last-Updated: mar jul 23 02:32:25 2013 (-0300)
 ;;           By: Christian
-;;     Update #: 59
+;;     Update #: 64
 ;; URL: 
 ;; Doc URL: 
 ;; Keywords: 
@@ -110,6 +110,37 @@ After finishing checking errors, it execute FNC function with no parameter."
     )
   )
 
+
+(defun diaspora-http-get-remember-cookie ()
+  "Search in the current buffer for the HTTP header \"Set-Cookie\" which has the \"remember_user_token\" cookie. 
+
+Return the string or nil if not founded."
+  (diaspora-http-get-cookie "remember_user_token")
+  )
+
+(defun diaspora-http-get-session-cookie ()
+  "Search in the current buffer for the HTTP header \"Set-Cookie\" which has the \"_diaspora_session\" cookie. 
+
+Return the string or nil if not founded."
+  (diaspora-http-get-cookie "_diaspora_session")
+  )
+
+
+(defun diaspora-http-get-cookie (name)  
+  "Search the \"Set-Cookie\" HTTP header field and return the cookie that matchs with its name.
+
+Returns the string or nil if not founded."
+
+  (save-excursion
+    (goto-char (point-min))
+    (if (search-forward-regexp (concat "Set-Cookie:.*" name "=\\([^;]+\\)")
+			       nil 
+			       t)
+	(match-string 1)
+      nil
+      )
+    )  
+  )
 
 (provide 'diaspora-http)
 
