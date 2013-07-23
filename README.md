@@ -13,8 +13,10 @@ Nop.
 Nothing, or something:
 
 * Wait, perhaps?
+  * Follow the [TODO](./TODO.org) file?
 * Code yours?
 * Use the master branch?
+
 
 # Licence
 

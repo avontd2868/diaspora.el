@@ -2,7 +2,7 @@
 #+AUTHOR: Giménez, Christian
 
 #+STARTUP: overview
-#+TODO: TODO PAUSED | CANCELED DONE
+#+TODO: TODO CURRENT PAUSED | CANCELED DONE
 
 * Interface							  :interface:
 * Control							    :control:
@@ -17,9 +17,14 @@
 
     For example, calling ~(diaspora-stream-change-conn 'cliaspora)~ diaspora-stream change all functions accordingly for using cliaspora library wrapper instead of HTTP library connection.
 
+*** TODO Common function for retrieving a message
+*** TODO Common function for retrieving the public stream
+*** TODO Common function for posting a message
 ** HTTP Libraries						       :http:
-*** TODO Create function for connect to D*
-    
+*** CURRENT Create function for connect to D*    
+*** TODO Functions for getting a message
+*** TODO Functions for getting the public stream
+*** TODO Functions for posting a message
 ** Cliaspora Wrapper Library					  :cliaspora:
    It is needed a .el library for managing Cliaspora. In other words, for executing and processing program results.
 
