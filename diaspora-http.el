@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mié jun  5 00:04:08 2013 (-0300)
 ;; Version: 
-;; Last-Updated: mar jul 23 01:34:55 2013 (-0300)
+;; Last-Updated: mar jul 23 02:04:33 2013 (-0300)
 ;;           By: Christian
-;;     Update #: 54
+;;     Update #: 59
 ;; URL: 
 ;; Doc URL: 
 ;; Keywords: 
@@ -50,40 +50,19 @@
 ;; 
 ;;; Code:
 
-(require 'diaspora-urls)
-(require 'diaspora-http-errors)
-(require 'diaspora-misc)
 (require 'url)
 
+(require 'diaspora-urls)
+(require 'diaspora-http-errors)
 
-(defun diaspora-connect (user pass)
+
+(defun diaspora-connect (user pass fnc)
   "Connect to an account in D* using HTTP.
 
 *This function is part of the API at the Connection Level.*
-"
-  
-  (diaspora-get-session-cookie user pass)  
-  )
-
-(defun diaspora-get-entry-stream ()
-  "Get the entry stream and return a list of posts.
-
-*This function is part of the API at the Connection Level.*
-"
-  
-  (diaspora-get-stream (diaspora-url-json diaspora-entry-stream-name))
-  
-  )
 
 
-
-
-
-
-;; ----------------------------------------------------------------------------------------------------
-
-(defun diaspora-http-get-session-cookie (user pass fnc)
-  "Get the session cookie so we don't need later authentication.
+Get the session cookie so we don't need later authentication.
 
 The procedure is simple: just send the POST data for the login form.
 
@@ -100,73 +79,15 @@ FNC is a function with one parameter: the auth-token."
 			  (cons "utf8" "✓"))
 		    "&")))
 
-
-    ;; (diaspora-debug-msg "***POSTing:")
-    ;; (diaspora-debug-msg (diaspora-url-sign-in))
-    ;; (diaspora-debug-msg url-request-data)
-
     (url-retrieve (diaspora-url-sign-in) 'diaspora-cb-get-session-cookie (list fnc))
-    )
+
+    )  
   )
 
-(defun diaspora-get-stream (url &optional max-time lst-get-parameters lst-post-parameters)
-  "Get the Diáspora URL and leave it in a new buffer.
-Returns: A new buffer where is all the information retrieved from the URL.
-nil if something happened."
-  (let ((url-registered-auth-schemes '())
-	(url-request-extra-headers
-	 '(("Content-Type" . "application/x-www-form-urlencoded")
-	   ("Accept-Language" . "en")
-	   ("Accept-Charset" . "utf-8")))
-	(buffer-file-coding-system 'utf-8))
-    (if max-time
-	
-	(let ((url-request-data ;; the interval of time has been setted
-	       (mapconcat (lambda (arg)
-			    (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-			  (append (list (cons "max_time" (number-to-string (diaspora-get-time-by-timezone max-time))))
-				  lst-get-parameters
-				  lst-post-parameters)			  
-			  "&"))
-	      )
-
-	  ;; (diaspora-debug-msg "***GETing:")
-	  ;; (diaspora-debug-msg url)
-	  ;; (diaspora-debug-msg url-request-data)
-	  
-	  (let ((out-buffer (url-retrieve-synchronously url))
-		)
-	    (diaspora-stream-check-http-error)
-	  
-	    out-buffer ;; Ensure that the output is the buffer returned by `url-retrieve-synchronously'.
-	    )
-	  )      
-      (let ((url-request-data ;; there is no interval of time
-	     (mapconcat (lambda (arg)
-			  (concat (url-hexify-string (car arg)) "=" (url-hexify-string (cdr arg))))
-			(append lst-get-parameters lst-post-parameters)
-			"&"))
-	    )
-
-	;; (diaspora-debug-msg "***GETing:")
-	;; (diaspora-debug-msg url)
-	;; (diaspora-debug-msg url-request-data)
-
-	(let* ((out-buffer (url-retrieve-synchronously url))
-	       )
-	  (with-current-buffer out-buffer
-	    (diaspora-stream-check-http-error)
-	    )
-
-	  out-buffer ;; Ensure that the output is the buffer returned by `url-retrieve-synchronously'.
-	  )
-	)
-      )
-    )
-  )
 
 ;; ====================================================================================================
 					; Private functions
+
 
 (defun diaspora-cb-get-session-cookie (status fnc)
   "Callback function for `diaspora-get-session-cookie'.

@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mié abr  4 11:52:27 2012 (-0300)
 ;; Version: 
-;; Last-Updated: mié jun  5 12:30:45 2013 (-0300)
+;; Last-Updated: mar jul 23 02:04:19 2013 (-0300)
 ;;           By: Christian
-;;     Update #: 2
+;;     Update #: 4
 ;; URL: 
 ;; Keywords: 
 ;; Compatibility: 
@@ -143,7 +143,7 @@ And the `diaspora-participate-stream-name' must be at value \"participate\"."
   :group 'diaspora-streams)
 
 (defcustom diaspora-sign-in-url 
-  "/users/sign_in"
+  "users/sign_in"
   "URL used to signing in."
   :type 'string
   :group 'diaspora-streams)

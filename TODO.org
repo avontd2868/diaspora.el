@@ -1,0 +1,48 @@
+#+TITLE: TODO
+#+AUTHOR: Giménez, Christian
+
+#+STARTUP: overview
+#+TODO: TODO PAUSED | CANCELED DONE
+
+* Interface							  :interface:
+* Control							    :control:
+* Streaming							 :streaming:
+  This interface is a common API between Stream <-> Control levels.
+
+  Here you can change between connection libraries without changing functions for retrieving the same information.
+
+** Common Main Stream Interface					     :common:
+*** TODO Create "change connection" library functions
+    We need some function for changing between one type of connection or another.
+
+    For example, calling ~(diaspora-stream-change-conn 'cliaspora)~ diaspora-stream change all functions accordingly for using cliaspora library wrapper instead of HTTP library connection.
+
+** HTTP Libraries						       :http:
+*** TODO Create function for connect to D*
+    
+** Cliaspora Wrapper Library					  :cliaspora:
+   It is needed a .el library for managing Cliaspora. In other words, for executing and processing program results.
+
+* Future							     :future:
+* Bugs								       :bugs:
+* Licence
+
+    TODO.org
+    Copyright (C) 2013  Giménez, Christian N.
+
+    This program is free software: you can redistribute it and/or modify
+    it under the terms of the GNU General Public License as published by
+    the Free Software Foundation, either version 3 of the License, or
+    (at your option) any later version.
+
+    This program is distributed in the hope that it will be useful,
+    but WITHOUT ANY WARRANTY; without even the implied warranty of
+    MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+    GNU General Public License for more details.
+
+    You should have received a copy of the GNU General Public License
+    along with this program.  If not, see <http://www.gnu.org/licenses/>.
+
+    Martes 23 De Julio Del 2013    
+
+
