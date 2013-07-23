@@ -218,9 +218,6 @@ If nil, you will be prompted."
 (defvar  diaspora-webfinger-list nil
   "")
 
-(defvar diaspora-auth-token nil
-  "Authenticity token variable name.")
-
 (defvar  diaspora-resource-descriptor-webfinger-string nil
   "")
 

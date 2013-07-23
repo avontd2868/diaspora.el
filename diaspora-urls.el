@@ -6,9 +6,9 @@
 ;; Maintainer: 
 ;; Created: mié abr  4 11:52:27 2012 (-0300)
 ;; Version: 
-;; Last-Updated: 
-;;           By: 
-;;     Update #: 0
+;; Last-Updated: mié jun  5 12:30:45 2013 (-0300)
+;;           By: Christian
+;;     Update #: 2
 ;; URL: 
 ;; Keywords: 
 ;; Compatibility: 
@@ -75,6 +75,72 @@ If only use http, use false."
   :group 'diaspora
   :tag "Diaspora's URLs Generation."
   :version "23.0")
+
+(defcustom diaspora-entry-stream-name 
+  "stream"
+  "JSON version of the entry stream(the main stream)."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-public-stream-name
+  "public"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the public stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-followed-tags-stream-name
+  "followed_tags"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the followed tags stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-mentions-stream-name
+  "mentions"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the mentions stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-liked-stream-name
+  "liked"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the liked stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
+
+(defcustom diaspora-commented-stream-name
+  "commented"
+  "This is the name (as appear in diaspora/config/routes.rb in the diaspora project) of the commented stream.
+This is the name of the page, for example:
+If `diaspora-pod' has the value \"joindiaspora.com\", then,
+the JSON page is at the URL:
+  https://joindiaspora.com/participate.json
+
+And the `diaspora-participate-stream-name' must be at value \"participate\"."
+  :type 'string
+  :group 'diaspora-streams)
 
 (defcustom diaspora-sign-in-url 
   "/users/sign_in"
@@ -303,6 +369,14 @@ If FORMAT optional parameter can be any of the following strings:
 	   )
    )
   )  
+
+(defun diaspora-url-sign-in ()
+  "Return the sign in URL.
+Used for getting the authenticity token as well."
+
+  (diaspora-url diaspora-sign-in-url)
+  )
+
 
 (provide 'diaspora-urls)
 
